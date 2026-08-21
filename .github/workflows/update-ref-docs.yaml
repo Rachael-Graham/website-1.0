@@ -13,10 +13,17 @@ concurrency:
 
 # The docs are a Hugo site under docs-site/ (served at /docs). This workflow
 # generates the reference pages directly as Hugo markdown into docs-site/content:
-#   - kagent CRD API ref -> docs-site/content/kagent/resources/api-ref.md
+#   - kagent CRD API ref -> docs-site/content/kagent/0.x/resources/api-ref.md
 #   - kmcp CRD API ref   -> docs-site/content/kmcp/reference/api-ref.md
-#   - kagent Helm ref     -> docs-site/content/kagent/resources/helm.md
+#   - kagent Helm ref     -> docs-site/content/kagent/0.x/resources/helm.md
 # Each page uses plain Hugo YAML frontmatter (no MDX `export const metadata`).
+#
+# Targets the 0.x (current stable) tree only — v1alpha2, the API this job
+# generates against, is what 0.x actually ships. The 1.x rewrite tracks
+# v1alpha3 and gets its API/Helm reference hand-written for now (see the
+# kagent 1.0 docs scope: Phase 4, blocked on the v1alpha3 schema settling);
+# point a similar job at docs-site/content/kagent/1.x/resources/ once that's
+# ready to automate.
 jobs:
   generate-api-docs:
     runs-on: ubuntu-latest
@@ -27,9 +34,9 @@ jobs:
 
     # Target Hugo content paths (relative to the website checkout).
     env:
-      KAGENT_API_PAGE: docs-site/content/kagent/resources/api-ref.md
+      KAGENT_API_PAGE: docs-site/content/kagent/0.x/resources/api-ref.md
       KMCP_API_PAGE: docs-site/content/kmcp/reference/api-ref.md
-      HELM_PAGE: docs-site/content/kagent/resources/helm.md
+      HELM_PAGE: docs-site/content/kagent/0.x/resources/helm.md
 
     steps:
       - name: Checkout kagent repository

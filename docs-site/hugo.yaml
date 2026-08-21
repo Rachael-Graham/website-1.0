@@ -108,6 +108,30 @@ params:
     # Auto-render the light/dark toggle in the navbar
     displayToggle: true
 
+  # Per-section version lists, consumed by the local navbar.html override
+  # (layouts/_partials/navbar.html) and by docs-theme-extras' version-cards
+  # shortcode. Scoped under sections.kagent rather than the top-level
+  # `versions` key so kmcp — the other product built into this same Hugo
+  # site — never picks up kagent's version dropdown. See the navbar.html
+  # override's header comment for why that scoping is necessary here.
+  #
+  # 0.x is the frozen pre-1.0 doc set (moved verbatim from the former flat
+  # content/kagent/ tree); 1.x is the in-progress v1alpha3/Agent Substrate
+  # rewrite and carries an in-development banner until it's ready to become
+  # the default.
+  sections:
+    kagent:
+      versions:
+        - version: "0.x"
+          dropdown: "0.x (current)"
+          linkVersion: "0.x"
+          url: "/kagent/0.x"
+        - version: "1.x"
+          dropdown: "1.x (preview)"
+          linkVersion: "1.x"
+          url: "/kagent/1.x"
+          banner: "This is preview documentation for the upcoming kagent 1.0 release. It is incomplete and may change without notice."
+
 # Top nav — mirrors kagent.dev. Docs is local; the marketing/blog sections stay
 # on the Next.js site, so those link out to absolute kagent.dev URLs.
 menu:
