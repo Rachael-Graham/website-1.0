@@ -7,16 +7,28 @@
   at the current section, so kagent's nav "drills down" as you navigate deeper
   instead of showing the whole product tree.
 
-  kagent docs are flat + unversioned but split across two products (kagent + kmcp,
-  each a top-level content section). This override roots the tree at the product
-  section via .FirstSection — the current page's top-level section ancestor — so
-  every page in a product shows that product's full, expandable tree with the
-  active branch auto-expanded. Using .FirstSection (rather than parsing the URL
-  for a /docs/<product> prefix) keeps this correct regardless of the baseURL
+  kagent docs are split across two top-level content sections, kagent and
+  kmcp. This override roots the tree at the product section via .FirstSection
+  — the current page's top-level section ancestor — so every page in a
+  product shows that product's full, expandable tree with the active branch
+  auto-expanded. Using .FirstSection (rather than parsing the URL for a
+  /docs/<product> prefix) keeps this correct regardless of the baseURL
   subpath the site is served under. It reuses the same CSS classes /
   data-attributes as extras' sidebar (sidebar-link, sidebar-toggle,
   sidebar-children, data-sidebar-item, sidebar-mobile-panel) so the toggle JS and
   mobile drawer in docs-theme-extras keep working.
+
+  kagent (unlike kmcp) is also versioned (0.x, 1.x — see
+  sections.kagent.versions in hugo.yaml). .FirstSection alone would root the
+  tree at the "kagent" product page, whose direct children are now the 0.x
+  and 1.x version pages themselves — so BOTH versions' full trees would
+  render side by side, and the version switcher (navbar.html) would have no
+  effect on the sidebar at all. For a versioned product, this override
+  instead resolves the CURRENT page's version page (e.g. "/kagent/0.x") and
+  roots the tree there, so only that version's sections show. On the bare
+  product landing page (the version-picker itself, with no version segment
+  in its own URL) there's no single version to root at, so the sidebar is
+  suppressed there rather than showing every version.
 
   Called by extras' docs/single.html + docs/list.html as:
       {{ partial "sidebar.html" (dict "context" .) }}
@@ -29,17 +41,47 @@
   <aside class="hx:hidden"></aside>
 {{- else -}}
   {{- $navRoot := $context.FirstSection -}}
+  {{- $suppress := false -}}
 
-  <div class="sidebar-mobile-overlay" onclick="closeMobileSidebar()"></div>
-  <aside class="sidebar-container hextra-sidebar-container sidebar-mobile-panel hx:order-first hx:w-64 hx:shrink-0 hx:hidden hx:xl:block hx:print:hidden">
-    <div class="sidebar-nav-wrapper">
-      <nav class="sidebar-nav">
-        {{- with $navRoot -}}
-          {{- template "kagent-sidebar-tree" (dict "page" . "current" $context "depth" 0) -}}
+  {{- $sectionKey := $context.Section -}}
+  {{- if and $sectionKey (isset $context.Site.Params.sections $sectionKey) -}}
+    {{- with (index $context.Site.Params.sections $sectionKey).versions -}}
+      {{- $segments := split (strings.Trim $context.RelPermalink "/") "/" -}}
+      {{- $sectionIdx := -1 -}}
+      {{- range $i, $seg := $segments -}}
+        {{- if and (eq $sectionIdx -1) (eq $seg $sectionKey) -}}
+          {{- $sectionIdx = $i -}}
         {{- end -}}
-      </nav>
-    </div>
-  </aside>
+      {{- end -}}
+      {{- $versionPage := false -}}
+      {{- if ge $sectionIdx 0 -}}
+        {{- $versionIdx := add $sectionIdx 1 -}}
+        {{- if lt $versionIdx (len $segments) -}}
+          {{- $versionPage = site.GetPage (printf "/%s/%s" $sectionKey (index $segments $versionIdx)) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if $versionPage -}}
+        {{- $navRoot = $versionPage -}}
+      {{- else -}}
+        {{- $suppress = true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- if $suppress -}}
+    <aside class="hx:hidden"></aside>
+  {{- else -}}
+    <div class="sidebar-mobile-overlay" onclick="closeMobileSidebar()"></div>
+    <aside class="sidebar-container hextra-sidebar-container sidebar-mobile-panel hx:order-first hx:w-64 hx:shrink-0 hx:hidden hx:xl:block hx:print:hidden">
+      <div class="sidebar-nav-wrapper">
+        <nav class="sidebar-nav">
+          {{- with $navRoot -}}
+            {{- template "kagent-sidebar-tree" (dict "page" . "current" $context "depth" 0) -}}
+          {{- end -}}
+        </nav>
+      </div>
+    </aside>
+  {{- end -}}
 {{- end -}}
 
 {{- /* Recursive tree renderer — mirrors extras' render-sidebar-tree markup. */ -}}
