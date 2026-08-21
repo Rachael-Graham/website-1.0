@@ -11,7 +11,7 @@ kagent comes with a set of built-in tools that you can use to interact with your
 
 ## Built-in Tools
 
-You can check out the full list of [built-in tools](https://kagent.dev/tools), or see the [Tools Ecosystem]({{< relref "/kagent/0.x/resources/tools-ecosystem" >}}) reference for a detailed catalog of tools organized by MCP server.
+You can check out the full list of [built-in tools](https://kagent.dev/tools), or see the [Tools Ecosystem]({{< link path="resources/tools-ecosystem" >}}) reference for a detailed catalog of tools organized by MCP server.
 
 The built-in tools are meant as a good starting point for any agents running in kubernetes, however we don't envision them covering all possible use-cases, so we support multiple tool extension points to allow you to bring in your own tools.
 
@@ -78,7 +78,7 @@ MCP stands for [Model Context Protocol](https://modelcontextprotocol.io/introduc
 
 ### MCP Apps
 
-Some MCP tools ship an interactive UI with their results. kagent detects these tools automatically and renders their widgets inline in the chat, and the dashboard lists them alongside a server's regular tools so you can test them directly. See [MCP Apps]({{< relref "/kagent/0.x/concepts/mcp-apps" >}}) for details.
+Some MCP tools ship an interactive UI with their results. kagent detects these tools automatically and renders their widgets inline in the chat, and the dashboard lists them alongside a server's regular tools so you can test them directly. See [MCP Apps]({{< link path="concepts/mcp-apps" >}}) for details.
 
 ## HTTP Tools
 

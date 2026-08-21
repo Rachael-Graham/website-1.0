@@ -8,7 +8,7 @@ author: kagent.dev
 
 ## What's the best way to get started with kagent?
 
-The best way to get started with kagent is to follow the [quickstart guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}). This will give you a basic understanding of how kagent works and how to use it.
+The best way to get started with kagent is to follow the [quickstart guide]({{< link path="getting-started/quickstart" >}}). This will give you a basic understanding of how kagent works and how to use it.
 
 ## What differentiates kagent from other LLM frameworks?
 

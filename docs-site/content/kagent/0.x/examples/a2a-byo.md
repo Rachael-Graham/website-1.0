@@ -6,13 +6,13 @@ weight: 1
 author: kagent.dev
 ---
 
-Bring your own custom agents. This example uses the [Agent Development Kit (ADK)](https://google.github.io/adk-docs/), but you can also try out the [LangGraph guide]({{< relref "/kagent/0.x/examples/langchain-byo/" >}}). Such frameworks give you more control over the agent behavior and are well-suited for complex workflows and integration with external systems and APIs.
+Bring your own custom agents. This example uses the [Agent Development Kit (ADK)](https://google.github.io/adk-docs/), but you can also try out the [LangGraph guide]({{< link path="examples/langchain-byo/" >}}). Such frameworks give you more control over the agent behavior and are well-suited for complex workflows and integration with external systems and APIs.
 
 Unlike declarative agents that are defined by kagent resources with components such as system instructions, models, and tools written inline, these BYO agents give you full control over agent logic. If you have your own agent, no need to decompose its functions into separate kagent resources. kagent can invoke your agent directly through the A2A protocol.
 
 ## Prerequisites
 
-1. Install kagent by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
+1. Install kagent by following the [quick start]({{< link path="getting-started/quickstart" >}}) guide.
 2. Use [Google ADK](https://github.com/google/adk-python) version 1.22.1 or later.
 
 ## Building a custom agent
@@ -162,7 +162,7 @@ You can invoke the agent in several ways, including the kagent dashboard, kagent
 
 ### Dashboard
 
-Launch the dashboard with `kagent dashboard`, find your `basic-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
+Launch the dashboard with `kagent dashboard`, find your `basic-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< link path="getting-started/first-agent" >}}) guide.
 
 ![BYO Agent](/images/byo-basic.png "Chat with your basic agent")
 

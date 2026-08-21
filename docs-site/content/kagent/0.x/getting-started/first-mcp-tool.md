@@ -12,7 +12,7 @@ In this guide, you'll learn how to add an MCP tool to your first AI agent using 
 
 ## Prerequisites
 
-1. Install kagent in a Kubernetes cluster. If you haven't done this yet, check out the [installation guide]({{< relref "/kagent/0.x/introduction/installation" >}}) or the [quickstart guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}).
+1. Install kagent in a Kubernetes cluster. If you haven't done this yet, check out the [installation guide]({{< link path="introduction/installation" >}}) or the [quickstart guide]({{< link path="getting-started/quickstart" >}}).
 
 2. Make sure that you have the kagent custom resources in your cluster.
 
@@ -22,7 +22,7 @@ In this guide, you'll learn how to add an MCP tool to your first AI agent using 
 
 ## Creating an agent
 
-To create an agent, follow the [Your First Agent guide]({{< relref "/kagent/0.x/getting-started/first-agent" >}}).
+To create an agent, follow the [Your First Agent guide]({{< link path="getting-started/first-agent" >}}).
 
 Take a look at the Agent custom resource for your first agent, such as with the following command.
 
@@ -177,5 +177,5 @@ Now let's try our agent out with the fetch tool.
 
 ## Next Steps
 
-- Learn more about [Core Concepts]({{< relref "/kagent/0.x/concepts" >}})
+- Learn more about [Core Concepts]({{< link path="concepts" >}})
 - Join our [Community](https://discord.gg/Fu3k65f2k3)

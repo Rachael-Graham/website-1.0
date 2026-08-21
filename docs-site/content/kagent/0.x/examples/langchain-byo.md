@@ -10,7 +10,7 @@ You can bring your own LangGraph agent to kagent by configuring the kagentCheckp
 
 ## Prerequisites
 
-Install kagent by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
+Install kagent by following the [quick start]({{< link path="getting-started/quickstart" >}}) guide.
 
 ## Building a LangGraph agent
 
@@ -125,7 +125,7 @@ You can invoke the agent through the kagent dashboard or kagent CLI.
 
 ### Dashboard
 
-Launch the dashboard with `kagent dashboard`, find your `langgraph-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
+Launch the dashboard with `kagent dashboard`, find your `langgraph-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< link path="getting-started/first-agent" >}}) guide.
 
 ![BYO Agent](/images/byo-langgraph.png "Chat with your LangGraph agent")
 

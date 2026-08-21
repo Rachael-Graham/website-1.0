@@ -5,13 +5,13 @@ weight: 1
 author: kagent.dev
 ---
 
-This guide covers ways to install and configure kagent in your Kubernetes environment. For a quick setup, check out our [Quick Start Guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}). For enterpise offerings, check out [Solo Enterprise for kagent]({{< relref "/kagent/0.x/introduction/what-is-kagent/#enterprise-distributions" >}}).
+This guide covers ways to install and configure kagent in your Kubernetes environment. For a quick setup, check out our [Quick Start Guide]({{< link path="getting-started/quickstart" >}}). For enterpise offerings, check out [Solo Enterprise for kagent]({{< link path="introduction/what-is-kagent/#enterprise-distributions" >}}).
 
 ## Installation Methods
 
 Install kagent by using the kagent CLI or Helm.
 
-> **Note**: As of [version 0.7]({{< relref "/kagent/0.x/resources/release-notes#kmcp-installed-by-default" >}}), the kmcp subproject is included by default with kagent. To use an existing kmcp installation that you already set up separately, set `kmcp.enabled=false` in your `values.yaml` file or `--set` commands for both the `kagent` and `kagent-crds` charts.
+> **Note**: As of [version 0.7]({{< link path="resources/release-notes#kmcp-installed-by-default" >}}), the kmcp subproject is included by default with kagent. To use an existing kmcp installation that you already set up separately, set `kmcp.enabled=false` in your `values.yaml` file or `--set` commands for both the `kagent` and `kagent-crds` charts.
 
 ### Using kagent CLI (Recommended)
 
@@ -66,7 +66,7 @@ Another way to install kagent is using Helm.
        --create-namespace
    ```
 
-2. Optionally prepare a Helm values file or `--set` flags to use for your installation. For example, you might set up your default LLM provider, or configure resource requests and limits or disable the default agents. For options, refer to the [Helm reference docs]({{< relref "/kagent/0.x/resources/helm" >}}).
+2. Optionally prepare a Helm values file or `--set` flags to use for your installation. For example, you might set up your default LLM provider, or configure resource requests and limits or disable the default agents. For options, refer to the [Helm reference docs]({{< link path="resources/helm" >}}).
 
 {{< tabs >}}
 {{< tab name="OpenAI" >}}
@@ -185,7 +185,7 @@ Review the following advanced configuration options that you might want to set u
 
 ### Enable AgentHarness support
 
-`AgentHarness` resources run on [Agent Substrate]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}). To enable them, install Agent Substrate and turn on the substrate integration in kagent. When the integration is disabled, the controller cannot provision AgentHarness resources.
+`AgentHarness` resources run on [Agent Substrate]({{< link path="concepts/agent-substrate" >}}). To enable them, install Agent Substrate and turn on the substrate integration in kagent. When the integration is disabled, the controller cannot provision AgentHarness resources.
 
 1. Install Agent Substrate (CRDs, then the control plane and data plane).
 
@@ -228,11 +228,11 @@ Review the following advanced configuration options that you might want to set u
 
    Pin the kagent chart to v0.9.9 or later — earlier versions do not include the `controller.substrate.*` and `substrateWorkerPool.*` values.
 
-For an end-to-end walkthrough on a kind cluster, see the [Agent Substrate example]({{< relref "/kagent/0.x/examples/agent-substrate" >}}). For more information about creating harness resources, see [Agent Harness]({{< relref "/kagent/0.x/examples/agent-harness" >}}).
+For an end-to-end walkthrough on a kind cluster, see the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}). For more information about creating harness resources, see [Agent Harness]({{< link path="examples/agent-harness" >}}).
 
 ### Database configuration
 
-For production environments, set up kagent with an external PostgreSQL instance. For more information, see the [Database configuration guide]({{< relref "/kagent/0.x/operations/operational-considerations/#database-configuration" >}}).
+For production environments, set up kagent with an external PostgreSQL instance. For more information, see the [Database configuration guide]({{< link path="operations/operational-considerations/#database-configuration" >}}).
 
 ### Configure controller environment variables
 
@@ -303,9 +303,9 @@ This example loads all key-value pairs from the `controller-secrets` secret as e
 
 ## Uninstallation
 
-Refer to the [Uninstall]({{< relref "/kagent/0.x/operations/uninstall" >}}) guide.
+Refer to the [Uninstall]({{< link path="operations/uninstall" >}}) guide.
 
 ## Next Steps
 
-- [Create your first agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}})
+- [Create your first agent]({{< link path="getting-started/first-agent" >}})
 - [Explore available agents](https://kagent.dev/agents)

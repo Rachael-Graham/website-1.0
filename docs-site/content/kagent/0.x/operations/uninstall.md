@@ -17,7 +17,7 @@ Remove kagent from your Kubernetes cluster using the kagent CLI or Helm.
 
 ## Uninstall with the kagent CLI
 
-Remove kagent by using the CLI. For more options, see the [`kagent uninstall` command reference]({{< relref "/kagent/0.x/resources/cli/kagent-uninstall" >}}).
+Remove kagent by using the CLI. For more options, see the [`kagent uninstall` command reference]({{< link path="resources/cli/kagent-uninstall" >}}).
 
 ```bash
 kagent uninstall

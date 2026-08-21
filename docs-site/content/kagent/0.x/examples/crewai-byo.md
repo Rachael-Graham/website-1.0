@@ -6,13 +6,13 @@ weight: 1
 author: kagent.dev
 ---
 
-Bring your own custom agents. This example uses [CrewAI](https://www.crewai.com/), but you can also try out the [ADK guide]({{< relref "/kagent/0.x/examples/a2a-byo/" >}}) or [LangGraph guide]({{< relref "/kagent/0.x/examples/langchain-byo/" >}}). Such frameworks give you more control over the agent behavior and are well-suited for complex workflows and integration with external systems and APIs.
+Bring your own custom agents. This example uses [CrewAI](https://www.crewai.com/), but you can also try out the [ADK guide]({{< link path="examples/a2a-byo/" >}}) or [LangGraph guide]({{< link path="examples/langchain-byo/" >}}). Such frameworks give you more control over the agent behavior and are well-suited for complex workflows and integration with external systems and APIs.
 
 Unlike declarative agents that are defined by kagent resources with components such as system instructions, models, and tools written inline, these BYO agents give you full control over agent logic. If you have your own agent, no need to decompose its functions into separate kagent resources. kagent can invoke your agent directly through the A2A protocol.
 
 ## Prerequisites
 
-Install kagent by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
+Install kagent by following the [quick start]({{< link path="getting-started/quickstart" >}}) guide.
 
 ## Building a custom agent
 
@@ -148,7 +148,7 @@ You can invoke the agent in several ways, including the kagent dashboard, kagent
 
 ### Dashboard
 
-Launch the dashboard with `kagent dashboard`, find your `research-crew`, and start chatting. For complete steps, see the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
+Launch the dashboard with `kagent dashboard`, find your `research-crew`, and start chatting. For complete steps, see the [Your First Agent]({{< link path="getting-started/first-agent" >}}) guide.
 
 ### kagent CLI
 

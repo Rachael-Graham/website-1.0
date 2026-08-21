@@ -97,7 +97,7 @@ spec:
           eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/kagent-bedrock
 ```
 
-If you want to use one shared ServiceAccount for multiple agents, you can also set `controller.agentDeployment.serviceAccountName` in the [Helm chart configuration]({{< relref "/kagent/0.x/resources/helm" >}}).
+If you want to use one shared ServiceAccount for multiple agents, you can also set `controller.agentDeployment.serviceAccountName` in the [Helm chart configuration]({{< link path="resources/helm" >}}).
 
 ## Option 2: OpenAI-compatible API
 

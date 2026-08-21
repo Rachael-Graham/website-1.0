@@ -9,8 +9,8 @@ Agent Substrate is a Kubernetes-native runtime for running AI agents and other s
 
 kagent can run workloads on Agent Substrate in two ways:
 
-- **Declarative agents** — A declarative `Agent` describes its model, instructions, and tools (see [Agents]({{< relref "/kagent/0.x/concepts/agents" >}})). Its sandboxed variant, the [`SandboxAgent`]({{< relref "/kagent/0.x/resources/api-ref" >}}) CRD, lets you run a (Go) declarative agent on Agent Substrate.
-- **AgentHarness** — The [`AgentHarness`]({{< relref "/kagent/0.x/concepts/agent-harness" >}}) CRD provisions a long-running execution environment for a coding agent (OpenClaw or Hermes). It always runs on Agent Substrate: kagent generates a per-harness `ActorTemplate` and creates an `Actor` from it on demand, referencing a `WorkerPool` for capacity.
+- **Declarative agents** — A declarative `Agent` describes its model, instructions, and tools (see [Agents]({{< link path="concepts/agents" >}})). Its sandboxed variant, the [`SandboxAgent`]({{< link path="resources/api-ref" >}}) CRD, lets you run a (Go) declarative agent on Agent Substrate.
+- **AgentHarness** — The [`AgentHarness`]({{< link path="concepts/agent-harness" >}}) CRD provisions a long-running execution environment for a coding agent (OpenClaw or Hermes). It always runs on Agent Substrate: kagent generates a per-harness `ActorTemplate` and creates an `Actor` from it on demand, referencing a `WorkerPool` for capacity.
 
 ## Why Agent Substrate
 
@@ -66,11 +66,11 @@ An `AgentHarness` always runs on Agent Substrate; `spec.substrate` is required. 
 - `snapshotsConfig` — configures where actor memory snapshots are stored. Defaults to `gs://ate-snapshots/<namespace>/<agentharnessname>` when unset.
 - `workloadImage` — overrides the default OpenClaw or Hermes sandbox image used in the generated ActorTemplate.
 
-kagent talks to the harness over the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) so you can chat with it from the kagent UI. See the [Agent Harness concept page]({{< relref "/kagent/0.x/concepts/agent-harness" >}}) for details.
+kagent talks to the harness over the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) so you can chat with it from the kagent UI. See the [Agent Harness concept page]({{< link path="concepts/agent-harness" >}}) for details.
 
-See the [API reference]({{< relref "/kagent/0.x/resources/api-ref" >}}) for the full `AgentHarnessSubstrateSpec` schema.
+See the [API reference]({{< link path="resources/api-ref" >}}) for the full `AgentHarnessSubstrateSpec` schema.
 
 ## Learn more
 
-- [Run a declarative agent on Agent Substrate]({{< relref "/kagent/0.x/examples/agent-substrate" >}}) — end-to-end walkthrough on a kind cluster.
+- [Run a declarative agent on Agent Substrate]({{< link path="examples/agent-substrate" >}}) — end-to-end walkthrough on a kind cluster.
 - For a deeper dive into the runtime internals, see the [Agent Substrate documentation](https://learn.agentsubstrate.dev/).

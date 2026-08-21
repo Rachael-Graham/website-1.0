@@ -12,7 +12,7 @@ Let's look at how this works in kagent!
 
 ## Prerequisites
 
-Install kagent by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
+Install kagent by following the [quick start]({{< link path="getting-started/quickstart" >}}) guide.
 
 ## Creating an AI agent that supports A2A
 
@@ -135,7 +135,7 @@ You can invoke the agent in several ways, including the kagent dashboard, kagent
 
 ### Dashboard
 
-Launch the dashboard with `kagent dashboard`, find your `k8s-a2a-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
+Launch the dashboard with `kagent dashboard`, find your `k8s-a2a-agent`, and start chatting. For complete steps, see the [Your First Agent]({{< link path="getting-started/first-agent" >}}) guide.
 
 ### kagent CLI
 

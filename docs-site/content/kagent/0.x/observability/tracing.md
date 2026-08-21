@@ -9,7 +9,7 @@ Set up tracing for your kagent agents.
 
 ## Before you begin
 
-[Install kagent]({{< relref "/kagent/0.x/introduction/installation" >}}).
+[Install kagent]({{< link path="introduction/installation" >}}).
 
 ## Install Jaeger
 
@@ -82,7 +82,7 @@ Now that you installed kagent with Jaeger, learn how to trace requests to an age
 
 ### Generate tracing data
 
-To generate tracing data, you can chat with a pre-configured agent such as `k8s-agent`. For more information about agents, see the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
+To generate tracing data, you can chat with a pre-configured agent such as `k8s-agent`. For more information about agents, see the [Your First Agent]({{< link path="getting-started/first-agent" >}}) guide.
 
 1. Launch the kagent dashboard.
 
@@ -135,11 +135,11 @@ That's it! You've now traced your first agent.
 
 ## Next Steps
 
-- Learn about [Core Concepts]({{< relref "/kagent/0.x/concepts" >}})
-- Try out some [Example]({{< relref "/kagent/0.x/examples" >}}) guides
+- Learn about [Core Concepts]({{< link path="concepts" >}})
+- Try out some [Example]({{< link path="examples" >}}) guides
 
 ## Need Help?
 
 - Visit our [GitHub repository](https://github.com/kagent-dev/kagent)
 - Ask a question on [Discord](https://discord.gg/Fu3k65f2k3)
-- Check out the [FAQ]({{< relref "/kagent/0.x/resources/faq" >}})
+- Check out the [FAQ]({{< link path="resources/faq" >}})

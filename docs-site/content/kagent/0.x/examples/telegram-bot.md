@@ -98,7 +98,7 @@ spec:
 EOF
 ```
 
-Notice `requireApproval` — anything destructive (deleting resources, applying manifests, Helm upgrades) goes through [Human-in-the-Loop]({{< relref "/kagent/0.x/examples/human-in-the-loop" >}}) approval in the kagent UI first. Nobody's accidentally nuking prod from a Telegram chat.
+Notice `requireApproval` — anything destructive (deleting resources, applying manifests, Helm upgrades) goes through [Human-in-the-Loop]({{< link path="examples/human-in-the-loop" >}}) approval in the kagent UI first. Nobody's accidentally nuking prod from a Telegram chat.
 
 Verify it's working:
 

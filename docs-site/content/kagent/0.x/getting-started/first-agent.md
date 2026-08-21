@@ -10,7 +10,7 @@ In this guide, you'll learn how to create your first AI agent using the kagent d
 
 ## Prerequisites
 
-Before you begin make sure you have a Kubernetes cluster with kagent installed. If you haven't done this yet, check out the [installation guide]({{< relref "/kagent/0.x/introduction/installation" >}}) or the [quickstart guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}).
+Before you begin make sure you have a Kubernetes cluster with kagent installed. If you haven't done this yet, check out the [installation guide]({{< link path="introduction/installation" >}}) or the [quickstart guide]({{< link path="getting-started/quickstart" >}}).
 
 We'll be working in the kagent dashboard, so use the kagent CLI to open the dashboard:
 
@@ -90,5 +90,5 @@ Now that you set up all the details for your agent, you're ready to finish creat
 
 ## Next Steps
 
-- Learn more about [Core Concepts]({{< relref "/kagent/0.x/concepts" >}})
+- Learn more about [Core Concepts]({{< link path="concepts" >}})
 - Join our [Community](https://discord.gg/Fu3k65f2k3)

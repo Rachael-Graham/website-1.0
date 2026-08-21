@@ -15,12 +15,12 @@ Follow these steps to upgrade kagent to the latest version and keep your cluster
    export NEW_VERSION=<version-number>
    ```
 
-2. Read the [release notes]({{< relref "/kagent/0.x/resources/release-notes" >}}) for the version you are upgrading to. Pay attention to any breaking changes or deprecations that might affect your configuration.
+2. Read the [release notes]({{< link path="resources/release-notes" >}}) for the version you are upgrading to. Pay attention to any breaking changes or deprecations that might affect your configuration.
 
 3. Back up your current configuration, including the following:
     - Agent definitions
     - Any custom settings
-    - PostgreSQL database: You can take a snapshot now so that you have a restore point if the upgrade fails. For the database connection string, see [Database configuration]({{< relref "/kagent/0.x/operations/operational-considerations#database-configuration" >}}).
+    - PostgreSQL database: You can take a snapshot now so that you have a restore point if the upgrade fails. For the database connection string, see [Database configuration]({{< link path="operations/operational-considerations#database-configuration" >}}).
 
    ```bash
    pg_dump "postgres://<user>:<password>@<host>:5432/<dbname>" \
@@ -28,7 +28,7 @@ Follow these steps to upgrade kagent to the latest version and keep your cluster
      --file=kagent-pre-upgrade-snapshot.dump
    ```
 
-4. **v0.9.0 and later**: You must be running at least v0.8.0 before upgrading to v0.9.0. Check the [release notes]({{< relref "/kagent/0.x/resources/release-notes#v09" >}}) for 0.9-specific upgrades related to database migrations and RBAC scope.
+4. **v0.9.0 and later**: You must be running at least v0.8.0 before upgrading to v0.9.0. Check the [release notes]({{< link path="resources/release-notes#v09" >}}) for 0.9-specific upgrades related to database migrations and RBAC scope.
 
 ## Upgrade kagent
 
@@ -56,7 +56,7 @@ Follow these steps to upgrade kagent to the latest version and keep your cluster
 
 3. Make any changes that you want by editing your `values.yaml` Helm values file or preparing `--set` flags for the upgrade commands.
 
-   > **Note**: As of [version 0.7]({{< relref "/kagent/0.x/resources/release-notes#kmcp-installed-by-default" >}}), the kmcp subproject is included by default with kagent. To use an existing kmcp installation that you already set up separately, set `kmcp.enabled=false` in your `values.yaml` file or `--set` commands for both the `kagent` and `kagent-crds` charts.
+   > **Note**: As of [version 0.7]({{< link path="resources/release-notes#kmcp-installed-by-default" >}}), the kmcp subproject is included by default with kagent. To use an existing kmcp installation that you already set up separately, set `kmcp.enabled=false` in your `values.yaml` file or `--set` commands for both the `kagent` and `kagent-crds` charts.
 
 4. Upgrade the kagent-crds chart.
 
@@ -171,7 +171,7 @@ For example, `v0.9.9` has migrations up to `000005_a2a_protocol_version.up.sql` 
    export ROLLBACK_MIGRATION_VERSION=<sequence-number>
    ```
 
-5. Reset the core track. The `github://` source references the migration files directly from the release tag without a local checkout. For the database connection string, see [Database configuration]({{< relref "/kagent/0.x/operations/operational-considerations#database-configuration" >}}).
+5. Reset the core track. The `github://` source references the migration files directly from the release tag without a local checkout. For the database connection string, see [Database configuration]({{< link path="operations/operational-considerations#database-configuration" >}}).
    ```bash
    migrate \
      -source "github://kagent-dev/kagent/go/core/pkg/migrations/core#v$CURRENT_VERSION" \

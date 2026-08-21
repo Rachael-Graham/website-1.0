@@ -5,14 +5,14 @@ weight: 8
 author: kagent.dev
 ---
 
-`AgentHarness` creates a long-running remote execution environment on [Agent Substrate]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}). Unlike an `Agent` or `SandboxAgent`, it does not package a kagent runtime into the workload. The backend provisions a sandbox that runs a coding agent (OpenClaw or Hermes), which you can chat with from the kagent UI and wire into messaging channels.
+`AgentHarness` creates a long-running remote execution environment on [Agent Substrate]({{< link path="concepts/agent-substrate" >}}). Unlike an `Agent` or `SandboxAgent`, it does not package a kagent runtime into the workload. The backend provisions a sandbox that runs a coding agent (OpenClaw or Hermes), which you can chat with from the kagent UI and wire into messaging channels.
 
 Use `AgentHarness` when you want kagent to manage the lifecycle of an OpenClaw or Hermes sandbox and surface it in the kagent API/UI alongside regular agents.
 
 ## Before you begin
 
-1. Install kagent v0.9.9 or later by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
-2. Install Agent Substrate and enable the substrate integration in kagent. For Helm-based setup instructions, see [Enable AgentHarness support]({{< relref "/kagent/0.x/introduction/installation#enable-agentharness-support" >}}) and the [Agent Substrate example]({{< relref "/kagent/0.x/examples/agent-substrate" >}}).
+1. Install kagent v0.9.9 or later by following the [quick start]({{< link path="getting-started/quickstart" >}}) guide.
+2. Install Agent Substrate and enable the substrate integration in kagent. For Helm-based setup instructions, see [Enable AgentHarness support]({{< link path="introduction/installation#enable-agentharness-support" >}}) and the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}).
 
 When the substrate integration is not enabled, the controller cannot provision AgentHarness resources.
 
@@ -204,7 +204,7 @@ Once the harness is `Ready`, it appears in the kagent UI alongside your other ag
 
 2. Open [http://localhost:8001](http://localhost:8001), select your harness (for example `kagent/openclaw-shell`) from the Agents list, and send a message.
 
-The first chat connection creates a shared Substrate actor from the harness template; every chat is multiplexed as an ACP session inside that actor. You see streamed tool activity, and any tool-approval prompts the backend raises are surfaced through kagent's [human-in-the-loop]({{< relref "/kagent/0.x/examples/human-in-the-loop" >}}) flow.
+The first chat connection creates a shared Substrate actor from the harness template; every chat is multiplexed as an ACP session inside that actor. You see streamed tool activity, and any tool-approval prompts the backend raises are surfaced through kagent's [human-in-the-loop]({{< link path="examples/human-in-the-loop" >}}) flow.
 
 ## Troubleshooting
 
@@ -217,4 +217,4 @@ If the harness is not accepted or ready, check these common causes.
 - A Slack channel has the wrong backend settings, such as `slack.hermes` on an OpenClaw harness or `slack.openclaw` on a Hermes harness.
 - A Slack credential uses neither `value` nor `valueFrom`, or sets both.
 
-For the complete generated schema, see the [API reference]({{< relref "/kagent/0.x/resources/api-ref#agentharness" >}}).
+For the complete generated schema, see the [API reference]({{< link path="resources/api-ref#agentharness" >}}).

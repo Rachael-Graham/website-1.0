@@ -8,7 +8,7 @@ author: kagent.dev
 
 };
 
-kagent enables you to create AI agents that run inside your Kubernetes cluster. They can access a variety of [built-in tools]({{< relref "/kagent/0.x/concepts/tools" >}}) and use other [external tools via MCP]({{< relref "/kagent/0.x/examples/documentation" >}}).
+kagent enables you to create AI agents that run inside your Kubernetes cluster. They can access a variety of [built-in tools]({{< link path="concepts/tools" >}}) and use other [external tools via MCP]({{< link path="examples/documentation" >}}).
 
 This guide shows how to connect a Discord bot to one of your agents using the A2A protocol, enabling natural conversations and command execution inside Discord.
 
@@ -129,7 +129,7 @@ When a message is received, it’s sent to the A2A endpoint (`KAGENT_A2A_URL`), 
 
 ## Agent Setup
 
-If you haven’t deployed your agent yet, follow the instructions in [Deploying an Agent]({{< relref "/kagent/0.x/examples/slack-a2a#deploying-an-agent" >}}). You can reuse the same agent across Slack and Discord integrations.
+If you haven’t deployed your agent yet, follow the instructions in [Deploying an Agent]({{< link path="examples/slack-a2a#deploying-an-agent" >}}). You can reuse the same agent across Slack and Discord integrations.
 
 Be sure to port-forward your agent if running locally:
 
