@@ -15,9 +15,9 @@ In this guide, you learn how to add container-based skills to your agents in kag
 
 ## Before you begin
 
-1. Install kagent by following the [quick start](/docs/kagent/getting-started/quickstart) guide.
+1. Install kagent by following the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide.
 
-2. Review the concepts of [agents and skills](/docs/kagent/concepts/agents) in kagent.
+2. Review the concepts of [agents and skills]({{< relref "/kagent/0.x/concepts/agents" >}}) in kagent.
 
 ## Container-based skills
 
@@ -372,6 +372,6 @@ When you're done, you can clean up the resources that you created.
 
 ## Next steps
 
-- Learn more about [agents](/docs/kagent/concepts/agents) and their components
-- Explore [tools](/docs/kagent/concepts/tools) available in kagent
-- Check out other [examples](/docs/kagent/examples) to see different agent configurations
+- Learn more about [agents]({{< relref "/kagent/0.x/concepts/agents" >}}) and their components
+- Explore [tools]({{< relref "/kagent/0.x/concepts/tools" >}}) available in kagent
+- Check out other [examples]({{< relref "/kagent/0.x/examples" >}}) to see different agent configurations

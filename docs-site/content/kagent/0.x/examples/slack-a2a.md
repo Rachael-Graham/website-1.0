@@ -8,7 +8,7 @@ author: kagent.dev
 
 };
 
-kagent enables you to create AI agents that run inside your Kubernetes cluster. They have access to a variety of [built-in tools](/docs/kagent/concepts/tools) like Kubernetes, Istio, Grafana, Prometheus, Argo and can be extended with any other tools [using MCP](/docs/kagent/examples/documentation).
+kagent enables you to create AI agents that run inside your Kubernetes cluster. They have access to a variety of [built-in tools]({{< relref "/kagent/0.x/concepts/tools" >}}) like Kubernetes, Istio, Grafana, Prometheus, Argo and can be extended with any other tools [using MCP]({{< relref "/kagent/0.x/examples/documentation" >}}).
 
 ![Slack - A2A - MCP - kagent](/images/slack-a2a/slack-a2a-kagent.png)
 

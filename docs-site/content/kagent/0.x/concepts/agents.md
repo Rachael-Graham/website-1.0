@@ -24,7 +24,7 @@ Your responses should be clear and concise; you should provide helpful informati
 
 Instructions are an important part of the agent's behavior. They define the agent's role and capabilities and help the agent understand its environment and the tasks it can perform.
 
-Writing good instructions is an art and a science. It requires a good understanding of the task at hand, the tools available, and the user's needs. In order to make it easier to write good instructions, we've created a [system prompt tutorial](/docs/kagent/getting-started/system-prompts) that can help you get started.
+Writing good instructions is an art and a science. It requires a good understanding of the task at hand, the tools available, and the user's needs. In order to make it easier to write good instructions, we've created a [system prompt tutorial]({{< relref "/kagent/0.x/getting-started/system-prompts" >}}) that can help you get started.
 
 ### Prompt templates
 
@@ -98,7 +98,7 @@ kagent comes with a set of built-in tools that you can use to interact with your
 
 kagent supports Human-in-the-Loop (HITL) to keep humans in control of agent actions. You can require user approval before an agent executes sensitive tools, and agents can ask users questions when they need clarification.
 
-For a hands-on tutorial that walks through setting up HITL with tool approval and the `ask_user` tool, see the [Human-in-the-Loop example](/docs/kagent/examples/human-in-the-loop).
+For a hands-on tutorial that walks through setting up HITL with tool approval and the `ask_user` tool, see the [Human-in-the-Loop example]({{< relref "/kagent/0.x/examples/human-in-the-loop" >}}).
 
 ### Tool approval
 
@@ -226,7 +226,7 @@ When creating skills for your agents, consider the following best practices. Age
 4. **Align with tools**: Ensure your skills align with the tools available to the agent. If you have a skill that centers around writing docs in markdown, you might want to align it with the `write-markdown` tool (as opposed to a `generate-pdf` tool).
 5. **Keep skills focused**: Each skill should have a clear, focused purpose. For example, a document-generating skill might be too broad, but a skill that focuses on creating a specific type of document, such as a `.docx` file or alternatively a genre like a getting started guide, might be more appropriate.
 
-To learn more about using skills in your agents, see the [Skills example guide](/docs/kagent/examples/skills).
+To learn more about using skills in your agents, see the [Skills example guide]({{< relref "/kagent/0.x/examples/skills" >}}).
 
 ## Runtime
 
@@ -263,7 +263,7 @@ For more benchmarks and details, see the [Go vs Python runtime blog post](https:
 
 Your agents can save and retrieve relevant context across conversations using vector similarity search. When you enable memory on an agent, it receives three additional tools (`save_memory`, `load_memory`, `prefetch_memory`) and automatically extracts key information every 5th user message.
 
-For configuration details, supported storage backends, API endpoints, and limitations, see [Agent Memory](/docs/kagent/concepts/agent-memory).
+For configuration details, supported storage backends, API endpoints, and limitations, see [Agent Memory]({{< relref "/kagent/0.x/concepts/agent-memory" >}}).
 
 ## Context Management
 
@@ -292,9 +292,9 @@ Compaction removes older conversation events to free up space in the context win
 
 ## Sandboxed Agents
 
-You can run a declarative agent in an isolated sandbox by creating a `SandboxAgent` resource instead of a regular `Agent`. A `SandboxAgent` runs on [Agent Substrate](/docs/kagent/concepts/agent-substrate): the kagent controller runs it as a gVisor-sandboxed actor instead of a Deployment, snapshotting it to object storage when idle and rehydrating it on demand. The spec mirrors the `Agent` spec, with a few constraints: sandboxed agents always use the Go ADK runtime, and `spec.skills` and `BYO` agents are not supported. Configure substrate placement with the optional `spec.substrate` field (for example, `workerPoolRef`).
+You can run a declarative agent in an isolated sandbox by creating a `SandboxAgent` resource instead of a regular `Agent`. A `SandboxAgent` runs on [Agent Substrate]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}): the kagent controller runs it as a gVisor-sandboxed actor instead of a Deployment, snapshotting it to object storage when idle and rehydrating it on demand. The spec mirrors the `Agent` spec, with a few constraints: sandboxed agents always use the Go ADK runtime, and `spec.skills` and `BYO` agents are not supported. Configure substrate placement with the optional `spec.substrate` field (for example, `workerPoolRef`).
 
-For setup steps, see the [Agent Substrate example](/docs/kagent/examples/agent-substrate).
+For setup steps, see the [Agent Substrate example]({{< relref "/kagent/0.x/examples/agent-substrate" >}}).
 
 ## Agents as Tools
 
@@ -330,4 +330,4 @@ Here's how you could reference an existing agent (`promql-agent`) as a tool:
 
 A2A-enabled agents are automatically exposed as an MCP server on the kagent controller. The MCP endpoint is available at `/mcp` on the same port as the A2A endpoint (default 8083).
 
-For more information, see the [MCP tools](/docs/kagent/examples/agents-mcp) guide.
+For more information, see the [MCP tools]({{< relref "/kagent/0.x/examples/agents-mcp" >}}) guide.

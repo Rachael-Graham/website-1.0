@@ -60,4 +60,4 @@ A complete example, including a demo agent, is available in the kagent repositor
 
 - [MCP Apps extension](https://github.com/modelcontextprotocol/ext-apps)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- [Tools in kagent](/docs/kagent/concepts/tools)
+- [Tools in kagent]({{< relref "/kagent/0.x/concepts/tools" >}})

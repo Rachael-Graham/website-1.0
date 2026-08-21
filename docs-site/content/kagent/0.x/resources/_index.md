@@ -5,4 +5,4 @@ weight: 7
 author: kagent.dev
 ---
 
-Find helpful resources and FAQs for kagent. New to kagent? Start with the [Quick Start Guide](/docs/kagent/getting-started/quickstart).
+Find helpful resources and FAQs for kagent. New to kagent? Start with the [Quick Start Guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}).

@@ -62,7 +62,7 @@ Check out [Solo Enterprise for kagent](https://www.solo.io/products/kagent-enter
 
 ## Getting Started
 
-To start using kagent in your environment, check out the [Quick Start Guide](/docs/kagent/getting-started/quickstart) guide. For a deeper understanding of how kagent works, refer to the [kagent architecture](/docs/kagent/concepts/architecture).
+To start using kagent in your environment, check out the [Quick Start Guide]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide. For a deeper understanding of how kagent works, refer to the [kagent architecture]({{< relref "/kagent/0.x/concepts/architecture" >}}).
 
 Ready to contribute? Visit our [Github repository](https://github.com/kagent-dev) to learn how you can help expand the ecosystem of cloud-native AI agents.
 
@@ -71,5 +71,5 @@ Ready to contribute? Visit our [Github repository](https://github.com/kagent-dev
 Join the kagent community:
 - Explore our repositories on [GitHub](https://github.com/kagent-dev)
 - Join the discussion in the #kagent channel on CNCF Slack
-- Check our [FAQ](/docs/kagent/resources/faq) for common questions
+- Check our [FAQ]({{< relref "/kagent/0.x/resources/faq" >}}) for common questions
 - Follow our [Feature Roadmap](https://github.com/kagent-dev/kagent/blob/main/README.md#roadmap) for upcoming developments

@@ -13,7 +13,7 @@ By the end, you will have:
 - kagent v0.9.7 or later installed with the substrate integration enabled. Earlier kagent releases do not include the controller wiring that lets a `SandboxAgent` target substrate.
 - A `SandboxAgent` running on substrate, reachable from the kagent UI.
 
-For background on what substrate is and how it differs from a per-pod agent runtime, see the [Agent Substrate concept page](/docs/kagent/concepts/agent-substrate). This guide does not cover the `AgentHarness` path on substrate.
+For background on what substrate is and how it differs from a per-pod agent runtime, see the [Agent Substrate concept page]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}). This guide does not cover the `AgentHarness` path on substrate.
 
 ## Before you begin
 
@@ -213,5 +213,5 @@ kind delete cluster --name kagent-substrate
 
 ## Next steps
 
-- [Agent Substrate concept page](/docs/kagent/concepts/agent-substrate) — runtime architecture and how snapshots, actors, and worker pools fit together.
-- [AgentHarness](/docs/kagent/examples/agent-harness) — provision long-running OpenClaw and Hermes coding-agent sandboxes on Agent Substrate and chat with them over ACP.
+- [Agent Substrate concept page]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}) — runtime architecture and how snapshots, actors, and worker pools fit together.
+- [AgentHarness]({{< relref "/kagent/0.x/examples/agent-harness" >}}) — provision long-running OpenClaw and Hermes coding-agent sandboxes on Agent Substrate and chat with them over ACP.

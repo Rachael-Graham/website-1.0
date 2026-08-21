@@ -51,6 +51,6 @@ If you prefer to manually set up port-forwarding, or if you're on a platform whe
 
 You can use the UI to view and manage your agents, tools, and models. For more information, see the following guides:
 
-- [Create your first agent](/docs/kagent/getting-started/first-agent)
-- [Add MCP tools to your agents](/docs/kagent/getting-started/first-mcp-tool)
-- [Configure LLM providers](/docs/kagent/supported-providers)
+- [Create your first agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}})
+- [Add MCP tools to your agents]({{< relref "/kagent/0.x/getting-started/first-mcp-tool" >}})
+- [Configure LLM providers]({{< relref "/kagent/0.x/supported-providers" >}})

@@ -66,4 +66,4 @@ Omit `apiKeySecret` and `apiKeyPassthrough` to use Azure Workload Identity. For 
 
 Follow the [AKS Workload Identity deployment guide](https://learn.microsoft.com/azure/aks/workload-identity-deploy-cluster) and grant the managed identity the `Cognitive Services User` role.
 
-The kagent pod and ServiceAccount settings are provider-independent. Follow [Configure the agent for Azure Workload Identity](/docs/kagent/supported-providers/azure-ai-foundry#configure-the-agent-for-azure-workload-identity) and set the agent's `modelConfig` to `azure-openai`.
+The kagent pod and ServiceAccount settings are provider-independent. Follow [Configure the agent for Azure Workload Identity]({{< relref "/kagent/0.x/supported-providers/azure-ai-foundry#configure-the-agent-for-azure-workload-identity" >}}) and set the agent's `modelConfig` to `azure-openai`.

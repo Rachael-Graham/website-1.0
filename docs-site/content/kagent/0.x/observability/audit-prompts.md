@@ -20,7 +20,7 @@ kagent supports logging input/output messages for the following LLM providers:
 
 ## Before you begin
 
-1. [Install kagent](/docs/kagent/introduction/installation) in your cluster.
+1. [Install kagent]({{< relref "/kagent/0.x/introduction/installation" >}}) in your cluster.
 
 2. Add the OpenTelemetry Helm repository.
 

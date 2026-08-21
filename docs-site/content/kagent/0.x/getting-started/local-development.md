@@ -6,13 +6,13 @@ weight: 4
 author: kagent.dev
 ---
 
-In this guide, you'll learn how to develop, build and run an AI agent locally using kagent CLI, without a Kubernetes cluster. This guide is meant for developers familiar with Python. You can also create declarative agents without writing a single line of code, by following the [Your First Agent](/docs/kagent/getting-started/first-agent) guide.
+In this guide, you'll learn how to develop, build and run an AI agent locally using kagent CLI, without a Kubernetes cluster. This guide is meant for developers familiar with Python. You can also create declarative agents without writing a single line of code, by following the [Your First Agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}}) guide.
 
 ## Prerequisites
 
 Before you begin make sure you have the following prerequisites installed: 
 
-- [kagent CLI](/docs/kagent/introduction/installation)
+- [kagent CLI]({{< relref "/kagent/0.x/introduction/installation" >}})
 - [Python](https://www.python.org/)
 - [Docker](https://www.docker.com/) and [Docker compose](https://docs.docker.com/compose/)
 

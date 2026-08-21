@@ -24,7 +24,7 @@ The kagent engine is the core component of kagent. It runs the agent's conversat
 - **Python ADK** (default) — Built on top of the [Google ADK](https://google.github.io/adk-docs/) framework. Supports Google ADK-native features and integrations with CrewAI, LangGraph, and OpenAI frameworks.
 - **Go ADK** — A native Go implementation that provides faster startup (~2 seconds vs ~15 seconds) and lower resource consumption.
 
-Select the runtime by setting the `runtime` field in the agent spec (e.g., `runtime: go`). Both runtimes support MCP tools, HITL, and agent memory. For more details, see [Agents](/docs/kagent/concepts/agents#runtime).
+Select the runtime by setting the `runtime` field in the agent spec (e.g., `runtime: go`). Both runtimes support MCP tools, HITL, and agent memory. For more details, see [Agents]({{< relref "/kagent/0.x/concepts/agents#runtime" >}}).
 
 For more information on the Google ADK framework:
 
@@ -63,5 +63,5 @@ kagent dashboard provides a web interface for managing and working with AI agent
 
 ## Next Steps
 
-- Try [building your own agent](/docs/kagent/getting-started/first-agent)
+- Try [building your own agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}})
 - Join our [Community](https://discord.gg/Fu3k65f2k3)

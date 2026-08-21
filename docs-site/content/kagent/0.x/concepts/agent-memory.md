@@ -22,7 +22,7 @@ Agent memory provides the following capabilities.
 
 ### Install kagent with Postgres
 
-To use memory, you must install kagent with a Postgres database that has the `pgvector` extension installed and vector enabled. For more information, see the [Database configuration](/docs/kagent/operations/operational-considerations#database-configuration) section.
+To use memory, you must install kagent with a Postgres database that has the `pgvector` extension installed and vector enabled. For more information, see the [Database configuration]({{< relref "/kagent/0.x/operations/operational-considerations#database-configuration" >}}) section.
 
 Example Helm configuration for your own external Postgres:
 
@@ -71,7 +71,7 @@ The embedding `ModelConfig` does not have to use the same provider as the agent'
 
 To use [Amazon Bedrock Titan embedding models](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html), create a `ModelConfig` with `provider: Bedrock`. 
 
-The Bedrock provider uses the standard AWS credential chain, so no API key secret is required. The agent's pod must have AWS credentials with the `bedrock:InvokeModel` permission for the chosen model. On Kubernetes, the recommended setup is [EKS IRSA on the agent ServiceAccount](/docs/kagent/supported-providers/amazon-bedrock#step-3-configure-the-agent-to-use-an-iam-role). 
+The Bedrock provider uses the standard AWS credential chain, so no API key secret is required. The agent's pod must have AWS credentials with the `bedrock:InvokeModel` permission for the chosen model. On Kubernetes, the recommended setup is [EKS IRSA on the agent ServiceAccount]({{< relref "/kagent/0.x/supported-providers/amazon-bedrock#step-3-configure-the-agent-to-use-an-iam-role" >}}). 
 
 ```yaml
 apiVersion: kagent.dev/v1alpha2
@@ -184,5 +184,5 @@ DELETE /api/memories?agent_name=X&user_id=Y
 
 - **No per-memory deletion.** You can delete all memories for an agent, but you cannot delete individual memory entries.
 - **No cross-agent memory sharing.** Each agent has its own isolated memory store. You cannot share memories across agents.
-- **Not pluggable.** Memory is built on the Google ADK memory implementation and cannot be swapped for an alternative memory solution (such as Cognee). However, if an alternative memory solution exposes an [MCP server](/docs/kagent/concepts/tools#mcp-tools), you can add it as a tool and instruct the agent to use it instead of the built-in memory.
+- **Not pluggable.** Memory is built on the Google ADK memory implementation and cannot be swapped for an alternative memory solution (such as Cognee). However, if an alternative memory solution exposes an [MCP server]({{< relref "/kagent/0.x/concepts/tools#mcp-tools" >}}), you can add it as a tool and instruct the agent to use it instead of the built-in memory.
 

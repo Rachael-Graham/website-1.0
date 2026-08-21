@@ -10,7 +10,7 @@ As your kagent deployment grows, you might need governance over how your agents 
 
 ## Prerequisites
 
-1. A running kagent installation. If you haven't installed kagent yet, follow the [quick start](/docs/kagent/getting-started/quickstart) guide first.
+1. A running kagent installation. If you haven't installed kagent yet, follow the [quick start]({{< relref "/kagent/0.x/getting-started/quickstart" >}}) guide first.
 2. Follow the [agentgateway installation guide](https://agentgateway.dev/docs/kubernetes/latest/quickstart/install/) to install agentgateway in your cluster.
 3. Set up an LLM provider with agentgateway. This guide uses [the Ollama setup](https://agentgateway.dev/docs/kubernetes/latest/llm/providers/ollama/) as an example.
 
@@ -86,7 +86,7 @@ With agentgateway installed, point kagent at the agentgateway proxy instead of d
 {{< /tab >}}
 {{< /tabs >}}
 
-4. [Open the kagent UI](/docs/kagent/observability/launch-ui).
+4. [Open the kagent UI]({{< relref "/kagent/0.x/observability/launch-ui" >}}).
 5. Start a chat with an agent such as `k8s-agent` to confirm that requests flow through agentgateway.
 
    ![kagent default k8s-agent UI](/images/kagent-default-k8s-agent.png "kagent default k8s-agent UI")

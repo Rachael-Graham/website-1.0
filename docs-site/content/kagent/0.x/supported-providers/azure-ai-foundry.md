@@ -248,7 +248,7 @@ spec:
   # No API key: use Azure Workload Identity.
 ```
 
-For the complete memory and embedding configuration and model requirements, see [Agent Memory](/docs/kagent/concepts/agent-memory).
+For the complete memory and embedding configuration and model requirements, see [Agent Memory]({{< relref "/kagent/0.x/concepts/agent-memory" >}}).
 
 ## Troubleshooting
 

@@ -16,7 +16,7 @@ Review this summary of significant changes from kagent version 0.8 to v0.9.
 **Before you upgrade:**
 
 * You must be running at least v0.8.0 before upgrading to v0.9.0.
-* Back up your PostgreSQL database before upgrading. For details on your database configuration, see the [Database configuration guide](/docs/kagent/operations/operational-considerations/#database-configuration).
+* Back up your PostgreSQL database before upgrading. For details on your database configuration, see the [Database configuration guide]({{< relref "/kagent/0.x/operations/operational-considerations/#database-configuration" >}}).
 * The `rbac.clusterScoped` Helm value is removed. RBAC scope is now derived from `rbac.namespaces`. If you set `rbac.clusterScoped` in your Helm values, update your configuration to use `rbac.namespaces` instead.
 
 **What's included:**
@@ -159,7 +159,7 @@ You can now use two Human-in-the-Loop mechanisms that can pause agent execution 
 
 **Ask User** — A built-in `ask_user` tool is automatically added to every agent. Agents can pose questions to users with predefined choices (single-select, multi-select) or free-text input during execution.
 
-For more information, see the [Human-in-the-Loop example](/docs/kagent/examples/human-in-the-loop) and the [blog post](https://kagent.dev/blog/human-in-the-loop-kagent).
+For more information, see the [Human-in-the-Loop example]({{< relref "/kagent/0.x/examples/human-in-the-loop" >}}) and the [blog post](https://kagent.dev/blog/human-in-the-loop-kagent).
 
 ### Agent Memory
 
@@ -169,7 +169,7 @@ When you enable memory on an agent, it receives three additional tools: `save_me
 
 You can configure memory in the Agent CR or through the UI when you create or edit an agent by selecting an embedding model and TTL.
 
-For more information, see [Agent Memory](/docs/kagent/concepts/agent-memory).
+For more information, see [Agent Memory]({{< relref "/kagent/0.x/concepts/agent-memory" >}}).
 
 ### Go ADK Runtime
 
@@ -186,7 +186,7 @@ spec:
 
 The Go ADK includes built-in tools: `SkillsTool`, `BashTool`, `ReadFile`, `WriteFile`, and `EditFile`.
 
-For more information, see [Agents](/docs/kagent/concepts/agents#runtime) and the [blog post](https://kagent.dev/blog/go-vs-python-runtime).
+For more information, see [Agents]({{< relref "/kagent/0.x/concepts/agents#runtime" >}}) and the [blog post](https://kagent.dev/blog/go-vs-python-runtime).
 
 ### Agents as MCP Servers
 
@@ -201,7 +201,7 @@ You can load skills from two sources.
 - **OCI images.** Container images containing skill files.
 - **Git repositories.** Clone skills directly from Git repos, with support for private repos via HTTPS token or SSH key authentication.
 
-For more information, see [Agents](/docs/kagent/concepts/agents#git-based-skills).
+For more information, see [Agents]({{< relref "/kagent/0.x/concepts/agents#git-based-skills" >}}).
 
 ### Go Workspace Restructure
 
@@ -219,13 +219,13 @@ Agent system messages now support Go `text/template` syntax. You can store commo
 
 The `kagent-builtin-prompts` ConfigMap ships with five reusable templates: `skills-usage`, `tool-usage-best-practices`, `safety-guardrails`, `kubernetes-context`, and `a2a-communication`.
 
-For more information, see [Agents](/docs/kagent/concepts/agents#prompt-templates).
+For more information, see [Agents]({{< relref "/kagent/0.x/concepts/agents#prompt-templates" >}}).
 
 ### Context Management
 
 Long conversations can now be automatically compacted to stay within LLM context windows. You can configure the `context.compaction` field to enable periodic summarization of older events while preserving key information.
 
-For more information, see [Agents](/docs/kagent/concepts/agents#context-management).
+For more information, see [Agents]({{< relref "/kagent/0.x/concepts/agents#context-management" >}}).
 
 ### AWS Bedrock Support
 
@@ -252,7 +252,7 @@ SQLite support has been removed from kagent. PostgreSQL is now the only supporte
 
 **Migration:**
 
-If you were using the default SQLite backend, no migration is needed. The bundled PostgreSQL is deployed automatically. You can optionally customize the bundled instance via `database.postgres.bundled.*` (storage size, image) as needed. See the [Database configuration guide](/docs/kagent/operations/operational-considerations/#database-configuration) for details.
+If you were using the default SQLite backend, no migration is needed. The bundled PostgreSQL is deployed automatically. You can optionally customize the bundled instance via `database.postgres.bundled.*` (storage size, image) as needed. See the [Database configuration guide]({{< relref "/kagent/0.x/operations/operational-considerations/#database-configuration" >}}) for details.
 
 Note that for production deployments, use your own external PostgreSQL instance. If you already are, you can keep your `database.postgres.url` or `database.postgres.urlFile` settings as before. If your external PostgreSQL has the pgvector extension and you were using vector-based memory features, set `database.postgres.vectorEnabled: true` since the default has changed to `false`.
 
@@ -306,7 +306,7 @@ helm upgrade --install kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
 
 Develop and test agents locally on your machine without needing a Kubernetes cluster. As part of this feature, the `kagent` CLI includes new commands to scaffold, build, run, and deploy agents.
 
-For more information, see the [local development](/docs/kagent/getting-started/local-development) guide.
+For more information, see the [local development]({{< relref "/kagent/0.x/getting-started/local-development" >}}) guide.
 
 ### Discovery label
 
@@ -654,7 +654,7 @@ This change supports the new type for BYO agents.
 
 A new agent type has been added to the Agents API so that you can bring your own (BYO) agent. The agent must be written in ADK, with other frameworks under development.
 
-BYO Agent example configuration. For more information, see the [BYO Agent](/docs/kagent/examples/a2a-byo) guide.
+BYO Agent example configuration. For more information, see the [BYO Agent]({{< relref "/kagent/0.x/examples/a2a-byo" >}}) guide.
   
 ```yaml
 apiVersion: kagent.dev/v1alpha2

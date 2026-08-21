@@ -141,12 +141,12 @@ Interact with kagent in your terminal.
 
 ## Next Steps
 
-- Create your [first agent](/docs/kagent/getting-started/first-agent)
-- Learn about [Core Concepts](/docs/kagent/concepts)
+- Create your [first agent]({{< relref "/kagent/0.x/getting-started/first-agent" >}})
+- Learn about [Core Concepts]({{< relref "/kagent/0.x/concepts" >}})
 - Join our [Community](https://discord.gg/Fu3k65f2k3)
 
 ## Need Help?
 
 - Visit our [GitHub repository](https://github.com/kagent-dev/kagent)
 - Ask a question on [Discord](https://discord.gg/Fu3k65f2k3)
-- Check out the [FAQ](/docs/kagent/resources/faq)
+- Check out the [FAQ]({{< relref "/kagent/0.x/resources/faq" >}})

@@ -5,7 +5,7 @@ weight: 4
 author: kagent.dev
 ---
 
-An `AgentHarness` is a Kubernetes custom resource that asks kagent to provision a long-running remote execution environment on [Agent Substrate](/docs/kagent/concepts/agent-substrate). It is useful when you want a managed sandbox that runs a coding agent (such as OpenClaw or Hermes) that you can chat with and connect to messaging channels, but you do not want kagent to package and run a full agent runtime inside the workload.
+An `AgentHarness` is a Kubernetes custom resource that asks kagent to provision a long-running remote execution environment on [Agent Substrate]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}). It is useful when you want a managed sandbox that runs a coding agent (such as OpenClaw or Hermes) that you can chat with and connect to messaging channels, but you do not want kagent to package and run a full agent runtime inside the workload.
 
 `AgentHarness` resources appear alongside agents in kagent APIs and status views, but they are not the same thing as `Agent` or `SandboxAgent`.
 
@@ -30,7 +30,7 @@ All backends use the same top-level `AgentHarness` shape: `backend`, `substrate`
 
 ## Runtime: Agent Substrate
 
-Every `AgentHarness` runs on [Agent Substrate](/docs/kagent/concepts/agent-substrate). The `spec.substrate` field is required and configures the Substrate provisioning stack:
+Every `AgentHarness` runs on [Agent Substrate]({{< relref "/kagent/0.x/concepts/agent-substrate" >}}). The `spec.substrate` field is required and configures the Substrate provisioning stack:
 
 - `workerPoolRef` — references an existing `WorkerPool` in the harness namespace. When unset, the controller uses its configured default WorkerPool.
 - `snapshotsConfig` — configures where actor memory snapshots are stored. Defaults to `gs://ate-snapshots/<namespace>/<agentharnessname>` when unset.
@@ -94,4 +94,4 @@ The API uses CEL validation to ensure Slack settings match the selected backend.
 
 ## Next steps
 
-For enabling Agent Substrate so the controller can provision harnesses, see [Enable AgentHarness support](/docs/kagent/introduction/installation#enable-agentharness-support). For complete YAML examples, including Slack token references and backend-specific Slack settings, see the [Agent Harness example](/docs/kagent/examples/agent-harness). For the generated schema, see the [API reference](/docs/kagent/resources/api-ref#agentharness).
+For enabling Agent Substrate so the controller can provision harnesses, see [Enable AgentHarness support]({{< relref "/kagent/0.x/introduction/installation#enable-agentharness-support" >}}). For complete YAML examples, including Slack token references and backend-specific Slack settings, see the [Agent Harness example]({{< relref "/kagent/0.x/examples/agent-harness" >}}). For the generated schema, see the [API reference]({{< relref "/kagent/0.x/resources/api-ref#agentharness" >}}).
