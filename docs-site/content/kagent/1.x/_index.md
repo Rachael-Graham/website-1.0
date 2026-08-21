@@ -1,7 +1,7 @@
 ---
 title: kagent 1.0
 linkTitle: "kagent 1.x (preview)"
-description: Preview documentation for the kagent 1.0 release, built on Agent Substrate.
+description: Preview the kagent 1.0 documentation, built on Agent Substrate.
 weight: 1
 author: kagent.dev
 ---
