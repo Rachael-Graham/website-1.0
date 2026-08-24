@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: See how a Harness and AgentTemplate become a running conversation, across kagent's two authorization planes.
-weight: 3
+weight: 30
 author: kagent.dev
 ---
 
@@ -59,5 +59,7 @@ This split also keeps the two lifecycles independent. Editing a Harness or Agent
 
 ## Next steps
 
-- [Architecture: Agent Substrate]({{< link path="about/agent-substrate" >}}): what an Actor actually runs on, and how it suspends and resumes.
-- [Your first agent]({{< link path="get-started/your-first-agent" >}}): apply a Harness and AgentTemplate, and create the AgentInstance they produce.
+{{< cards >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="See what an Actor actually runs on, and how it suspends and resumes." >}}
+  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
+{{< /cards >}}

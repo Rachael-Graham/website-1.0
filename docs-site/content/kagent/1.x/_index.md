@@ -1,12 +1,10 @@
 ---
-title: kagent 1.0
+title: kagent 1.0 (preview)
 linkTitle: "kagent 1.x (preview)"
 description: Preview the kagent 1.0 documentation, built on Agent Substrate.
-weight: 1
+weight: 10
 author: kagent.dev
 ---
-
-# kagent 1.0 (preview)
 
 kagent 1.0 moves the runtime from Kubernetes Deployments to [Agent Substrate](https://github.com/agent-substrate/substrate), introducing Harness, AgentTemplate, and AgentInstance as the new API surface.
 

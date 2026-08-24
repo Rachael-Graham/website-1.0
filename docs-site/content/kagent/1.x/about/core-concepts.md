@@ -1,7 +1,7 @@
 ---
 title: Core concepts
 description: Learn the Harness, AgentTemplate, AgentInstance, and Actor model that kagent 1.0 is built on.
-weight: 2
+weight: 20
 author: kagent.dev
 ---
 
@@ -91,6 +91,8 @@ A Shared agent tool can itself have Dedicated agent tools underneath it, but a S
 
 ## Next steps
 
-- [Architecture]({{< link path="about/architecture" >}}): how these pieces fit together end to end, from `kubectl apply` to a live conversation.
-- [Architecture: Agent Substrate]({{< link path="about/agent-substrate" >}}): Workers, WorkerPools, ActorTemplates, and how Actors suspend and resume.
-- [Your first agent]({{< link path="get-started/your-first-agent" >}}): apply a Harness and AgentTemplate, and talk to the AgentInstance they create.
+{{< cards >}}
+  {{< card link=`{{< link path="about/architecture" >}}` title="Architecture" subtitle="See how these pieces fit together end to end, from `kubectl apply` to a live conversation." >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="Learn about Workers, WorkerPools, ActorTemplates, and how Actors suspend and resume." >}}
+  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
+{{< /cards >}}

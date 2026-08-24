@@ -2,7 +2,7 @@
 title: Introducing kagent
 linkTitle: What is kagent
 description: Understand what kagent is and its core purpose.
-weight: 1
+weight: 10
 author: kagent.dev
 ---
 

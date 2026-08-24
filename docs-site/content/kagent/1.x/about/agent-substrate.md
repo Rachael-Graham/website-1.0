@@ -1,7 +1,7 @@
 ---
 title: "Architecture: Agent Substrate"
 description: See how Agent Substrate runs, suspends, and resumes the Actors behind every AgentInstance.
-weight: 4
+weight: 40
 author: kagent.dev
 ---
 
@@ -43,5 +43,7 @@ Substrate's own target for this cycle is 100ms at the 95th percentile, measured 
 
 ## Next steps
 
-- [Your first agent]({{< link path="get-started/your-first-agent" >}}): apply a Harness and AgentTemplate, and watch the Actor they produce suspend and resume.
-- [Substrate operations]({{< link path="operations/substrate-operations" >}}): size a WorkerPool and choose a sandbox class for your cluster.
+{{< cards >}}
+  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
+  {{< card link=`{{< link path="operations/substrate-operations" >}}` title="Substrate operations" subtitle="Size a WorkerPool and choose a sandbox class for your cluster." >}}
+{{< /cards >}}
