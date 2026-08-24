@@ -5,7 +5,7 @@ weight: 20
 author: kagent.dev
 ---
 
-kagent 1.0 replaces the Deployment-based `Agent` custom resource with a new model built around **Harness**, **AgentTemplate**, and **AgentInstance**, running on [Agent Substrate]({{< link path="about/agent-substrate" >}}) instead of plain Kubernetes Deployments. This page defines the vocabulary the rest of these docs use. If your existing kagent installation is on 0.x, see the [0.x docs]({{< relref "/kagent/0.x" >}}). This page and everything under it describes the 1.0 model only.
+kagent 1.0 replaces the Deployment-based `Agent` custom resource with a new model built around **Harness**, **AgentTemplate**, and **AgentInstance**, running on [Agent Substrate]({{< link path="about/agent-substrate" >}}) instead of the plain Kubernetes Deployments that the 0.x model uses. This page defines the vocabulary that the rest of the 1.0 model docs use.
 
 The new model separates what an agent can do from how it is allowed to run:
 
@@ -14,7 +14,7 @@ The new model separates what an agent can do from how it is allowed to run:
 - An **AgentInstance** is a running conversation, created by pairing the two.
 - An **Actor** is the sandboxed process, provided by Substrate, that an AgentInstance runs on.
 
-The diagram below shows how a Harness and an AgentTemplate become a running conversation. Follow the arrows from left to right: the kagent controller compiles the Harness and AgentTemplate pair into an ActorTemplate, and each AgentInstance is created from that ActorTemplate and runs on an Actor.
+The following diagram shows how a Harness and an AgentTemplate become a running conversation. Follow the arrows from left to right: the kagent controller compiles the Harness and AgentTemplate pair into an ActorTemplate, and each AgentInstance is created from that ActorTemplate and runs on an Actor.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
     class harness,template crd
 ```
 
-The Harness and AgentTemplate are the only two resources an operator applies directly. The kagent controller watches for a valid pair and compiles it into an ActorTemplate. From there, each AgentInstance created from that ActorTemplate gets its own Actor to run on. The rest of this page defines each of these terms in more detail.
+The Harness and AgentTemplate are the only two resources that an operator applies directly. The kagent controller watches for a valid pair and compiles it into an ActorTemplate. From there, each AgentInstance created from that ActorTemplate gets its own Actor to run on. The rest of this page defines each of these terms in more detail.
 
 ## Harness
 
@@ -56,7 +56,7 @@ An **AgentTemplate** is a Kubernetes custom resource that defines what an agent 
 
 - **Model configuration**: the large language model (LLM) provider and model the agent uses. This is the only field an AgentTemplate strictly requires.
 - **System prompt**: a literal prompt, or a Go-templated one that can `include` shared ConfigMaps.
-- **Tools**: a list of tool bindings the agent can call. Each binding is either a Model Context Protocol (MCP) server, or another AgentTemplate used as an agent tool (see [Agent tools](#agent-tools-shared-vs-dedicated) below).
+- **Tools**: a list of tool bindings the agent can call. Each binding is either a Model Context Protocol (MCP) server, or another AgentTemplate used as an agent tool (see [Agent tools](#agent-tools-shared-vs-dedicated)).
 - **Skills** and **plugins**: reusable capability packages, sourced from an Open Container Initiative (OCI) registry, Git, or S3.
 
 An AgentTemplate does nothing on its own. It becomes runnable once it is paired with a Harness whose `allowedAgentTemplates` selector accepts it.
@@ -70,7 +70,7 @@ This split is deliberate, not an implementation detail to work around:
 - Applying a Harness or AgentTemplate is a **Kubernetes-native operation**, governed by Kubernetes RBAC, exactly like any other CRD.
 - Creating, suspending, resuming, sharing, or deleting an AgentInstance, and holding a conversation with it, are **kagent-native operations**, governed by kagent's own gRPC authentication and authorization, independent of who can `kubectl apply` a Harness or AgentTemplate.
 
-Under the hood, the kagent controller watches for valid Harness and AgentTemplate pairs and compiles each one into an immutable `ActorTemplate`, a Substrate resource keyed by a digest of the compiled revision. Creating an AgentInstance resolves to the latest successfully compiled ActorTemplate for that pair and creates an Actor from it. If you edit the Harness or AgentTemplate, existing AgentInstances keep running against the ActorTemplate they were created from. New AgentInstances pick up the new revision.
+Under the hood, the kagent controller watches for valid Harness and AgentTemplate pairs and compiles each one into an immutable `ActorTemplate`, a Substrate resource keyed by a digest of the compiled revision. Creating an AgentInstance resolves to the latest successfully compiled ActorTemplate for that pair and creates an Actor from it. If you edit the Harness or AgentTemplate, existing AgentInstances keep running against the ActorTemplate that they were created from. New AgentInstances pick up the new revision.
 
 Once created, an AgentInstance talks to callers over the A2A (Agent-to-Agent) protocol, through kagent's A2A gateway. The gateway resolves each request to the right AgentInstance and forwards it to the Actor running behind it.
 

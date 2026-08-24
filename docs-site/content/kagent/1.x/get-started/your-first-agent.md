@@ -120,7 +120,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
    }
    ```
 
-2. Save the AgentInstance's `id` to an environment variable. The next step needs it to address the AgentInstance you created.
+2. Save the AgentInstance's `id` to an environment variable. The next step needs it to address the AgentInstance that you created.
    ```shell
    export INSTANCE_ID=$(echo "$RESPONSE" | jq -r '.agentInstance.id')
    ```
@@ -160,7 +160,7 @@ The response carries the agent's reply in the same `parts` shape as the request.
    kubectl delete harness my-first-harness -n kagent
    ```
 
-2. Delete the AgentInstance directly through the same `AgentInstanceService` you used to create it, as deleting the Harness and AgentTemplate does not delete the AgentInstance you created from them.
+2. Delete the AgentInstance directly through the same `AgentInstanceService` that you used to create it, as deleting the Harness and AgentTemplate does not delete the AgentInstance that you created from them.
    ```shell
    grpcurl -plaintext \
      -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'"}' \

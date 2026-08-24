@@ -1,16 +1,15 @@
 ---
-title: Introducing kagent
-linkTitle: What is kagent
-description: Understand what kagent is and its core purpose.
+title: What is kagent?
+description: Understand what the kagent platform is and its core purpose.
 weight: 10
 author: kagent.dev
 ---
 
-kagent is an open-source, Kubernetes-native platform for running AI agents. It defines an agent's runtime and behavior as ordinary Kubernetes custom resources, governed by the same role-based access control (RBAC), GitOps, and observability you already use for your other workloads, and runs each agent's conversation inside [Agent Substrate]({{< link path="about/agent-substrate" >}}), a sandboxed, suspend-and-resume compute layer built for bursty, mostly idle agent workloads. kagent works with coding-agent runtimes such as Claude Code and Codex, agent frameworks such as Google's Agent Development Kit (ADK), LangGraph, and CrewAI, and every major large language model (LLM) provider.
+kagent is an open-source, Kubernetes-native platform for running AI agents. It defines an agent's runtime and behavior as ordinary Kubernetes custom resources, governed by the same role-based access control (RBAC), GitOps, and observability that you already use for your other workloads, and runs each agent's conversation inside [Agent Substrate]({{< link path="about/agent-substrate" >}}), a sandboxed, suspend-and-resume compute layer built for bursty, mostly idle agent workloads. kagent works with coding-agent runtimes such as Claude Code and Codex, agent frameworks such as Google's Agent Development Kit (ADK), LangGraph, and CrewAI, and every major large language model (LLM) provider.
 
 kagent was created at [Solo.io](https://www.solo.io) in 2025 and is a [Cloud Native Computing Foundation](https://www.cncf.io) sandbox project.
 
-## What is kagent?
+## How kagent works
 
 Unlike a traditional chatbot, kagent uses advanced reasoning and iterative planning to autonomously handle multi-step problems in cloud-native environments. It turns AI insight into concrete action, helping teams tackle common operational challenges such as:
 
@@ -25,18 +24,18 @@ Unlike a traditional chatbot, kagent uses advanced reasoning and iterative plann
 kagent 1.0 separates an agent's capabilities from its runtime, then runs the two together as a conversation:
 
 - A **Harness** and an **AgentTemplate** are the Kubernetes custom resources you author. Together they say how an agent is allowed to run and what it can do.
-- An **AgentInstance** is the running conversation those two resources produce, backed by an **Actor** on Agent Substrate.
+- An **AgentInstance** is the running conversation that those two resources produce, backed by an **Actor** on Agent Substrate.
 
-[Core concepts]({{< link path="about/core-concepts" >}}) defines each of these in detail, and [Architecture]({{< link path="about/architecture" >}}) walks through how they connect end to end.
+[Core concepts]({{< link path="about/core-concepts" >}}) define each of these in detail, and the [architecture]({{< link path="about/architecture" >}}) walks through how they connect end to end.
 
-## Why kagent?
+## Benefits
 
 kagent addresses the growing complexity of cloud-native operations by:
 
-- Automating routine troubleshooting and operational tasks
-- Reducing the need for specialist intervention in common scenarios
-- Enabling teams to formalize and share their operational expertise
-- Providing a platform for building and sharing custom AI agents
+- Automating routine troubleshooting and operational tasks.
+- Reducing the need for specialist intervention in common scenarios.
+- Enabling teams to formalize and share their operational expertise.
+- Providing a platform for building and sharing custom AI agents.
 
 ## Platform features
 
@@ -69,9 +68,9 @@ Ready to contribute? Visit the [GitHub repository](https://github.com/kagent-dev
 
 ## Community
 
-Join the kagent community:
+Join the kagent community!
 
-- Explore the repositories on [GitHub](https://github.com/kagent-dev)
-- Join the discussion in the #kagent channel on CNCF Slack
-- Check the [FAQ]({{< link path="reference/faq" >}}) for common questions
-- Follow the [feature roadmap](https://github.com/kagent-dev/kagent/blob/main/README.md#roadmap) for upcoming developments
+- Explore the repositories on [GitHub](https://github.com/kagent-dev).
+- Join the discussion in the #kagent channel on CNCF Slack.
+- Check the [FAQ]({{< link path="reference/faq" >}}) for common questions.
+- Follow the [feature roadmap](https://github.com/kagent-dev/kagent/blob/main/README.md#roadmap) for upcoming developments.

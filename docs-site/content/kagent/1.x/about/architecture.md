@@ -12,7 +12,7 @@ kagent 1.0 splits authorization across two planes, not one:
 - The **Kubernetes plane** governs the Harness and AgentTemplate custom resources. Kubernetes Role-Based Access Control (RBAC) decides who can create, read, or edit them, exactly as it would for any other Custom Resource Definition (CRD).
 - The **kagent plane** governs AgentInstances: creating one, suspending or resuming it, sharing it, deleting it, and holding a conversation with it. kagent's own gRPC authentication and authorization decide who can do these things, independent of Kubernetes RBAC.
 
-Someone with RBAC access to apply a Harness and AgentTemplate does not automatically get access to create or talk to AgentInstances that use them, and the reverse is also true. The diagram below shows where the boundary between the two planes falls, and the walkthrough after it follows a request across that boundary from start to finish.
+Someone with RBAC access to apply a Harness and AgentTemplate does not automatically get access to create or talk to AgentInstances that use them, and the reverse is also true. The following diagram shows where the boundary between the two planes falls, and the walkthrough after it follows a request across that boundary from start to finish.
 
 ```mermaid
 flowchart TB

@@ -25,7 +25,7 @@ An **ActorTemplate** is the compiled, immutable definition that a new Actor is c
 
 Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming this way lets a WorkerPool run far more Actors than it has Workers for at any one moment.
 
-The diagram below follows an Actor through one suspend-and-resume cycle. Read it left to right: a WorkerPool hosts Workers, a Worker hosts a running Actor, suspending that Actor produces a snapshot, and a tag on that snapshot lets a later Actor resume from it on whichever Worker is free.
+The following diagram traces an Actor through one suspend-and-resume cycle. Read it left to right: a WorkerPool hosts Workers, a Worker hosts a running Actor, suspending that Actor produces a snapshot, and a tag on that snapshot lets a later Actor resume from it on whichever Worker is free.
 
 ```mermaid
 flowchart LR
