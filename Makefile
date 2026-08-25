@@ -47,8 +47,15 @@ inject-docs: ## Copy built docs into public/docs (preserves tracked assets, e.g.
 	  $(DOCS_OUT)/ $(WEB_DOCS)/
 
 .PHONY: serve-docs
+# --renderToMemory keeps the preview out of $(DOCS_OUT) entirely. Hugo's server
+# otherwise renders to disk and serves from there, so it shares one directory
+# with `build-docs`/`clean`. Anything that empties that directory mid-session --
+# a `make clean` or `make build` in a second terminal -- strands the running
+# server: each later save re-renders only the pages it touched, so pages come
+# back but the stylesheets never do, and the preview degrades edit by edit
+# instead of failing outright. Rendering to memory removes the shared directory.
 serve-docs: ## Preview the docs alone at http://localhost:1313/docs/
-	cd $(DOCS_DIR) && $(HUGO) server --config hugo.yaml -D --disableFastRender
+	cd $(DOCS_DIR) && $(HUGO) server --config hugo.yaml -D --disableFastRender --renderToMemory
 
 # ── Web (Next.js) ──────────────────────────────────────────────────────────
 .PHONY: serve-web
