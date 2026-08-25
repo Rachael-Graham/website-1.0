@@ -29,26 +29,26 @@ Because an Actor often runs a model-directed agent that calls tools and executes
 
 Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming allows a WorkerPool to run far more Actors than it has Workers for at any given moment.
 
-The following diagram traces an Actor through one suspend-and-resume cycle.
-1. A WorkerPool hosts Workers.
-2. A Worker hosts a running Actor.
-3. Suspending that Actor produces a snapshot.
-4. That snapshot is tagged.
-5. A later Actor uses the tag to resume from the snapshot on whichever Worker is free.
+The following diagram traces an Actor through one suspend-and-resume cycle, and shows the second path that opens up once the resulting snapshot is tagged.
 
 ```mermaid
 flowchart LR
     pool["WorkerPool"] --> worker1["Worker"]
-    pool --> worker2["Worker"]
     worker1 -->|hosts| actor["Actor<br>(running)"]
     actor -->|suspend| snapshot["ActorSnapshot<br>(immutable)"]
-    snapshot -->|tag| tag["ActorSnapshotTag<br>(stable handle)"]
-    tag -->|resume| worker2
+    snapshot -->|resume| worker2["Any free Worker<br>in the pool"]
+    snapshot -->|pinned by| tag["ActorSnapshotTag<br>(retention pin)"]
+    tag -->|seeds| newactor["New Actor"]
 ```
 
-Suspending an Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker that it was running on. Resuming reads that snapshot back and restores the Actor onto whichever Worker in the pool is free, which is not necessarily the Worker that it originally ran on. Because the snapshot captures the Actor's full state, the conversation continues from where it left off.
+A **WorkerPool** keeps **Workers** running and ready, and one Worker hosts the **Actor** while its conversation is active. Suspending that Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker that it was running on.
 
-An **ActorSnapshotTag** gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag names one snapshot permanently, and only its visibility scope can change afterward. A tag also acts as a retention pin, so Substrate does not delete a snapshot while a tag still names it.
+The diagram forks at that snapshot, because a snapshot serves two purposes.
+
+- **Resume** restores the same Actor onto **any free Worker in the pool**, which is not necessarily the Worker that it ran on before. Because the snapshot captures the Actor's full state, the conversation continues from where it left off. Every idle agent takes this path.
+- An **ActorSnapshotTag** pins that snapshot, and a **New Actor** can be seeded from the tag at the moment that it is created. Resuming an existing Actor never goes through a tag.
+
+A tag gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag names one snapshot permanently, and only its visibility scope can change afterward. A tag also acts as a retention pin, so Substrate does not delete a snapshot while a tag still names it.
 
 Substrate's own target for this cycle is 100 milliseconds at the ninety-fifth percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
 
