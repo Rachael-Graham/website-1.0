@@ -172,7 +172,7 @@ The response carries the agent's reply in the same `parts` shape as the request.
 ## Next steps
 
 {{< cards >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="Understand what happens to your AgentInstance's Actor when it sits idle." >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Understand what happens to your AgentInstance's Actor when it sits idle." >}}
   {{< card link=`{{< link path="agents/agent-harness" >}}` title="Agent harness" subtitle="Choose from the full set of Harness runtime options, including Claude Code and Codex." >}}
   {{< card link=`{{< link path="skills-mcp/skills" >}}` title="Skills" subtitle="Give your agent capabilities beyond its system prompt." >}}
 {{< /cards >}}

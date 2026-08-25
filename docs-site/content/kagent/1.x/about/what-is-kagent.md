@@ -62,7 +62,7 @@ Check out [Solo Enterprise for kagent](https://www.solo.io/products/kagent-enter
 
 ## Getting started
 
-To start using kagent, see [Your first agent]({{< link path="get-started/your-first-agent" >}}). For a deeper understanding of how kagent works, see [Architecture]({{< link path="about/architecture" >}}).
+To start using kagent, see [Your first agent]({{< link path="get-started/your-first-agent" >}}). For a deeper understanding of how the pieces fit together, see [kagent architecture]({{< link path="about/architecture" >}}).
 
 Ready to contribute? Visit the [GitHub repository](https://github.com/kagent-dev) to learn how you can help expand the ecosystem of cloud-native AI agents.
 

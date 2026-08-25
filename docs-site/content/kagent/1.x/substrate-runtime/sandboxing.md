@@ -55,5 +55,5 @@ That policy governs inbound traffic only. It does not constrain what an Actor ma
 
 {{< cards >}}
   {{< card link=`{{< link path="substrate-runtime/suspend-and-resume" >}}` title="Suspend and resume" subtitle="See what a snapshot captures and how an idle Actor comes back." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
 {{< /cards >}}

@@ -71,5 +71,5 @@ Because a checkpoint captures a turn boundary, an AgentInstance must be at one t
 
 {{< cards >}}
   {{< card link=`{{< link path="substrate-runtime/sandboxing" >}}` title="Sandboxing" subtitle="See how a sandbox isolates each Actor's process, filesystem, and network." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
 {{< /cards >}}

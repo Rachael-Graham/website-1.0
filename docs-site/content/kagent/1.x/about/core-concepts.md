@@ -91,7 +91,7 @@ For the AgentInstance gRPC service definition, see the [API reference]({{< link 
 
 An **Actor** is the sandboxed unit of compute, provided by [Agent Substrate]({{< link path="about/agent-substrate" >}}), that _runs an AgentInstance's conversation loop_. Every AgentInstance is backed by an Actor.
 
-Actors are the reason why AgentInstances can suspend and resume cheaply instead of staying resident. An idle Actor can be snapshotted and torn down, then resumed from that snapshot on demand. To understand the full mechanics (Workers, WorkerPools, ActorTemplates, and snapshotting), see [Architecture: Agent Substrate]({{< link path="about/agent-substrate" >}}).
+Actors are the reason why AgentInstances can suspend and resume cheaply instead of staying resident. An idle Actor can be snapshotted and torn down, then resumed from that snapshot on demand. To understand the full mechanics (Workers, WorkerPools, ActorTemplates, and snapshotting), see [Agent Substrate architecture]({{< link path="about/agent-substrate" >}}).
 
 ## Agent tools: Shared vs. Dedicated
 
@@ -107,7 +107,7 @@ This limit keeps the model predictable. A Dedicated binding gives the child its 
 ## Next steps
 
 {{< cards >}}
-  {{< card link=`{{< link path="about/architecture" >}}` title="Architecture" subtitle="See how these pieces fit together end to end, from `kubectl apply` to a live conversation." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Architecture: Agent Substrate" subtitle="Learn about Workers, WorkerPools, and ActorTemplates, and how Actors suspend and resume." >}}
+  {{< card link=`{{< link path="about/architecture" >}}` title="kagent architecture" subtitle="See how these pieces fit together end to end, from `kubectl apply` to a live conversation." >}}
+  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Learn about Workers, WorkerPools, and ActorTemplates, and how Actors suspend and resume." >}}
   {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
 {{< /cards >}}
