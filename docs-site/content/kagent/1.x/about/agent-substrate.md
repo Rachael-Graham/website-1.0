@@ -48,9 +48,9 @@ flowchart LR
 
 Suspending an Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker that it was running on. Resuming reads that snapshot back and restores the Actor onto whichever Worker in the pool is free, which is not necessarily the Worker that it originally ran on. Because the snapshot captures the Actor's full state, the conversation continues from where it left off.
 
-An **ActorSnapshotTag** gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag can be repointed at a newer snapshot without its own name changing, and Substrate does not delete a snapshot while any tag still points to it.
+An **ActorSnapshotTag** gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag names one snapshot permanently, and only its visibility scope can change afterward. A tag also acts as a retention pin, so Substrate does not delete a snapshot while a tag still names it.
 
-Substrate's own target for this cycle is 100ms at the 95th percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
+Substrate's own target for this cycle is 100 milliseconds at the ninety-fifth percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
 
 ## Next steps
 
