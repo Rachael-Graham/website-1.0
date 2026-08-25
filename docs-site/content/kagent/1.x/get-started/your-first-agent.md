@@ -5,7 +5,7 @@ weight: 10
 author: kagent.dev
 ---
 
-This guide walks you through creating an agent, from applying a Harness and an AgentTemplate to holding a conversation with the AgentInstance that they produce. For definitions of each of these components, review the [core concepts]({{< link path="about/core-concepts" >}}). For an overview of how each component fits together in kagent, review the [architecture]({{< link path="about/architecture" >}}).
+This guide walks you through creating an agent, from applying a Harness and an AgentTemplate to holding a conversation with the AgentInstance that they produce. For definitions of each of these components, review the [core concepts]({{< link path="about/core-concepts" >}}). For an overview of how each component fits together in kagent, review the [architecture]({{< link path="about/architecture" >}}). For the complete schema of every field that this guide sets, see the [API reference]({{< link path="reference/api-ref" >}}).
 
 ## Before you begin
 
@@ -76,8 +76,8 @@ This guide walks you through creating an agent, from applying a Harness and an A
    [
      {
        "harness": "my-first-harness",
-       "desiredRevision": "sha256:5f2b3c1a9e8d",
-       "latestSuccessfulRevision": "sha256:5f2b3c1a9e8d",
+       "desiredRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
+       "latestSuccessfulRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
        "conditions": [
          {
            "type": "Ready",
