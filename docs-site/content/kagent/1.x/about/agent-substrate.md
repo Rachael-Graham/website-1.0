@@ -5,27 +5,36 @@ weight: 40
 author: kagent.dev
 ---
 
-[Architecture]({{< link path="about/architecture" >}}) covers where an Actor fits between an AgentInstance and a running conversation. This page covers how Agent Substrate itself runs that Actor: on what compute, inside what sandbox, and how it suspends and resumes without staying resident the whole time.
-
-## Workers and WorkerPools
-
-A **WorkerPool** is a Kubernetes custom resource that an operator provisions before any Harness can create AgentInstances. It defines a pool of pre-started sandbox pods, called **Workers**, along with the sandbox technology those Workers use.
-
-A Worker is not something an operator creates directly. Substrate manages Workers itself, keeping enough of them ready in each WorkerPool so that an Actor can start or resume on one immediately, without waiting on the Kubernetes scheduler to place a new Pod.
-
-## Sandboxing
-
-Because an Actor often runs a model-directed agent that calls tools and executes commands, Substrate runs each Actor in an isolated sandbox rather than a plain container. A WorkerPool's `sandboxClass` field selects the sandbox technology for its Workers: [gVisor](https://gvisor.dev) or a micro-VM technology such as [Kata Containers](https://katacontainers.io). Both technologies isolate an Actor from its Worker's host kernel, and both support the suspend and resume operations that the rest of this page covers.
+[Architecture]({{< link path="about/architecture" >}}) established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate it is created from, the compute that hosts it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
 
 ## ActorTemplate
 
-An **ActorTemplate** is the compiled, immutable definition that a new Actor is created from. [Architecture]({{< link path="about/architecture" >}}) covers how the kagent controller compiles a Harness and AgentTemplate pair into one. Substrate rejects any change to an ActorTemplate's spec after creation, so the kagent controller creates a new ActorTemplate for every compiled revision rather than editing an existing one, and reclaims old ones once no AgentInstance references them.
+Every Actor is created from an **ActorTemplate**, the compiled definition that the kagent controller produces from a Harness and AgentTemplate pair.
+
+What Substrate adds is enforcement. Substrate rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled revision instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
+
+## Workers and WorkerPools
+
+An Actor needs somewhere to run. Each Actor runs on a **Worker**: a pre-started, sandboxed pod that hosts at most one Actor at a time. Instead of starting a new pod each time an AgentInstance needs an Actor, Substrate schedules that Actor onto a Worker that is already running and waiting.
+
+Workers come from a **WorkerPool**, a Kubernetes custom resource that an operator provisions before any Harness can create AgentInstances. A WorkerPool declares how many Workers to keep running and which sandbox technology those Workers use.
+
+An operator never creates a Worker directly. Substrate manages them, keeping enough ready in each WorkerPool so that an Actor can start or resume on one immediately, without waiting on the Kubernetes scheduler to place a new Pod.
+
+## Sandboxing
+
+Because an Actor often runs a model-directed agent that calls tools and executes commands, Substrate runs each Actor in an isolated sandbox rather than a plain container. A WorkerPool's `sandboxClass` field selects the sandbox technology for its Workers: [gVisor](https://gvisor.dev) or a micro-VM technology such as [Kata Containers](https://katacontainers.io). Both technologies isolate an Actor from its Worker's host kernel, and both support suspend and resume operations.
 
 ## Suspend, snapshot, and resume
 
-Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming this way lets a WorkerPool run far more Actors than it has Workers for at any one moment.
+Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming allows a WorkerPool to run far more Actors than it has Workers for at any given moment.
 
-The following diagram traces an Actor through one suspend-and-resume cycle. Read it left to right: a WorkerPool hosts Workers, a Worker hosts a running Actor, suspending that Actor produces a snapshot, and a tag on that snapshot lets a later Actor resume from it on whichever Worker is free.
+The following diagram traces an Actor through one suspend-and-resume cycle.
+1. A WorkerPool hosts Workers.
+2. A Worker hosts a running Actor.
+3. Suspending that Actor produces a snapshot.
+4. That snapshot is tagged.
+5. A later Actor uses the tag to resume from the snapshot on whichever Worker is free.
 
 ```mermaid
 flowchart LR
@@ -37,7 +46,9 @@ flowchart LR
     tag -->|resume| worker2
 ```
 
-Suspending an Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker it was running on. An **ActorSnapshotTag** gives that snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag's target can be updated to point at a newer snapshot without changing the tag's own name, and a snapshot cannot be deleted while any tag still points to it. Resuming reads the tagged snapshot and restores it onto whichever Worker in the pool is free, not necessarily the Worker the Actor originally ran on.
+Suspending an Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker that it was running on. Resuming reads that snapshot back and restores the Actor onto whichever Worker in the pool is free, which is not necessarily the Worker that it originally ran on. Because the snapshot captures the Actor's full state, the conversation continues from where it left off.
+
+An **ActorSnapshotTag** gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag can be repointed at a newer snapshot without its own name changing, and Substrate does not delete a snapshot while any tag still points to it.
 
 Substrate's own target for this cycle is 100ms at the 95th percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
 

@@ -21,7 +21,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
 
 ## Create a Harness and an AgentTemplate
 
-1. Apply a `Harness` that uses kagent's native runtime.
+1. Apply a `Harness` that uses kagent's native runtime. Its `substrate` section names the [WorkerPool]({{< link path="about/agent-substrate#workers-and-workerpools" >}}) that this Harness's Actors run on, and the object storage location for their [snapshots]({{< link path="about/agent-substrate#suspend-snapshot-and-resume" >}}).
    ```yaml
    apiVersion: kagent.dev/v1alpha3
    kind: Harness
@@ -48,7 +48,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
    > [!NOTE]
    > An `AgentTemplate` has no field naming this Harness. The `kagent.dev/harness: my-first-harness` selector is a convention that this guide uses to match the `kagent.dev/harness` label in the next step. However, you can choose any label key and value, as long as the Harness selector and the AgentTemplate's labels match.
 
-2. Apply an `AgentTemplate` that is labeled to match the Harness's `allowedAgentTemplates` selector. The `ModelConfig` field references the `default-model-config` that was automatically created for the model provider API key that you provided during kagent installation.
+2. Apply an `AgentTemplate` that is labeled to match the Harness's `allowedAgentTemplates` selector. The `modelConfig` field references the `default-model-config` ModelConfig that was automatically created for the model provider API key that you provided during kagent installation.
    ```yaml
    apiVersion: kagent.dev/v1alpha3
    kind: AgentTemplate
@@ -90,6 +90,8 @@ This guide walks you through creating an agent, from applying a Harness and an A
      }
    ]
    ```
+
+   The `latestSuccessfulRevision` value is the compiled revision that kagent creates your AgentInstance from in the next section.
 
 ## Create the AgentInstance
 
