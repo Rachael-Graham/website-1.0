@@ -5,7 +5,7 @@ weight: 40
 author: kagent.dev
 ---
 
-[Architecture]({{< link path="about/architecture" >}}) established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate it is created from, the compute that hosts it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
+[Architecture]({{< link path="about/architecture" >}}) established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
 
 ## ActorTemplate
 
