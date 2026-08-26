@@ -17,7 +17,7 @@ kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-subs
    * [`kubectl-ate`](https://github.com/kagent-dev/substrate/releases), the Agent Substrate command line tool, published as a `kubectl` plugin with each Agent Substrate release.
      ```bash
      curl -fsSL -o kubectl-ate \
-       "https://github.com/kagent-dev/substrate/releases/download/v{{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}}/kubectl-ate-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')"
+       "https://github.com/kagent-dev/substrate/releases/download/v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}/kubectl-ate-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')"
      chmod +x kubectl-ate
      sudo mv kubectl-ate /usr/local/bin/
      kubectl ate --help
@@ -100,7 +100,7 @@ Deploy the Agent Substrate control plane and data plane into the `ate-system` na
    ```bash
    helm upgrade --install substrate-crds \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds \
-     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate.md" >}} \
      --namespace ate-system --create-namespace
    ```
 
@@ -108,7 +108,7 @@ Deploy the Agent Substrate control plane and data plane into the `ate-system` na
    ```bash
    helm upgrade --install substrate \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate \
-     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate.md" >}} \
      --namespace ate-system
    ```
 
@@ -160,7 +160,7 @@ Deploy the Agent Substrate control plane and data plane into the `ate-system` na
    ```bash
    helm upgrade substrate \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate \
-     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate.md" >}} \
      --namespace ate-system --reuse-values --wait --timeout 10m
    ```
 
@@ -194,15 +194,15 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```bash
    helm upgrade --install kagent-crds \
      oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-     --version <kagent-version> \
+     --version {{< reuse "kagent-docs/versions/kagent.md" >}} \
      --namespace kagent --create-namespace --wait
    ```
 
-2. Install kagent with the Agent Substrate integration enabled. Set `substrateWorkerPool.ateomImage` explicitly, because the chart has no default for it and the install fails without it whenever `substrateWorkerPool.create` is `true`.
+2. Install kagent with the Agent Substrate integration enabled.
    ```bash
    helm upgrade --install kagent \
      oci://ghcr.io/kagent-dev/kagent/helm/kagent \
-     --version <kagent-version> \
+     --version {{< reuse "kagent-docs/versions/kagent.md" >}} \
      --namespace kagent --create-namespace --timeout 10m \
      -f - <<EOF
    providers:
@@ -219,7 +219,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    substrateWorkerPool:
      create: true
      replicas: 1
-     ateomImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}}"
+     ateomImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}"
    EOF
    ```
 
@@ -229,7 +229,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```
 
 > [!NOTE]
-> The kagent controller can restart a few times during a first install while it waits for its bundled PostgreSQL database to accept connections. The controller logs `dial tcp ...:5432: connect: connection refused` and then recovers on its own. A restart loop that reports an `ate-api` dial failure instead points at an incomplete identity bootstrap.
+> The kagent controller can restart a few times during a first install while it waits for its bundled PostgreSQL database to accept connections. The controller logs `dial tcp ...:5432: connect: connection refused` and then recovers on its own. A restart loop that reports an `ate-api` dial failure instead indicates an incomplete identity bootstrap.
 
 ## Verify the installation
 
@@ -245,7 +245,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    kagent-postgresql-65cc684b78-9qbh2   1/1     Running   0          2m
    ```
 
-2. Confirm that the WorkerPool reports a ready replica. Agents cannot start until the pool is ready.
+2. Confirm that the WorkerPool reports a ready replica.
    ```bash
    kubectl get workerpools -n kagent
    ```
@@ -255,21 +255,20 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    kagent      kagent-default   1         1          1       2m
    ```
 
-3. Note how you reach the kagent gRPC API, which serves the AgentInstance lifecycle and conversation calls. [Your first agent]({{< link path="get-started/your-first-agent" >}}) assumes the port-forward.
+3. Get the address to reach the kagent gRPC API, which serves the AgentInstance lifecycle and conversation calls. The guide to [create your first agent]({{< link path="get-started/your-first-agent" >}}) assumes port-forwarding.
    {{< tabs >}}
+   {{% tab name="Port-forward for local testing" %}}
+   Forward the gRPC port and leave the command running. The API is then available at `localhost:8084`.
+   ```bash
+   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   ```
+   {{% /tab %}}
    {{% tab name="Cloud Provider LoadBalancer" %}}
    Read the external address of the controller service. The gRPC API listens on port `8084`.
    ```bash
    kubectl get svc -n kagent kagent-controller \
      -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}"
    ```
-   {{% /tab %}}
-   {{% tab name="Port-forward for local testing" %}}
-   Forward the gRPC port and leave the command running. The API is then available at `localhost:8084`.
-   ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
-   ```
-   On a local kind cluster, use the port-forward. kind assigns a LoadBalancer address that is routable from inside the cluster, but not from your workstation.
    {{% /tab %}}
    {{< /tabs >}}
 

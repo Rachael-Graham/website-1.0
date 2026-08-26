@@ -34,7 +34,7 @@ kagent supports logging input/output messages for the following LLM providers:
    ```yaml
    helm upgrade --install loki loki \
    --repo https://grafana.github.io/helm-charts \
-   --version {{< reuse "versions/loki.md" >}} \
+   --version {{< reuse "kagent-docs/versions/loki.md" >}} \
    --namespace telemetry \
    --create-namespace \
    --values - <<EOF
@@ -104,7 +104,7 @@ kagent supports logging input/output messages for the following LLM providers:
    ```yaml
    helm upgrade --install tempo tempo \
    --repo https://grafana.github.io/helm-charts \
-   --version {{< reuse "versions/tempo.md" >}} \
+   --version {{< reuse "kagent-docs/versions/tempo.md" >}} \
    --namespace telemetry \
    --create-namespace \
    --values - <<EOF

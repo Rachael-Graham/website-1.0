@@ -44,7 +44,7 @@ Install a tracing tool, such as Jaeger. The following example installs Jaeger in
      --create-namespace \
      --history-max 3 \
      --values jaeger.yaml \
-     --version {{< reuse "versions/jaeger.md" >}}
+     --version {{< reuse "kagent-docs/versions/jaeger.md" >}}
    ```
 
 ## Upgrade kagent

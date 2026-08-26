@@ -9,7 +9,7 @@ In this guide, you install Agent Substrate and kagent on a local kind cluster, t
 
 By the end, you will have:
 
-- Agent Substrate v{{< reuse "versions/agent-substrate.md" >}} running in the `ate-system` namespace.
+- Agent Substrate v{{< reuse "kagent-docs/versions/agent-substrate.md" >}} running in the `ate-system` namespace.
 - kagent v0.9.7 or later installed with the substrate integration enabled. Earlier kagent releases do not include the controller wiring that lets a `SandboxAgent` target substrate.
 - A `SandboxAgent` running on substrate, reachable from the kagent UI.
 
@@ -33,7 +33,7 @@ export OPENAI_API_KEY="sk-..."
 kind create cluster --name kagent-substrate
 ```
 
-The substrate v{{< reuse "versions/agent-substrate.md" >}} chart defaults to JWT auth backed by Kubernetes ServiceAccount tokens, so a vanilla kind cluster works — no feature gates or custom kind config are required.
+The substrate v{{< reuse "kagent-docs/versions/agent-substrate.md" >}} chart defaults to JWT auth backed by Kubernetes ServiceAccount tokens, so a vanilla kind cluster works — no feature gates or custom kind config are required.
 
 ## Step 2: Install Agent Substrate
 
@@ -42,12 +42,12 @@ Install the CRDs first, then the substrate control plane and data plane.
 ```bash
 helm upgrade --install substrate-crds \
   oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds \
-  --version {{< reuse "versions/agent-substrate.md" >}} \
+  --version {{< reuse "kagent-docs/versions/agent-substrate.md" >}} \
   --namespace ate-system --create-namespace --wait
 
 helm upgrade --install substrate \
   oci://ghcr.io/kagent-dev/substrate/helm/substrate \
-  --version {{< reuse "versions/agent-substrate.md" >}} \
+  --version {{< reuse "kagent-docs/versions/agent-substrate.md" >}} \
   --namespace ate-system --wait --timeout 10m
 ```
 
@@ -78,12 +78,12 @@ Install the CRDs, then kagent with the substrate flags.
 ```bash
 helm upgrade --install kagent-crds \
   oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
-  --version {{< reuse "versions/kagent.md" >}} \
+  --version {{< reuse "kagent-docs/versions/kagent.md" >}} \
   --namespace kagent --create-namespace --wait
 
 helm upgrade --install kagent \
   oci://ghcr.io/kagent-dev/kagent/helm/kagent \
-  --version {{< reuse "versions/kagent.md" >}} \
+  --version {{< reuse "kagent-docs/versions/kagent.md" >}} \
   --namespace kagent --timeout 10m --wait \
   --set providers.openAI.apiKey="${OPENAI_API_KEY}" \
   --set providers.default=openAI \
@@ -92,7 +92,7 @@ helm upgrade --install kagent \
   --set controller.substrate.ateApiInsecure=true \
   --set substrateWorkerPool.create=true \
   --set substrateWorkerPool.replicas=1 \
-  --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "versions/agent-substrate.md" >}}
+  --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}
 ```
 
 The `controller.substrate.*` and `substrateWorkerPool.*` flags turn on the substrate integration. The rest is a standard kagent install.
@@ -127,7 +127,7 @@ kubectl scale workerpool kagent-default -n kagent --replicas=3
 
 # 2) Stick it into the helm release — survives upgrades.
 helm upgrade kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
-  --version {{< reuse "versions/kagent.md" >}} --namespace kagent --reuse-values \
+  --version {{< reuse "kagent-docs/versions/kagent.md" >}} --namespace kagent --reuse-values \
   --set substrateWorkerPool.replicas=3
 
 # 3) Fresh install — change the value on the Step 3 install command above.

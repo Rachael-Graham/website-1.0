@@ -84,7 +84,7 @@ You can route model requests through an [agentgateway](https://agentgateway.dev/
    EOF
    ```
 
-   {{< reuse "conrefs/snippets/field-desc/review-table.md" >}} For more information, see the [API docs](https://kagent.dev/docs/kagent/resources/api-ref#modelconfigspec).
+   {{< reuse "kagent-docs/snippets/review-table.md" >}} For more information, see the [API docs](https://kagent.dev/docs/kagent/resources/api-ref#modelconfigspec).
 
    | Setting | Description |
    | --- | --- |
@@ -120,7 +120,7 @@ You can route model requests through an [agentgateway](https://agentgateway.dev/
       EOF
       ```
 
-   {{< reuse "conrefs/snippets/field-desc/review-table.md" >}} For more information, see the [API docs](https://kagent.dev/docs/kagent/resources/api-ref#modelconfigspec).
+   {{< reuse "kagent-docs/snippets/review-table.md" >}} For more information, see the [API docs](https://kagent.dev/docs/kagent/resources/api-ref#modelconfigspec).
 
    | Setting | Description |
    | --- | --- |
