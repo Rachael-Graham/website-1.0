@@ -5,18 +5,7 @@ weight: 10
 author: kagent.dev
 ---
 
-kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-substrate" >}}), so an installation sets up two systems in the same cluster. Agent Substrate provides the sandboxed compute that agents run on, and kagent provides the Harness, AgentTemplate, and AgentInstance API that you author against.
-
-## About installing kagent
-
-Installation has three phases that you must complete in this order.
-
-1. **Install Agent Substrate**: Deploys the Agent Substrate control plane and data plane into the `ate-system` namespace.
-2. **Bootstrap Agent Substrate identity**: Creates the certificate authority (CA) pools, the JSON Web Token (JWT) authority pool, and the authentication configuration that Agent Substrate components use to prove identity to each other and to kagent.
-3. **Install kagent**: Deploys the kagent controller with the Agent Substrate integration enabled, and provisions the WorkerPool that agents run on.
-
-> [!IMPORTANT]
-> The bootstrap phase is required, and no Helm chart performs it for you. Agent Substrate authenticates its components with mutual Transport Layer Security (mTLS), and the identity material that mTLS depends on is created by the `kubectl-ate` plugin, not by Helm.
+kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-substrate" >}}), so an installation sets up two systems in the same cluster. Agent Substrate provides the sandboxed compute that agents run on, and kagent provides the Harness, AgentTemplate, and AgentInstance API that you author against. Install Agent Substrate first, because the kagent controller connects to it at startup.
 
 ## Before you begin
 
@@ -25,43 +14,67 @@ Installation has three phases that you must complete in this order.
    * [`kubectl`](https://kubernetes.io/docs/tasks/tools/#kubectl), the Kubernetes command line tool.
    * [`jq`](https://jqlang.org/download/), to read the root certificate out of the generated CA pool.
    * [`openssl`](https://www.openssl.org), to convert that certificate to PEM format.
-   * [`kubectl-ate`](https://github.com/kagent-dev/substrate/releases), the Agent Substrate command line tool, published as a `kubectl` plugin with each Agent Substrate release. No Helm chart creates the identity material that Agent Substrate needs, so the bootstrap phase depends on this plugin.
+   * [`kubectl-ate`](https://github.com/kagent-dev/substrate/releases), the Agent Substrate command line tool, published as a `kubectl` plugin with each Agent Substrate release.
      ```bash
      curl -fsSL -o kubectl-ate \
-       "https://github.com/kagent-dev/substrate/releases/download/v{{< reuse "versions/agent-substrate-1x.md" >}}/kubectl-ate-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')"
+       "https://github.com/kagent-dev/substrate/releases/download/v{{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}}/kubectl-ate-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')"
      chmod +x kubectl-ate
      sudo mv kubectl-ate /usr/local/bin/
      kubectl ate --help
      ```
 
-2. Prepare a Kubernetes cluster at **version 1.37 or later**. Agent Substrate depends on the `ClusterTrustBundle`, `ClusterTrustBundleProjection`, and `PodCertificateRequest` feature gates, along with the `certificates.k8s.io/v1beta1` API. Kubernetes promotes all three feature gates to generally available, and enables them by default, in version 1.37. In 1.36 and earlier, none are enabled by default, and must be manually enabled.
+2. Set your model provider API key. The examples in this guide use OpenAI. For other providers, see [Configure model providers]({{< link path="setup/configure-model-providers" >}}).
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+3. Prepare a Kubernetes cluster at **1.37 or later** and enable it with the following requirements for Agent Substrate.
 
    {{< tabs >}}
    {{% tab name="Local kind cluster" %}}
-   For local testing and development, create a kind cluster at version 1.37.
-
-   {{% /tab %}}
-   {{% tab name="Existing upgraded 1.37 cluster" %}}
-
-   {{% /tab %}}
-   {{% tab name="Use an existing 1.36 or earlier cluster" %}}
-   To use an existing cluster that continues to run on 1.36, first confirm that your cluster exposes both certificate resources.
+   For local testing and development, create a [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster at Kubernetes 1.37 or later. Enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
    ```bash
-   kubectl api-resources --api-group=certificates.k8s.io
+   kind create cluster --image kindest/node:v1.37.0 --config=- <<EOF
+   kind: Cluster
+   apiVersion: kind.x-k8s.io/v1alpha4
+   name: kagent
+   runtimeConfig:
+     "certificates.k8s.io/v1beta1": "true"
+   EOF
    ```
+   {{% /tab %}}
 
-   Example output:
-   ```console
-   NAME                     APIVERSION                    NAMESPACED   KIND
-   ...
-   clustertrustbundles      certificates.k8s.io/v1beta1   false        ClusterTrustBundle
-   podcertificaterequests   certificates.k8s.io/v1beta1   true         PodCertificateRequest
-   ```
+   {{% tab name="Existing 1.37+ cluster" %}}
+   To use an existing Kubernetes 1.37 or later cluster, you must manually enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
+   1. On each control plane node, add the runtime configuration to the kube-apiserver manifest. The kubelet restarts the static pod when the file changes, so no restart command is needed.
+      ```yaml
+      # /etc/kubernetes/manifests/kube-apiserver.yaml
+      spec:
+        containers:
+        - command:
+          - kube-apiserver
+          - --runtime-config=certificates.k8s.io/v1beta1=true
+      ```
+      > [!NOTE]
+      > If the command list already has a `--runtime-config` flag, edit that line instead of adding a second one. A duplicate flag is silently ignored, and the API is not served.
 
-   If either resource is missing, enable the gates on each control plane component, then restart that component.
+   2. Confirm that the beta group is served. Be sure to check the served API versions, not the resource list.
+      ```bash
+      kubectl api-versions | grep certificates.k8s.io
+      ```
+
+      Example output:
+      ```console
+      certificates.k8s.io/v1
+      certificates.k8s.io/v1beta1
+      ```
+   {{% /tab %}}
+
+   {{% tab name="1.36 or earlier cluster" %}}
+   Agent Substrate depends on the `ClusterTrustBundle`, `ClusterTrustBundleProjection`, and `PodCertificateRequest` feature gates, along with the `certificates.k8s.io/v1beta1` API. In 1.36 and earlier, none of these are enabled by default, and must be manually enabled.
    
    > [!WARNING]
-   > Changing these settings requires control over your control plane configuration. Before you plan an installation on a managed Kubernetes service, confirm that the provider lets you set API server flags and kubelet configuration.
+   > Changing these settings requires control over your control plane configuration. When planning a kagent installation on a managed Kubernetes service, confirm that the provider lets you set API server flags and kubelet configuration.
    > If you cannot change the component configuration, use the **Local kind cluster** tab instead.
 
    * **kube-apiserver**: Add `--feature-gates=ClusterTrustBundle=true` and `--runtime-config=certificates.k8s.io/v1beta1=true`.
@@ -78,29 +91,28 @@ Installation has three phases that you must complete in this order.
 
 ## Install Agent Substrate
 
-Deploy the Agent Substrate control plane and data plane into the `ate-system` namespace.
+Deploy the Agent Substrate control plane and data plane into the `ate-system` namespace, then create the identity material that its components authenticate with. Agent Substrate signs pod identities and service certificates from certificate authority (CA) pools that you generate, and it authenticates callers against a JSON Web Token (JWT) authority pool.
+
+> [!IMPORTANT]
+> Creating the identity material is required, and no Helm chart performs it for you. Agent Substrate authenticates its components with mutual Transport Layer Security (mTLS), and the identity material that mTLS depends on is created by the `kubectl-ate` plugin, not by Helm.
 
 1. Install the Agent Substrate custom resource definitions (CRDs).
    ```bash
    helm upgrade --install substrate-crds \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds \
-     --version {{< reuse "versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
      --namespace ate-system --create-namespace
    ```
 
-2. Install the Agent Substrate control plane and data plane. Do not add `--wait` to this command, because the pods cannot become ready until you bootstrap identity in the next section.
+2. Install the Agent Substrate control plane and data plane. Do not add `--wait` to this command, because the pods cannot become ready until you create the identity material in the following steps.
    ```bash
    helm upgrade --install substrate \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate \
-     --version {{< reuse "versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
      --namespace ate-system
    ```
 
-## Bootstrap Agent Substrate identity
-
-Agent Substrate signs pod identities and service certificates from CA pools that you generate, and it authenticates callers against a JWT authority pool. The `kubectl-ate admin` commands create that material as Kubernetes secrets, and a ConfigMap tells the Agent Substrate API server which token issuer to trust.
-
-1. Create the CA pools that sign service DNS and pod identity certificates.
+3. Create the CA pools that sign service DNS and pod identity certificates.
    ```bash
    kubectl ate admin make-ca-pool --ca-id=1 \
      --name=service-dns-ca-pool \
@@ -110,7 +122,7 @@ Agent Substrate signs pod identities and service certificates from CA pools that
      --secret-namespace=podcertificate-controller-system
    ```
 
-2. Create the actor identity pools that Agent Substrate uses to issue and verify actor credentials.
+4. Create the actor identity pools that Agent Substrate uses to issue and verify actor credentials.
    ```bash
    kubectl ate admin make-jwt-pool --key-id=1 \
      --name=actor-id-jwt-pool \
@@ -120,7 +132,7 @@ Agent Substrate signs pod identities and service certificates from CA pools that
      --secret-namespace=ate-system
    ```
 
-3. Extract the actor identity root certificate and store it in the secret that the Agent Substrate API server reads.
+5. Extract the actor identity root certificate and store it in the secret that the Agent Substrate API server reads.
    ```bash
    actor_id_ca_root="$(kubectl get secret actor-id-ca-pool -n ate-system \
      -o jsonpath='{.data.pool}' | base64 --decode \
@@ -131,7 +143,7 @@ Agent Substrate signs pod identities and service certificates from CA pools that
      --from-literal=ca.crt="${actor_id_ca_root}"
    ```
 
-4. Create the authentication configuration. The `kubernetes` provider accepts Kubernetes ServiceAccount tokens that are issued for the Agent Substrate API server audience.
+6. Create the authentication configuration. The `kubernetes` provider accepts Kubernetes ServiceAccount tokens that are issued for the Agent Substrate API server audience.
    ```bash
    kubectl create configmap ate-api-authentication -n ate-system \
      --from-literal=authentication.yaml='actorIdentityJWTProvider: kubernetes
@@ -144,19 +156,19 @@ Agent Substrate signs pod identities and service certificates from CA pools that
    '
    ```
 
-5. Roll Agent Substrate out again so that its pods mount the identity material, and wait for them to become ready.
+7. Roll Agent Substrate out again so that its pods mount the identity material, and wait for them to become ready.
    ```bash
    helm upgrade substrate \
      oci://ghcr.io/kagent-dev/substrate/helm/substrate \
-     --version {{< reuse "versions/agent-substrate-1x.md" >}} \
+     --version {{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}} \
      --namespace ate-system --reuse-values --wait --timeout 10m
    ```
 
-6. Verify that Agent Substrate is running.
+8. Verify that Agent Substrate is running.
    ```bash
    kubectl get pods -n ate-system
    ```
-   Example output.
+   Example output:
    ```console
    NAME                              READY   STATUS      RESTARTS   AGE
    ate-api-server-59fccdf6dc-f77h6   1/1     Running     3          9m
@@ -186,29 +198,32 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
      --namespace kagent --create-namespace --wait
    ```
 
-2. Set your model provider API key. The examples in this guide use OpenAI. For other providers, see [Configure model providers]({{< link path="setup/configure-model-providers" >}}).
-   ```bash
-   export OPENAI_API_KEY="your-api-key-here"
-   ```
-
-3. Install kagent with the Agent Substrate integration enabled. Set `substrateWorkerPool.ateomImage` explicitly, because the chart has no default for it and the install fails without it whenever `substrateWorkerPool.create` is `true`.
+2. Install kagent with the Agent Substrate integration enabled. Set `substrateWorkerPool.ateomImage` explicitly, because the chart has no default for it and the install fails without it whenever `substrateWorkerPool.create` is `true`.
    ```bash
    helm upgrade --install kagent \
      oci://ghcr.io/kagent-dev/kagent/helm/kagent \
      --version <kagent-version> \
      --namespace kagent --create-namespace --timeout 10m \
-     --set providers.default=openAI \
-     --set providers.openAI.apiKey="${OPENAI_API_KEY}" \
-     --set controller.substrate.enabled=true \
-     --set controller.substrate.ateApiEndpoint=dns:///api.ate-system.svc:443 \
-     --set controller.substrate.atenetRouterURL=http://atenet-router.ate-system.svc:80 \
-     --set controller.substrate.defaultWorkerPool.name=kagent-default \
-     --set substrateWorkerPool.create=true \
-     --set substrateWorkerPool.replicas=1 \
-     --set-string substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "versions/agent-substrate-1x.md" >}}
+     -f - <<EOF
+   providers:
+     default: openAI
+     openAI:
+       apiKey: ${OPENAI_API_KEY}
+   controller:
+     substrate:
+       enabled: true
+       ateApiEndpoint: dns:///api.ate-system.svc:443
+       atenetRouterURL: http://atenet-router.ate-system.svc:80
+       defaultWorkerPool:
+         name: kagent-default
+   substrateWorkerPool:
+     create: true
+     replicas: 1
+     ateomImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate-1x.md" >}}"
+   EOF
    ```
 
-4. Wait for the controller to roll out.
+3. Wait for the controller to roll out.
    ```bash
    kubectl rollout status deployment/kagent-controller -n kagent --timeout=300s
    ```
@@ -222,7 +237,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```bash
    kubectl get pods -n kagent
    ```
-   Example output.
+   Example output:
    ```console
    NAME                                 READY   STATUS    RESTARTS   AGE
    kagent-controller-659b58768b-2k6h4   1/1     Running   3          2m
@@ -234,7 +249,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```bash
    kubectl get workerpools -n kagent
    ```
-   Example output.
+   Example output:
    ```console
    NAMESPACE   NAME             DESIRED   REPLICAS   READY   AGE
    kagent      kagent-default   1         1          1       2m
