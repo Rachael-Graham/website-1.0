@@ -1,0 +1,47 @@
+# Glossary terms for the {{< gloss >}} shortcode, which docs-theme-extras
+# provides along with the tooltip behavior (glossary.js) and styling
+# (glossary.css). Both load automatically through themeExtras/head-end.html.
+#
+# Usage is a PAIRED shortcode; the unclosed form is a build error:
+#   {{< gloss "Atespace" >}}atespace{{< /gloss >}}
+# The key is the tooltip heading, so it is capitalized. The inner text is what
+# appears in the sentence, so it carries the prose's own casing and plurality.
+#
+# Gloss the FIRST instance of a term on a page only. Repeating it on every
+# occurrence adds underlines without adding information.
+#
+# A key that is missing here renders as plain text with no tooltip and no
+# warning, so check spelling against this file when a tooltip does not appear.
+#
+# Entries carry `short` only, matching agentgateway's glossary. The shortcode
+# also supports an optional `link` ("Learn more"), but it hardcodes
+# target="_blank", which suits an external reference rather than a link to
+# another page in this docset.
+
+Actor:
+  short: "The sandboxed unit of compute, provided by Agent Substrate, that runs an AgentInstance's conversation loop. Every AgentInstance is backed by one."
+
+Atespace:
+  short: "The isolation boundary that an Actor belongs to, and the first half of its identity. Global-scoped in Agent Substrate, not a Kubernetes namespace."
+
+Agent Substrate:
+  short: "The runtime that kagent runs agents on. It multiplexes many sandboxed Actors onto a smaller pool of pre-started Workers, suspending idle ones to snapshots."
+
+ActorTemplate:
+  short: "The compiled, immutable definition that the kagent controller produces from a Harness and AgentTemplate pair. Every Actor is created from one."
+
+AgentInstance:
+  short: "A running, conversational pairing of a Harness and an AgentTemplate. Unlike the two, it is not a Kubernetes resource: kagent's gRPC API creates it and its database tracks it."
+
+AgentTemplate:
+  short: "A Kubernetes custom resource defining what an agent does: its model, system prompt, tools, skills, and plugins. It runs only once a Harness accepts it."
+
+Harness:
+  short: "A Kubernetes custom resource defining how an agent is allowed to run: its runtime, workload image, WorkerPool and snapshot storage, and which AgentTemplates it accepts."
+
+Worker:
+  short: "A pre-started, sandboxed pod that hosts at most one Actor at a time. Actors are multiplexed across a pool of Workers over time."
+
+WorkerPool:
+  short: "A Kubernetes custom resource declaring how many Workers to keep running and which sandbox class they use. An operator must provision one before any Harness can create AgentInstances."
+

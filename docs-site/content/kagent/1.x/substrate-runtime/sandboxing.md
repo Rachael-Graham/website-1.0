@@ -5,7 +5,8 @@ weight: 10
 author: kagent.dev
 ---
 
-An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools it can access. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, its own unit of compute, and it does not run that Actor as an ordinary container process. Each Actor runs inside its own **sandbox**, on a Worker that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
+An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools it can access. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, its own unit of compute, and it does not run that Actor as an ordinary container process. Each Actor runs inside its own **sandbox**, on a {{< gloss "Worker" >}}Worker{{< /gloss >}} that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
+</br></br>
 
 ```mermaid
 flowchart LR
@@ -24,15 +25,15 @@ flowchart LR
 
 ## Sandbox classes
 
-A **sandbox class** is the sandbox runtime family that a Worker uses. Agent Substrate supports two.
+A **sandbox class** is the sandbox runtime family that a Worker uses. {{< gloss "Agent Substrate" >}}Agent Substrate{{< /gloss >}} supports two.
 
 - **`gvisor`** (default): Runs the workload against a [gVisor](https://gvisor.dev) user-space kernel, which keeps the workload's system calls from reaching the host kernel.
 - **`microvm`**: Runs the workload inside a lightweight virtual machine, which places a hypervisor boundary between the workload and the host.
 
-A WorkerPool selects its class through the `sandboxClass` field, which defaults to `gvisor`. The choice is not only a runtime preference. It also shapes the Worker pods that Agent Substrate creates for that pool, including the virtualization device mounts and node placement that a micro-VM needs.
+A {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} selects its class through the `sandboxClass` field, which defaults to `gvisor`. The choice is not only a runtime preference. It also shapes the Worker pods that Agent Substrate creates for that pool, including the virtualization device mounts and node placement that a micro-VM needs.
 
 > [!NOTE]
-> kagent generates ActorTemplates that use the `gvisor` class. Keep a WorkerPool that backs kagent Harnesses on `gvisor`.
+> kagent generates {{< gloss "ActorTemplate" >}}ActorTemplates{{< /gloss >}} that use the `gvisor` class. Keep a WorkerPool that backs kagent Harnesses on `gvisor`.
 
 ## Sandbox configuration
 
@@ -80,7 +81,7 @@ The sandbox draws a boundary in three places.
 
 ## How traffic reaches a sandboxed Actor
 
-Every Actor is addressed by name, at `<actor-name>.<atespace>.actors.resources.substrate.ate.dev`. Reaching it involves several hops, and each one is what keeps a sandboxed Actor addressable without exposing the Worker that it happens to be running on.
+Every Actor is addressed by its {{< gloss "Atespace" >}}atespace{{< /gloss >}} and name, at `<actor-name>.<atespace>.actors.resources.substrate.ate.dev`. Reaching it involves several hops, and each one is what keeps a sandboxed Actor addressable without exposing the Worker that it happens to be running on.
 
 1. Agent Substrate runs its own Domain Name System (DNS) service that answers queries for that address pattern with the address of the router, rather than any individual Worker.
 2. The router reads the Actor name and atespace from the request, asks the Agent Substrate API to resume that Actor and report which Worker it is now assigned to, then selects that Worker as the destination.
@@ -88,7 +89,7 @@ Every Actor is addressed by name, at `<actor-name>.<atespace>.actors.resources.s
 
 Because the router resolves the Worker assignment on every request, an Actor keeps a stable address across suspends, resumes, and moves between Workers.
 
-Traffic in the other direction leaves through a separate egress gateway rather than going straight out from the Worker. Routing Actor egress through one gateway is what gives Agent Substrate a single place to apply outbound controls.
+Traffic in the other direction leaves through a separate egress gateway rather than going straight out from the Worker. Routing Actor egress through one gateway provides a single place to apply outbound controls.
 
 ## Default network posture
 

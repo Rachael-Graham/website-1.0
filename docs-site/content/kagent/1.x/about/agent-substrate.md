@@ -5,11 +5,11 @@ weight: 40
 author: kagent.dev
 ---
 
-The [kagent architecture]({{< link path="about/architecture" >}}) page established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the atespace that identifies it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
+The [kagent architecture]({{< link path="about/architecture" >}}) page established that every {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the atespace that identifies it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
 
 ## ActorTemplate
 
-Every Actor is created from an **ActorTemplate**, the compiled definition that the kagent controller produces from a Harness and AgentTemplate pair.
+Every Actor is created from an **ActorTemplate**, the compiled definition that the kagent controller produces from a {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} pair.
 
 What Substrate adds is enforcement. Substrate rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled revision instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
 
@@ -36,6 +36,7 @@ Because an Actor often runs a model-directed agent that calls tools and executes
 Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming allows a WorkerPool to run far more Actors than it has Workers for at any given moment.
 
 The following diagram traces an Actor through one suspend-and-resume cycle, and shows the second path that opens up once the resulting snapshot is tagged.
+</br></br>
 
 ```mermaid
 flowchart LR

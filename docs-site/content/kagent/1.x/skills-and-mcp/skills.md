@@ -5,9 +5,9 @@ weight: 20
 author: kagent.dev
 ---
 
-A **skill** packages a piece of know-how that an agent can pick up: a set of instructions, together with whatever scripts or reference files those instructions depend on. An AgentTemplate attaches skills by naming where each one comes from, and kagent fetches them and places them where the agent runtime can find them.
+A **skill** packages a piece of know-how that an agent can pick up: a set of instructions, together with whatever scripts or reference files those instructions depend on. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} attaches skills by naming where each one comes from, and kagent fetches them and places them where the agent runtime can find them.
 
-## What a skill is
+## About
 
 A skill is a directory whose root holds a `SKILL.md` file. That file carries front matter naming the skill and describing what it is for, followed by the instructions themselves.
 

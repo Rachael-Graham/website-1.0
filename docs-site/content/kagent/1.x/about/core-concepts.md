@@ -14,7 +14,8 @@ The new model separates what an agent can do from how it is allowed to run:
 - An [**AgentInstance**](#agentinstance) is a running conversation, created by pairing the two.
 - An [**Actor**](#actor) is the sandboxed process, provided by Substrate, that an AgentInstance runs on.
 
-The following diagram shows how a Harness and an AgentTemplate become a running conversation. The kagent controller compiles the Harness and AgentTemplate pair into an ActorTemplate, and each AgentInstance is created from that ActorTemplate and runs on an Actor.
+The following diagram shows how a Harness and an AgentTemplate become a running conversation. The kagent controller compiles the Harness and AgentTemplate pair into an {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}}, and each AgentInstance is created from that ActorTemplate and runs on an Actor.
+</br></br>
 
 ```mermaid
 flowchart LR
@@ -91,7 +92,7 @@ For the AgentInstance gRPC service definition, see the [API reference]({{< link 
 
 An **Actor** is the sandboxed unit of compute, provided by [Agent Substrate]({{< link path="about/agent-substrate" >}}), that _runs an AgentInstance's conversation loop_. Every AgentInstance is backed by an Actor.
 
-Actors are the reason why AgentInstances can suspend and resume cheaply instead of staying resident. An idle Actor can be snapshotted and torn down, then resumed from that snapshot on demand. To understand the full mechanics (Workers, WorkerPools, ActorTemplates, and snapshotting), see [Agent Substrate architecture]({{< link path="about/agent-substrate" >}}).
+Actors are the reason why AgentInstances can suspend and resume cheaply instead of staying resident. An idle Actor can be snapshotted and torn down, then resumed from that snapshot on demand. To understand the full mechanics ({{< gloss "Worker" >}}Workers{{< /gloss >}}, {{< gloss "WorkerPool" >}}WorkerPools{{< /gloss >}}, ActorTemplates, and snapshotting), see [Agent Substrate architecture]({{< link path="about/agent-substrate" >}}).
 
 ## Agent tools: Shared vs. Dedicated
 
