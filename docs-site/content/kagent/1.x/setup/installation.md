@@ -210,6 +210,8 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
      openAI:
        apiKey: ${OPENAI_API_KEY}
    controller:
+     grpc:
+       reflection: true
      substrate:
        enabled: true
        ateApiEndpoint: dns:///api.ate-system.svc:443
@@ -222,6 +224,8 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
      ateomImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}"
    EOF
    ```
+   > [!NOTE]
+   > `controller.grpc.reflection` lets a gRPC client discover the controller's methods without a local copy of kagent's proto files, which is how [Your first agent]({{< link path="get-started/your-first-agent" >}}) calls the API. Leave it on while you explore the API, and turn it off for a production installation.
 
 3. Wait for the controller to roll out.
    ```bash

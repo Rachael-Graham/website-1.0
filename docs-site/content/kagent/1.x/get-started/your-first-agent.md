@@ -9,7 +9,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
 
 ## Before you begin
 
-1. [Install kagent with a WorkerPool provisioned]({{< link path="setup/installation" >}}). Be sure to add `--set controller.grpc.reflection=true` to the Helm install command so that grpcurl can discover the controller's gRPC methods without a local copy of kagent's proto files.
+1. [Install kagent with a WorkerPool provisioned]({{< link path="setup/installation" >}}).
 2. Install [grpcurl](https://github.com/fullstorydev/grpcurl).
 3. Port-forward the controller's gRPC port to your local machine.
    ```shell
@@ -174,5 +174,5 @@ The response carries the agent's reply in the same `parts` shape as the request.
 {{< cards >}}
   {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Understand what happens to your AgentInstance's Actor when it sits idle." >}}
   {{< card link=`{{< link path="agents/agent-harness" >}}` title="Agent harness" subtitle="Choose from the full set of Harness runtime options, including Claude Code and Codex." >}}
-  {{< card link=`{{< link path="skills-mcp/skills" >}}` title="Skills" subtitle="Give your agent capabilities beyond its system prompt." >}}
+  {{< card link=`{{< link path="skills-and-mcp/skills" >}}` title="Skills" subtitle="Give your agent capabilities beyond its system prompt." >}}
 {{< /cards >}}

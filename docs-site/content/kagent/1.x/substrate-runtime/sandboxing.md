@@ -5,16 +5,16 @@ weight: 10
 author: kagent.dev
 ---
 
-An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools that it was given. [Agent Substrate]({{< link path="about/agent-substrate" >}}) therefore does not run an Actor as an ordinary container process. It runs each Actor inside its own sandbox, on a Worker that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
+An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools that it was given. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, its own unit of compute, and it does not run that Actor as an ordinary container process. Each Actor runs inside its own sandbox, on a Worker that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
 
 ## Sandbox classes
 
 A **sandbox class** is the sandbox runtime family that a Worker uses. Agent Substrate supports two.
 
-- **`gvisor`**: The default. [gVisor](https://gvisor.dev) runs a user-space kernel that intercepts the sandboxed program's system calls, so the workload does not call the host kernel directly.
+- **`gvisor`** (default): Runs the workload against a [gVisor](https://gvisor.dev) user-space kernel, which keeps the workload's system calls from reaching the host kernel.
 - **`microvm`**: Runs the workload inside a lightweight virtual machine, which places a hypervisor boundary between the workload and the host.
 
-A WorkerPool selects its class through the `sandboxClass` field, which defaults to `gvisor`. The choice is not only a runtime preference. It also determines the shape of the Worker pods that Agent Substrate creates for that pool, including the virtualization device mounts and node placement that a micro-VM needs, and it determines which sandbox configurations the pool can draw on.
+A WorkerPool selects its class through the `sandboxClass` field, which defaults to `gvisor`. The choice is not only a runtime preference. It also shapes the Worker pods that Agent Substrate creates for that pool, including the virtualization device mounts and node placement that a micro-VM needs.
 
 > [!NOTE]
 > kagent generates ActorTemplates that use the `gvisor` class. Keep a WorkerPool that backs kagent Harnesses on `gvisor`.
