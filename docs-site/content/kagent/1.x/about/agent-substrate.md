@@ -38,15 +38,7 @@ Substrate's density model rests on one fact about agent workloads: an Actor spen
 The following diagram traces an Actor through one suspend-and-resume cycle, and shows the second path that opens up once the resulting snapshot is tagged.
 </br></br>
 
-```mermaid
-flowchart LR
-    pool["WorkerPool"] --> worker1["Worker"]
-    worker1 -->|hosts| actor["Actor<br>(running)"]
-    actor -->|suspend| snapshot["ActorSnapshot<br>(immutable)"]
-    snapshot -->|resume| worker2["Any free Worker<br>in the pool"]
-    snapshot -->|pinned by| tag["ActorSnapshotTag<br>(retention pin)"]
-    tag -->|seeds| newactor["New Actor"]
-```
+{{< reuse "kagent-docs/snippets/snapshot-cycle-diagram.md" >}}
 
 A **WorkerPool** keeps **Workers** running and ready, and one Worker hosts the **Actor** while its conversation is active. Suspending that Actor writes its full state to an immutable **ActorSnapshot** and frees the Worker that it was running on.
 

@@ -15,6 +15,11 @@ An agent spends most of its life waiting. It waits on a person to reply, and it 
 - **Pause**: Takes a short-term checkpoint whose files stay on the node. Pausing pins the Actor to that node, because the following resume is prioritized onto the node that holds the snapshot files.
 - **Resume**: Restores a suspended or paused Actor onto a Worker, from its latest snapshot. The common path restores from a snapshot rather than cold-booting the workload.
 
+The following diagram traces an Actor through those operations, and shows the further path that opens once a snapshot is [pinned by a tag](#checkpoints).
+</br></br>
+
+{{< reuse "kagent-docs/snippets/snapshot-cycle-diagram.md" >}}
+
 An Actor reports its position in that cycle through its state, which is one of `RESUMING`, `RUNNING`, `SUSPENDING`, `SUSPENDED`, `PAUSING`, `PAUSED`, `CRASHED`, or `DELETING`. Only a suspended Actor can be deleted.
 
 > [!NOTE]
@@ -29,9 +34,12 @@ An {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}}'s snapshot configura
 
 Scopes describe only what a snapshot captures, and they are configured per trigger. The `onPause` setting selects what a pause captures on the node, and `onCommit` selects what a suspend uploads to snapshot storage. What `onCommit` captures must be a subset of what `onPause` captures.
 
-A **DurableDir volume** is the per-Actor application data surface. Its contents are preserved by the `Data` scope, so they survive a suspend and resume cycle independently of process memory. How many such volumes an ActorTemplate can declare depends on its sandbox class. A `microvm` template can declare several, because they are subdirectories of a single shared filesystem. A `gvisor` template is limited to one, until gVisor accepts more than a single durable mount.
+A **DurableDir volume** is the per-Actor application data surface. Its contents are preserved by the `Data` scope, so they survive a suspend and resume cycle independently of process memory. How many volumes an ActorTemplate can declare depends on its sandbox class. A `microvm` template can declare several, because they are subdirectories of a single shared filesystem. A `gvisor` template is limited to one, until gVisor accepts more than a single durable mount.
 
 When an Actor resumes from a `Data`-scope snapshot, the ActorTemplate's `onResume.fromData` setting decides where the rest of the guest state comes from. The default is `ColdBoot`, which starts the containers fresh from the container image with the durable volume contents restored over them.
+
+> [!NOTE]
+> These scopes describe what Agent Substrate supports, not choices that you make. kagent compiles every ActorTemplate with the same snapshot configuration: `Full` on pause, `Data` on commit, `ColdBoot` on resume, and a single DurableDir volume named `data`. The only snapshot setting that you author is the storage location, on the Harness.
 
 ## Golden and per-Actor snapshots
 
@@ -42,6 +50,16 @@ Two kinds of snapshot serve different purposes, and both appear in a normal inst
 
 Snapshots are persisted to object storage, either Google Cloud Storage or Amazon Simple Storage Service (S3), so that Actor state is durable and portable across the cluster. A {{< gloss "Harness" >}}Harness{{< /gloss >}} names the location for its Actors' snapshots in its `substrate.snapshotPolicy` section.
 
+```yaml
+spec:
+  substrate:
+    workerPoolRef:
+      name: kagent-default
+    snapshotPolicy:
+      # The object storage location your cluster's Substrate installation uses
+      location: gs://<your-bucket>/kagent/
+```
+
 ## Suspension between turns
 
 kagent does not wait for an Actor to go idle for a long stretch before suspending it. It suspends the Actor at every turn boundary, as soon as the conversation reaches a point where nothing is running.
@@ -51,7 +69,7 @@ A turn reaches such a boundary when its task enters a terminal state, or when th
 The {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}}'s own state does not change while this happens. It stays `READY` throughout, because suspension is a property of the runtime underneath it rather than of the conversation. A caller that lists AgentInstances sees a ready agent whether or not an Actor is currently running for it.
 
 > [!NOTE]
-> Creating an AgentInstance does not start an Actor running. The Actor is created suspended, and the first message addressed to the AgentInstance is what resumes it.
+> Creating an AgentInstance does not start an Actor running. The Actor is created as suspended, and the first message addressed to the AgentInstance resumes it.
 
 ## Resuming on demand
 
@@ -63,9 +81,9 @@ Resume speed is what makes suspending at every turn boundary practical rather th
 
 A snapshot that Agent Substrate writes on suspend is transient. Agent Substrate is free to collect it once a newer snapshot supersedes it. A **checkpoint** makes one of those snapshots durable by pinning it.
 
-Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently, and it acts as a retention pin, so Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
+Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently and acts as a retention pin, such that Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
 
-Because a checkpoint captures a turn boundary, an AgentInstance must be at one to be checkpointed. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
+An AgentInstance must be a turn boundary to be checkpointed, because the turn boundary is captured. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
 
 ## Next steps
 
