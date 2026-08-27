@@ -31,7 +31,7 @@ flowchart LR
     actortemplate -->|instantiated as| instance
     instance -->|runs on| actor
 
-    classDef crd stroke:#a78bfa,fill:transparent
+    classDef crd stroke:#a78bfa,stroke-width:2px
     class harness,template crd
 ```
 

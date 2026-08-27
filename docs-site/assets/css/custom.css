@@ -434,3 +434,20 @@ h6 {
   :where(.dark, .dark *) .hextra-nav-container img[src*="kagent-logo-light"] { display: none; }
   :where(.dark, .dark *) .hextra-nav-container img[src*="kagent-logo-dark"]  { display: block; }
 }
+
+/* ── Mermaid diagram alignment ────────────────────────────────────────────
+   Hextra renders every diagram into a full-width <pre class="mermaid"> that
+   carries the code-block background, while Mermaid sizes its own SVG to the
+   diagram's natural width. A narrow diagram therefore sits against the left
+   edge of a wide, mostly empty panel. Center it instead.
+
+   Note: the panel itself cannot be shrunk to fit from CSS. Mermaid sets
+   width="100%" on the SVG and records the real size only in an inline
+   max-width, so width:fit-content has no definite width to measure and
+   collapses every diagram to the 300px SVG default. Shrinking the panel would
+   require Mermaid's useMaxWidth:false, which means overriding the theme's
+   scripts/mermaid.html partial. */
+pre.mermaid {
+  display: flex;
+  justify-content: center;
+}

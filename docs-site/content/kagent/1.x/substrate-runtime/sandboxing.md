@@ -5,7 +5,22 @@ weight: 10
 author: kagent.dev
 ---
 
-An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools that it was given. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, its own unit of compute, and it does not run that Actor as an ordinary container process. Each Actor runs inside its own sandbox, on a Worker that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
+An agent is a program that decides at run time what to do next. It runs the commands that a model asks for, and it calls the tools it can access. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, its own unit of compute, and it does not run that Actor as an ordinary container process. Each Actor runs inside its own **sandbox**, on a Worker that hosts one Actor at a time. This page explains what selects a sandbox, what the sandbox separates, and how traffic reaches an Actor through it.
+
+```mermaid
+flowchart LR
+    subgraph worker["Worker pod"]
+        subgraph sandbox["Sandbox: gvisor or microvm"]
+            subgraph actor["Actor"]
+                agent["Agent"]
+            end
+        end
+    end
+    classDef boundary fill:#a78bfa26,stroke:#a78bfa,stroke-width:2px
+    classDef inner fill:#80808033,stroke:#9ca3af,stroke-width:1px
+    class sandbox boundary
+    class agent inner
+```
 
 ## Sandbox classes
 
@@ -23,14 +38,44 @@ A WorkerPool selects its class through the `sandboxClass` field, which defaults 
 
 A **SandboxConfig** is a cluster-scoped resource that holds the material needed to start one sandbox runtime family. It carries the runtime assets that the node agent fetches, keyed by processor architecture, along with the pause image that holds the sandbox's namespaces as its root container. One SandboxConfig can be marked as the cluster default for its class, and a WorkerPool that names no configuration explicitly resolves to that default.
 
-Holding these assets in a cluster resource is what lets one configuration pin a runtime version for many ActorTemplates at once, rather than each template carrying its own copy. A default installation creates a single `gvisor-default` configuration.
+Defining these assets in a cluster resource is what lets one configuration pin a runtime version for many ActorTemplates at once, rather than each template carrying its own copy.
+
+A default installation creates a single `gvisor-default` configuration, which looks like the following:
+
+```yaml
+apiVersion: ate.dev/v1alpha1
+kind: SandboxConfig
+metadata:
+  name: gvisor-default
+spec:
+  sandboxClass: gvisor
+  default: true
+  pauseImage: registry.k8s.io/pause:3.10.2@sha256:<digest>
+  assets:
+    amd64:
+      gvisor:
+        url: gs://gvisor/releases/release/20260803/x86_64/gvisor.tar.bz2
+        sha256: <sha256>
+    arm64:
+      gvisor:
+        url: gs://gvisor/releases/release/20260803/aarch64/gvisor.tar.bz2
+        sha256: <sha256>
+```
+
+| Field | Description |
+| ----- | ----------- |
+| `sandboxClass` | The sandbox runtime family that this configuration applies to, `gvisor` or `microvm`. A WorkerPool only draws on configurations whose class matches its own. |
+| `default` | Marks this configuration as the cluster default for its class. Expect at most one default per class. |
+| `pauseImage` | The image for the root sandbox container, which holds the sandbox's namespaces and runs no workload code. It must be pinned to a digest, because the snapshot manifest records it, and changing the image invalidates the snapshots that were taken with it. |
+| `assets` | The files that the node agent fetches, keyed first by processor architecture and then by asset name. A `gvisor` class expects one `gvisor` asset, the release archive that the node agent extracts. A `microvm` class expects several, such as `cloud-hypervisor`, `kata-kernel`, and `kata-image`. |
+| `assets.<arch>.<name>.sha256` | The lowercase hex digest of the file. The node agent verifies each download against it, and caches the result under a path that includes the digest, so changing the digest fetches the new asset instead of reusing the cached one. To read the configuration that your own cluster installed, including the pinned digests, run `kubectl get sandboxconfig gvisor-default -o yaml`.|
 
 ## What the sandbox separates
 
 The sandbox draws a boundary in three places.
 
 - **Process and kernel**: The Actor's processes run against the sandbox runtime rather than the Worker node's kernel. A system call that the workload makes is handled by gVisor's user-space kernel, or by the guest kernel inside a micro-VM, instead of reaching the host directly.
-- **Filesystem**: The Actor sees the filesystem assembled from its container image, plus whatever durable volume its ActorTemplate declares. Writes to the root filesystem are a layer on top of the image, captured in a `Full` snapshot and discarded by a `Data` one. See [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}) for what each scope keeps.
+- **Filesystem**: The Actor sees the filesystem assembled from its container image, plus whatever durable volume its ActorTemplate declares. Writes to the root filesystem are a layer on top of the image, captured in a `Full` snapshot and discarded by a `Data` one. For what each scope keeps, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
 - **Network**: The Actor does not share the Worker pod's network position. The node agent gives the active Actor a private, point-to-point virtual network inside the Worker pod, so reaching the Actor means going through Agent Substrate's own network path rather than connecting to the Worker directly.
 
 ## How traffic reaches a sandboxed Actor

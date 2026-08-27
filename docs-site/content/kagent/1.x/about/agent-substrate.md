@@ -5,7 +5,7 @@ weight: 40
 author: kagent.dev
 ---
 
-The [kagent architecture]({{< link path="about/architecture" >}}) page established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
+The [kagent architecture]({{< link path="about/architecture" >}}) page established that every AgentInstance runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the atespace that identifies it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
 
 ## ActorTemplate
 
@@ -20,6 +20,12 @@ An Actor needs somewhere to run. Each Actor runs on a **Worker**: a pre-started,
 Workers come from a **WorkerPool**, a Kubernetes custom resource that an operator provisions before any Harness can create AgentInstances. A WorkerPool declares how many Workers to keep running and which sandbox technology those Workers use.
 
 An operator never creates a Worker directly. Substrate manages them, keeping enough ready in each WorkerPool so that an Actor can start or resume on one immediately, without waiting on the Kubernetes scheduler to place a new Pod.
+
+## Atespaces
+
+An **atespace** is the isolation boundary that an Actor belongs to, and the first half of its identity. Agent Substrate addresses an Actor by its atespace and its name together, so the same Actor name can exist in two atespaces without colliding. Despite the resemblance, an atespace is a global-scoped Agent Substrate resource rather than a Kubernetes namespace.
+
+kagent names each atespace after the Kubernetes namespace of the AgentInstance whose Actor it holds, and creates that atespace on demand the first time an AgentInstance in the namespace needs an Actor. The Actor's own name comes from the AgentInstance's identifier. An AgentInstance in the `kagent` namespace therefore runs on an Actor that Agent Substrate addresses within the `kagent` atespace. Both halves of that identity appear in the address that traffic uses to reach the Actor, which [Sandboxing]({{< link path="substrate-runtime/sandboxing#how-traffic-reaches-a-sandboxed-actor" >}}) covers.
 
 ## Sandboxing
 

@@ -52,7 +52,7 @@ spec:
 | `plugins[].skills` | The names of the skills inside that package to enable. Omit or leave empty to enable none. |
 | `source.path` | Selects a directory inside the artifact, when the content is not at its root. The path must be relative, and it cannot climb out of the artifact with `..` segments. |
 
-### The plugin allowlist
+### Plugin allowlist
 
 Attaching a plugin package does not enable any of the skills that it carries. Only the names listed in `plugins[].skills` are enabled.
 

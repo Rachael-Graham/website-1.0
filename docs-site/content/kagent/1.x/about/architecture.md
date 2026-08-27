@@ -52,7 +52,7 @@ flowchart TB
     %% plane. Without it, the layout engine staggers the two planes diagonally.
     %% actortemplate ~~~ caller
 
-    classDef crd stroke:#a78bfa,fill:transparent
+    classDef crd stroke:#a78bfa,stroke-width:2px
     class harness,template crd
 ```
 
