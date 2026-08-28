@@ -66,7 +66,7 @@ spec:
 | Field | Description |
 | ----- | ----------- |
 | `sandboxClass` | The sandbox runtime family that this configuration applies to, `gvisor` or `microvm`. A WorkerPool only draws on configurations whose class matches its own. |
-| `default` | Marks this configuration as the cluster default for its class. Expect at most one default per class. |
+| `default` | Whether this configuration is the cluster default for its class. Expect at most one default per class. |
 | `pauseImage` | The image for the root sandbox container, which holds the sandbox's namespaces and runs no workload code. It must be pinned to a digest, because the snapshot manifest records it, and changing the image invalidates the snapshots that were taken with it. |
 | `assets` | The files that the node agent fetches, keyed first by processor architecture and then by asset name. A `gvisor` class expects one `gvisor` asset, the release archive that the node agent extracts. A `microvm` class expects several, such as `cloud-hypervisor`, `kata-kernel`, and `kata-image`. |
 | `assets.<arch>.<name>.sha256` | The lowercase hex digest of the file. The node agent verifies each download against it, and caches the result under a path that includes the digest, so changing the digest fetches the new asset instead of reusing the cached one. To read the configuration that your own cluster installed, including the pinned digests, run `kubectl get sandboxconfig gvisor-default -o yaml`.|

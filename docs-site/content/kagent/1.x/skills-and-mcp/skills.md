@@ -13,7 +13,7 @@ A skill is a directory whose root holds a `SKILL.md` file. That file carries fro
 
 The description is what makes a skill usable. When an agent starts, the runtime reads the front matter of every skill that is attached to it, and offers those skills to the model as tools that it can call. The model chooses a skill from its description, in the same way that it chooses any other tool. This means that a description that states plainly when to use the skill matters more than the length of the instructions behind it.
 
-A skill can be published on its own, or bundled with other skills in a [plugin package]({{< link path="skills-and-mcp/plugins" >}}), which can also declare Model Context Protocol (MCP) servers that kagent adds to the agent's tools.
+A skill can be published on its own, or bundled with other skills in a [plugin package]({{< link path="skills-and-mcp/plugins" >}}), which can also declare Model Context Protocol (MCP) servers that kagent adds to the agent's [tools]({{< link path="skills-and-mcp/about-tools" >}}).
 
 ## Attach skills to an AgentTemplate
 
@@ -47,10 +47,10 @@ spec:
 | Field | Description |
 | ----- | ----------- |
 | `skills[].name` | The name that the skill is mounted under, and the name that the model sees. |
-| `skills[].source` | Where to fetch this one skill from. The source root must hold a `SKILL.md` file. |
-| `plugins[].source` | Where to fetch the plugin package from. The source root must hold a `plugin.json` manifest. |
+| `skills[].source` | The location to fetch this one skill from. The source root must hold a `SKILL.md` file. |
+| `plugins[].source` | The location to fetch the plugin package from. The source root must hold a `plugin.json` manifest. |
 | `plugins[].skills` | The names of the skills inside that package to enable. Omit or leave empty to enable none. |
-| `source.path` | Selects a directory inside the artifact, when the content is not at its root. The path must be relative, and it cannot climb out of the artifact with `..` segments. |
+| `source.path` | The directory to select inside the artifact, when the content is not at its root. The path must be relative, and it cannot climb out of the artifact with `..` segments. |
 
 ### Plugin allowlist
 

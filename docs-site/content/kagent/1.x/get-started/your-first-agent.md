@@ -71,22 +71,47 @@ This guide walks you through creating an agent, from applying a Harness and an A
    kubectl get agenttemplate my-first-agent -n kagent -o jsonpath='{.status.harnesses}' | jq .
    ```
 
-   A ready pair reports a `Ready` condition for `my-first-harness`. If the status is empty, wait a few seconds for the kagent controller to reconcile, then check again.
+   A ready pair reports four conditions for `my-first-harness`, ending in `Ready`. If the status is empty, wait a few seconds for the kagent controller to reconcile, then check again.
    ```json
    [
      {
-       "harness": "my-first-harness",
-       "desiredRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
-       "latestSuccessfulRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
        "conditions": [
          {
-           "type": "Ready",
+           "lastTransitionTime": "2026-08-24T15:02:10Z",
+           "message": "Harness admission selector matches the AgentTemplate",
+           "observedGeneration": 1,
+           "reason": "Accepted",
            "status": "True",
+           "type": "Accepted"
+         },
+         {
+           "lastTransitionTime": "2026-08-24T15:02:10Z",
+           "message": "All runtime references resolved",
+           "observedGeneration": 1,
+           "reason": "Resolved",
+           "status": "True",
+           "type": "ResolvedRefs"
+         },
+         {
+           "lastTransitionTime": "2026-08-24T15:02:10Z",
+           "message": "Resolved configuration is compatible with the Harness",
+           "observedGeneration": 1,
+           "reason": "Compatible",
+           "status": "True",
+           "type": "Compatible"
+         },
+         {
+           "lastTransitionTime": "2026-08-24T15:02:10Z",
+           "message": "ActorTemplate golden snapshot is ready",
+           "observedGeneration": 1,
            "reason": "Ready",
-           "message": "ActorTemplate is ready",
-           "lastTransitionTime": "2026-08-24T15:02:10Z"
+           "status": "True",
+           "type": "Ready"
          }
-       ]
+       ],
+       "desiredRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
+       "harness": "my-first-harness",
+       "latestSuccessfulRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b"
      }
    ]
    ```

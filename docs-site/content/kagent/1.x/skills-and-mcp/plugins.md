@@ -11,9 +11,9 @@ A **plugin package** is a bundle that an AgentTemplate attaches with `spec.plugi
 
 A package root can hold up to three things.
 
-* `plugin.json` (required): The manifest that names the package.
-* `skills/`: One subdirectory per skill, each holding a `SKILL.md` file at its root.
-* `mcp.json`: Declares MCP servers that kagent adds to the agent's tools.
+- `plugin.json` (required): The manifest that names the package.
+- `skills/`: One subdirectory per skill, each holding a `SKILL.md` file at its root.
+- `mcp.json`: Declares MCP servers that kagent adds to the agent's tools.
 
 kagent reads `name` from the manifest and ignores the rest, so a package that carries `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`, or `extensions` is accepted, but none of those fields change what the agent gets. The manifest's `$schema` must be exactly `https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`.
 
@@ -22,7 +22,7 @@ kagent reads `name` from the manifest and ignores the rest, so a package that ca
 
 ## MCP servers
 
-A package that includes `mcp.json` contributes MCP servers to every agent that enables it. The file declares an `mcpServers` object, keyed by server name, and its `$schema` must be exactly `https://agent-plugins.org/schemas/1.0.0/mcp.schema.json`.
+A package that includes `mcp.json` contributes MCP servers to every agent that enables it, alongside any bound directly on the AgentTemplate (see [About tools]({{< link path="skills-and-mcp/about-tools" >}})). The file declares an `mcpServers` object, keyed by server name, and its `$schema` must be exactly `https://agent-plugins.org/schemas/1.0.0/mcp.schema.json`.
 
 Each server names a transport in its `type` field, and the transport determines which other fields are allowed.
 
@@ -30,7 +30,7 @@ Each server names a transport in its `type` field, and the transport determines 
 | --------- | ------ | ----------- |
 | `stdio` | `command`, `args`, `env`, `cwd` | Runs a process inside the agent's sandbox. Specifying `url` or `headers` is rejected. |
 | `streamable-http` | `url`, `headers` | Calls a remote server. Specifying `command`, `args`, `env`, or `cwd` is rejected. |
-| `sse` | `url`, `headers` | As `streamable-http`, over Server-Sent Events. |
+| `sse` | `url`, `headers` | Calls a remote server over Server-Sent Events. Accepts the same fields as `streamable-http`. |
 
 kagent enforces several rules on these servers, and each one exists to keep a package from reaching outside itself.
 
@@ -45,8 +45,8 @@ An invalid server is skipped with a log entry, and the rest of the file still lo
 
 A `stdio` server often needs to run something that the package ships, or to write somewhere durable. Two variables are expanded in `args`, `env` values, and `cwd`.
 
-* `${PLUGIN_ROOT}`: The directory the package was unpacked into. Read-only in practice, and shared by every Actor of the template.
-* `${PLUGIN_DATA}`: A per-package data directory that kagent creates. Use it for anything the server writes.
+- `${PLUGIN_ROOT}`: The directory the package was unpacked into. Read-only in practice, and shared by every Actor of the template.
+- `${PLUGIN_DATA}`: A per-package data directory that kagent creates. Use it for anything the server writes.
 
 kagent also sets both as environment variables on every `stdio` server, so a server can read them without the package declaring them. A package cannot override either one: an `env` block that sets `PLUGIN_ROOT` or `PLUGIN_DATA` is rejected.
 
