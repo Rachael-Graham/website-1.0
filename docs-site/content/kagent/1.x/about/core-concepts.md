@@ -104,11 +104,3 @@ An AgentTemplate's tools are not limited to MCP servers. A tool binding can also
 Shared nesting never goes more than one level deep. A Shared agent tool can have Dedicated agent tools beneath it, but it cannot contain another Shared one.
 
 This limit keeps the model predictable. A Dedicated binding gives the child its own Actor. A Shared binding puts the child in its parent's Actor, and because Shared bindings cannot chain, that parent always has an Actor of its own. Working out where any agent runs is therefore never more than a single step.
-
-## Next steps
-
-{{< cards >}}
-  {{< card link=`{{< link path="about/architecture" >}}` title="kagent architecture" subtitle="See how these pieces fit together end to end, from `kubectl apply` to a live conversation." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Learn about Workers, WorkerPools, and ActorTemplates, and how Actors suspend and resume." >}}
-  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
-{{< /cards >}}

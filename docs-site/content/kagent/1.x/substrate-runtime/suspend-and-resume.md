@@ -84,10 +84,3 @@ A snapshot that Agent Substrate writes on suspend is transient. Agent Substrate 
 Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently and acts as a retention pin, such that Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
 
 An AgentInstance must be a turn boundary to be checkpointed, because the turn boundary is captured. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
-
-## Next steps
-
-{{< cards >}}
-  {{< card link=`{{< link path="substrate-runtime/sandboxing" >}}` title="Sandboxing" subtitle="See how a sandbox isolates each Actor's process, filesystem, and network." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
-{{< /cards >}}

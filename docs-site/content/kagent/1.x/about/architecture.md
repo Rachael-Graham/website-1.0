@@ -67,10 +67,3 @@ From there, the caller holds a conversation with the AgentInstance over the A2A 
 Kubernetes RBAC is designed to authorize configuration changes: who can create a Deployment, edit a ConfigMap, or in this case, apply a Harness or AgentTemplate. It is not designed to authorize a running conversation, share access to it with another user, or scope who can suspend it. kagent's gRPC plane exists to authorize exactly those actions, at the granularity of a single AgentInstance rather than a namespace or a resource kind.
 
 This split also keeps the two lifecycles independent. Editing a Harness or AgentTemplate does not affect AgentInstances already running against the ActorTemplate that they were created from. It only affects new AgentInstances, created after the edit is compiled.
-
-## Next steps
-
-{{< cards >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="See what an Actor actually runs on, and how it suspends and resumes." >}}
-  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
-{{< /cards >}}

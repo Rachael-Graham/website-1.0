@@ -96,10 +96,3 @@ Traffic in the other direction leaves through a separate egress gateway rather t
 Agent Substrate creates a Kubernetes NetworkPolicy for each WorkerPool, selecting that pool's Worker pods. The policy restricts **ingress** to the Agent Substrate router alone. No other pod in the cluster can open a connection to a Worker, so an Actor is not reachable by anything that bypasses the routing path.
 
 That policy governs inbound traffic only. It does not constrain what an Actor may reach outbound, so outbound access is whatever the surrounding cluster and its infrastructure already allow. Treat network egress as something to configure deliberately for your environment rather than as something the WorkerPool policy settles.
-
-## Next steps
-
-{{< cards >}}
-  {{< card link=`{{< link path="substrate-runtime/suspend-and-resume" >}}` title="Suspend and resume" subtitle="See what a snapshot captures and how an idle Actor comes back." >}}
-  {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Review how Workers, Actors, and ActorTemplates fit together." >}}
-{{< /cards >}}

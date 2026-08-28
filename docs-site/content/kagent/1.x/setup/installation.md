@@ -243,10 +243,11 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```
    Example output:
    ```console
-   NAME                                 READY   STATUS    RESTARTS   AGE
-   kagent-controller-659b58768b-2k6h4   1/1     Running   3          2m
-   kagent-default-864fdc4c94-xbsl9      1/1     Running   0          2m
-   kagent-postgresql-65cc684b78-9qbh2   1/1     Running   0          2m
+   NAME                                              READY   STATUS    RESTARTS   AGE
+   kagent-controller-659b58768b-2k6h4                1/1     Running   3          2m
+   kagent-default-864fdc4c94-xbsl9                   1/1     Running   0          2m
+   kagent-kmcp-controller-manager-6676b45958-knkzd   1/1     Running   0          2m
+   kagent-postgresql-65cc684b78-9qbh2                1/1     Running   0          2m
    ```
 
 2. Confirm that the WorkerPool reports a ready replica.
@@ -255,8 +256,8 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```
    Example output:
    ```console
-   NAMESPACE   NAME             DESIRED   REPLICAS   READY   AGE
-   kagent      kagent-default   1         1          1       2m
+   NAME             DESIRED   REPLICAS   READY   AGE
+   kagent-default   1         1          1       2m
    ```
 
 3. Get the address to reach the kagent gRPC API, which serves the AgentInstance lifecycle and conversation calls. The guide to [create your first agent]({{< link path="get-started/your-first-agent" >}}) assumes port-forwarding.

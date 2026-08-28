@@ -52,10 +52,3 @@ A tag gives a snapshot a stable, human-meaningful name, so callers do not need t
 For example, an agent partway through a long incident investigation reaches a state worth keeping. Creating a [checkpoint]({{< link path="substrate-runtime/suspend-and-resume#checkpoints" >}}) tags the snapshot that the agent most recently suspended to, which holds that one snapshot in place while the agent carries on and writes newer ones. Without the tag, Substrate collects that snapshot once a newer one supersedes it.
 
 Substrate's own target for this cycle is 100 milliseconds at the ninety-fifth percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
-
-## Next steps
-
-{{< cards >}}
-  {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
-  {{< card link=`{{< link path="operations/substrate-operations" >}}` title="Substrate operations" subtitle="Size a WorkerPool and choose a sandbox class for your cluster." >}}
-{{< /cards >}}
