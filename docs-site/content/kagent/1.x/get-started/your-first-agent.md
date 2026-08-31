@@ -165,7 +165,8 @@ The `invoke` command takes a few more options that are useful beyond a first con
 ## Next steps
 
 {{< cards >}}
+  {{< card link=`{{< link path="get-started/your-first-mcp-tool" >}}` title="Your first MCP tool" subtitle="Bind a Model Context Protocol tool so that your agent can act on live cluster data." >}}
   {{< card link=`{{< link path="about/agent-substrate" >}}` title="Agent Substrate architecture" subtitle="Understand what happens to your AgentInstance's Actor when it sits idle." >}}
-  {{< card link=`{{< link path="agents/agent-harness" >}}` title="Agent harness" subtitle="Choose from the full set of Harness runtime options, including Claude Code and Codex." >}}
+  {{< card link=`{{< link path="agents/agent-harness" >}}` title="Agent harness" subtitle="Choose from the full set of Harness runtime options." >}}
   {{< card link=`{{< link path="skills-and-mcp/skills" >}}` title="Skills" subtitle="Give your agent capabilities beyond its system prompt." >}}
 {{< /cards >}}

@@ -5,7 +5,7 @@ weight: 10
 author: kagent.dev
 ---
 
-kagent is an open-source, Kubernetes-native platform for running AI agents. It defines an agent's runtime and behavior as ordinary Kubernetes custom resources, governed by the same role-based access control (RBAC), GitOps, and observability that you already use for your other workloads, and runs each agent's conversation inside [Agent Substrate]({{< link path="about/agent-substrate" >}}), a sandboxed, suspend-and-resume compute layer built for bursty, mostly idle agent workloads. kagent works with coding-agent runtimes such as Claude Code and Codex, agent frameworks such as Google's Agent Development Kit (ADK), LangGraph, and CrewAI, and every major large language model (LLM) provider.
+kagent is an open-source, Kubernetes-native platform for running AI agents. It defines an agent's runtime and behavior as ordinary Kubernetes custom resources, governed by the same role-based access control (RBAC), GitOps, and observability that you already use for your other workloads, and runs each agent's conversation inside [Agent Substrate]({{< link path="about/agent-substrate" >}}), a sandboxed, suspend-and-resume compute layer built for bursty, mostly idle agent workloads. kagent works with agent frameworks such as Google's Agent Development Kit (ADK), LangGraph, and CrewAI, and with every major large language model (LLM) provider. Agents run on kagent's own Go and Python engines.
 
 kagent was created at [Solo.io](https://www.solo.io) in 2025 and is a [Cloud Native Computing Foundation](https://www.cncf.io) sandbox project.
 
@@ -45,7 +45,7 @@ Everything works with a single `helm install`. No add-ons, no extra databases, n
 {{< feature-card title="Agent lifecycle via CRDs" desc="Define, version, and roll out Harnesses and AgentTemplates with kubectl and GitOps, the same workflow as every other workload." >}}
 {{< feature-card title="Sandboxed by default" desc="Every AgentInstance runs on a Substrate Actor, isolated from the host kernel by a gVisor sandbox. Run untrusted, model-directed code safely." >}}
 {{< feature-card title="Suspend and resume" desc="Idle AgentInstances suspend and free their compute, then resume on demand. Run far more agents than you have capacity for at any one moment." >}}
-{{< feature-card title="Bring your own runtime" desc="Run kagent's native Go or Python engine behind a Harness. Codex is planned as an additional runtime." >}}
+{{< feature-card title="Pluggable agent runtimes" desc="A Harness selects the engine behind an agent. kagent runs its own Go and Python engines, and the Harness API defines Codex and Claude runtime selectors." >}}
 {{< feature-card title="Agent tools" desc="Compose agents from other agents. A Shared binding nests an agent inside its parent's Actor, one level deep." >}}
 {{< feature-card title="Long-term memory" desc="Persistent, vector-backed memory across sessions. Agents remember context, not just the last prompt." >}}
 {{< feature-card title="Human-in-the-loop" desc="Tool approval gates and agent-initiated questions keep a person in control of consequential actions." >}}
