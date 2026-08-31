@@ -5,13 +5,13 @@ weight: 40
 author: kagent.dev
 ---
 
-The [kagent architecture]({{< link path="about/architecture" >}}) page established that every {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the atespace that identifies it, the sandbox that isolates it, and the snapshot cycle that lets it suspend when idle and resume on demand.
+The [kagent architecture]({{< link path="about/architecture" >}}) page established that every {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} runs on an Actor. This page explains what an Actor is built from and what it runs on: the ActorTemplate that it is created from, the compute that hosts it, the atespace that identifies it, the sandbox that isolates it, and the {{< gloss "Snapshot" >}}snapshot{{< /gloss >}} cycle that lets it suspend when idle and resume on demand.
 
 ## ActorTemplate
 
 Every Actor is created from an **ActorTemplate**, the compiled definition that the kagent controller produces from a {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} pair.
 
-What Substrate adds is enforcement. Substrate rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled revision instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
+What Substrate adds is enforcement. Substrate rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled {{< gloss "Revision" >}}revision{{< /gloss >}} instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
 
 ## Workers and WorkerPools
 
@@ -31,7 +31,7 @@ kagent names each atespace after the Kubernetes namespace of the AgentInstance w
 
 Because an Actor often runs a model-directed agent that calls tools and executes commands, Substrate runs each Actor in an isolated sandbox rather than a plain container. A WorkerPool's `sandboxClass` field selects the sandbox technology for its Workers: [gVisor](https://gvisor.dev) or a micro-VM technology such as [Kata Containers](https://katacontainers.io). Both technologies isolate an Actor from its Worker's host kernel, and both support suspend and resume operations.
 
-kagent compiles every ActorTemplate to the `gvisor` class, so a kagent agent runs in a gVisor sandbox today and the micro-VM class is a Substrate capability that kagent does not yet select. Keep a WorkerPool that backs kagent Harnesses on `gvisor`. For what each class isolates, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
+kagent compiles every ActorTemplate to the `gvisor` class, so a kagent agent runs in a {{< gloss "gVisor" >}}gVisor{{< /gloss >}} sandbox today and the micro-VM class is a Substrate capability that kagent does not yet select. Keep a WorkerPool that backs kagent Harnesses on `gvisor`. For what each class isolates, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
 
 ## Suspend, snapshot, and resume
 

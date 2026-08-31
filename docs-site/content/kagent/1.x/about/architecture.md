@@ -60,7 +60,7 @@ Follow the **Kubernetes plane** first. An operator applies a Harness and an Agen
 
 The **kagent plane** starts once that ActorTemplate exists. A caller, who may or may not be the same person as the operator, calls `CreateAgentInstance` through kagent's gRPC API. This call is governed by kagent's own authentication and authorization, not by Kubernetes RBAC. kagent creates the AgentInstance from the newest ActorTemplate that compiled successfully, and that AgentInstance runs on an {{< gloss "Actor" >}}Actor{{< /gloss >}}.
 
-From there, the caller holds a conversation with the AgentInstance over the A2A (Agent-to-Agent) protocol. The A2A gateway routes each request to the Actor running behind the target AgentInstance. This means that the caller only ever needs to know an AgentInstance's identity, never which Actor or {{< gloss "Worker" >}}Worker{{< /gloss >}} is behind it.
+From there, the caller holds a conversation with the AgentInstance over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol. The A2A gateway routes each request to the Actor running behind the target AgentInstance. This means that the caller only ever needs to know an AgentInstance's identity, never which Actor or {{< gloss "Worker" >}}Worker{{< /gloss >}} is behind it.
 
 ## Why two planes
 

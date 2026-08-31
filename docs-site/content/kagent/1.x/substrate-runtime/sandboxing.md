@@ -75,8 +75,8 @@ spec:
 
 The sandbox draws a boundary in three places.
 
-- **Process and kernel**: The Actor's processes run against the sandbox runtime rather than the Worker node's kernel. A system call that the workload makes is handled by gVisor's user-space kernel, or by the guest kernel inside a micro-VM, instead of reaching the host directly.
-- **Filesystem**: The Actor sees the filesystem assembled from its container image, plus whatever durable volume its ActorTemplate declares. Writes to the root filesystem are a layer on top of the image, captured in a `Full` snapshot and discarded by a `Data` one. For what each scope keeps, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
+- **Process and kernel**: The Actor's processes run against the sandbox runtime rather than the Worker node's kernel. A system call that the workload makes is handled by {{< gloss "gVisor" >}}gVisor{{< /gloss >}}'s user-space kernel, or by the guest kernel inside a micro-VM, instead of reaching the host directly.
+- **Filesystem**: The Actor sees the filesystem assembled from its container image, plus whatever durable volume its ActorTemplate declares. Writes to the root filesystem are a layer on top of the image, captured in a `Full` {{< gloss "Snapshot" >}}snapshot{{< /gloss >}} and discarded by a `Data` one. For what each scope keeps, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
 - **Network**: The Actor does not share the Worker pod's network position. The node agent gives the active Actor a private, point-to-point virtual network inside the Worker pod, so reaching the Actor means going through Agent Substrate's own network path rather than connecting to the Worker directly.
 
 ## How traffic reaches a sandboxed Actor

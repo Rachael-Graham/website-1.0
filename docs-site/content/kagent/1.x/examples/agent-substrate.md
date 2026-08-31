@@ -7,7 +7,7 @@ author: kagent.dev
 
 [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs every agent as an Actor: a sandboxed unit of compute that holds a {{< gloss "Worker" >}}Worker{{< /gloss >}} only while a turn is in progress, and whose state you can pin and branch. This example follows one agent through all three behaviors.
 
-The Actor that these steps follow is also the isolation boundary. Every Actor runs in its own gVisor sandbox rather than sharing one with its neighbors, which is why a model can safely run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
+The Actor that these steps follow is also the isolation boundary. Every Actor runs in its own {{< gloss "gVisor" >}}gVisor{{< /gloss >}} sandbox rather than sharing one with its neighbors, which is why a model can safely run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
 
 ## Before you begin
 
@@ -18,7 +18,7 @@ The Actor that these steps follow is also the isolation boundary. Every Actor ru
    export INSTANCE_ID=<your-agent-instance-id>
    ```
 
-3. Install [grpcurl](https://github.com/fullstorydev/grpcurl), and confirm that your kagent installation sets `controller.grpc.reflection`. Checkpoints and forks have no kagent CLI commands yet, so this example calls `CheckpointService` directly.
+3. Install [grpcurl](https://github.com/fullstorydev/grpcurl), and confirm that your kagent installation sets `controller.grpc.reflection`. Checkpoints and {{< gloss "Fork" >}}forks{{< /gloss >}} have no kagent CLI commands yet, so this example calls `CheckpointService` directly.
 
 4. Port-forward the controller's gRPC port to your local machine.
    ```bash
@@ -88,9 +88,9 @@ The AgentInstance stays `READY` throughout all steps. A suspended agent remains 
 
 ## Pin the conversation with a checkpoint
 
-Each suspend writes a snapshot, and Agent Substrate is free to collect that snapshot once a newer one supersedes it. A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} pins a snapshot so that you can come back to it.
+Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent Substrate is free to collect that snapshot once a newer one supersedes it. A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} pins a snapshot so that you can come back to it.
 
-1. Create a checkpoint. The checkpoint records the snapshot it pinned and how far the transcript had advanced. The `requestId` field is a required idempotency key of 1 to 128 characters, so reusing it returns the same checkpoint rather than creating a second one.
+1. Create a checkpoint. The checkpoint records the snapshot that it pinned and how far the {{< gloss "Transcript" >}}transcript{{< /gloss >}} had advanced. The `requestId` field is a required idempotency key of 1 to 128 characters, so reusing it returns the same checkpoint rather than creating a second one.
    ```bash
    grpcurl -plaintext \
      -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'","requestId":"'"$(uuidgen)"'"}' \
@@ -182,7 +182,7 @@ Forking creates a second AgentInstance that starts from the pinned snapshot, wit
    +--------------------------------------+----------------+------------------+-------+----------------------+
    ```
 
-A fork runs the compiled revision that its checkpoint was taken on, not whatever revision the AgentTemplate resolves to now. Editing the AgentTemplate after checkpointing does not change what a fork of that checkpoint runs, which is what makes a fork a faithful continuation rather than a fresh start with an old transcript.
+A fork runs the compiled {{< gloss "Revision" >}}revision{{< /gloss >}} that its checkpoint was taken on, not whatever revision the AgentTemplate resolves to now. Editing the AgentTemplate after checkpointing does not change what a fork of that checkpoint runs, which is what makes a fork a faithful continuation rather than a fresh start with an old transcript.
 
 > [!NOTE]
 > A checkpoint can only be forked when its snapshot captured durable data alone. kagent compiles every ActorTemplate to take a `Data`-scope snapshot on commit, so a checkpoint taken on a suspended AgentInstance is forkable. A checkpoint whose snapshot also captured process state is rejected with `Checkpoint includes process state and cannot be forked`, because process memory belongs to the one Actor that produced it.

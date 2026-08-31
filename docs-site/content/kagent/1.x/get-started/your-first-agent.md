@@ -49,7 +49,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
    > [!NOTE]
    > An `AgentTemplate` has no field naming this Harness. The `kagent.dev/harness: my-first-harness` selector is a convention that this guide uses to match the `kagent.dev/harness` label in the next step. However, you can choose any label key and value, as long as the Harness selector and the AgentTemplate's labels match.
 
-2. Apply an `AgentTemplate` that is labeled to match the Harness's `allowedAgentTemplates` selector. The `modelConfig` field references the `default-model-config` ModelConfig that was automatically created for the model provider API key that you provided during kagent installation.
+2. Apply an `AgentTemplate` that is labeled to match the Harness's `allowedAgentTemplates` selector. The `modelConfig` field references the `default-model-config` {{< gloss "ModelConfig" >}}ModelConfig{{< /gloss >}} that was automatically created for the model provider API key that you provided during kagent installation.
    ```yaml
    apiVersion: kagent.dev/v1alpha3
    kind: AgentTemplate
@@ -67,7 +67,7 @@ This guide walks you through creating an agent, from applying a Harness and an A
      systemPrompt: You are a concise, helpful assistant.
    ```
 
-3. Confirm that the pair is ready. The `HARNESS` column lists each Harness that admitted this AgentTemplate, and `READY` reports whether kagent compiled a runtime revision for that pairing.
+3. Confirm that the pair is ready. The `HARNESS` column lists each Harness that admitted this AgentTemplate, and `READY` reports whether kagent compiled a runtime {{< gloss "Revision" >}}revision{{< /gloss >}} for that pairing.
    ```bash
    kagent get agent-template my-first-agent
    ```
@@ -117,7 +117,7 @@ An AgentInstance is one running conversation. Creating it starts an Actor on the
 
 ## Talk to your agent
 
-1. Send a message to the AgentInstance. The CLI holds the conversation over the A2A (Agent-to-Agent) protocol.
+1. Send a message to the AgentInstance. The CLI holds the conversation over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol.
    ```bash
    kagent invoke --agent-instance $INSTANCE_ID --task "What is 2+2?"
    ```
@@ -127,7 +127,7 @@ An AgentInstance is one running conversation. Creating it starts an Actor on the
    4
    ```
 
-2. Send a follow-up message to the same AgentInstance. An AgentInstance holds the transcript of its conversation, so the agent answers with the earlier turns in context.
+2. Send a follow-up message to the same AgentInstance. An AgentInstance holds the {{< gloss "Transcript" >}}transcript{{< /gloss >}} of its conversation, so the agent answers with the earlier turns in context.
    ```bash
    kagent invoke --agent-instance $INSTANCE_ID --task "What did I just ask you?"
    ```

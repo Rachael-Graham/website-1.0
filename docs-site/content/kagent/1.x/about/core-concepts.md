@@ -44,7 +44,7 @@ A **Harness** is a Kubernetes custom resource that defines _how an agent is allo
 
 - **Runtime**: The engine that executes the agent. A Harness selects exactly one of `kagent`, `codex`, or `claude`. kagent compiles only the `kagent` runtime, which runs kagent's own Go and Python engines.
 - **Workload**: The container image and environment the runtime runs in.
-- **Substrate policy**: The [WorkerPool]({{< link path="about/agent-substrate#workers-and-workerpools" >}}) that the Harness's Actors are scheduled onto, and where their snapshots are stored.
+- **Substrate policy**: The [WorkerPool]({{< link path="about/agent-substrate#workers-and-workerpools" >}}) that the Harness's Actors are scheduled onto, and where their {{< gloss "Snapshot" >}}snapshots{{< /gloss >}} are stored.
 - **Allowed AgentTemplates**: A selector that names which AgentTemplates are permitted to run on this Harness.
 
 That last point is a one-way match, not a mutual handshake. An AgentTemplate has no field naming a Harness. Instead, a Harness's `allowedAgentTemplates` selector matches on labels, and any AgentTemplate in the same namespace carrying a matching label becomes eligible to run on it. Whoever controls a Harness's selector decides which AgentTemplates it accepts.
@@ -65,7 +65,7 @@ An **AgentTemplate** is a Kubernetes custom resource that defines _what an agent
 
 - **Model configuration**: The large language model (LLM) provider and model the agent uses. This is the only field an AgentTemplate strictly requires.
 - **System prompt**: A literal prompt, or a Go-templated one that can `include` shared ConfigMaps.
-- **Tools**: A list of tool bindings the agent can call. Each binding is either a Model Context Protocol (MCP) server, or another AgentTemplate used as an agent tool (see [Agent tools](#agent-tools-shared-vs-dedicated)).
+- **Tools**: A list of {{< gloss "Tool binding" >}}tool bindings{{< /gloss >}} that the agent can call. Each binding is either a {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) server, or another AgentTemplate used as an agent tool (see [Agent tools](#agent-tools-shared-vs-dedicated)).
 - **Skills** and **plugins**: Reusable capability packages, sourced from an Open Container Initiative (OCI) registry, Git, or S3.
 
 An AgentTemplate does nothing on its own. It becomes runnable once it is paired with a Harness whose `allowedAgentTemplates` selector accepts it.
@@ -83,11 +83,11 @@ This split is deliberate, not an implementation detail to work around:
 
 Under the hood, the kagent controller watches for valid Harness and AgentTemplate pairs and compiles each pair into an `ActorTemplate`, a Substrate resource that holds everything Substrate needs to start an Actor.
 
-Each compile produces one **revision**, identified by a digest: a SHA-256 hash of the compiled configuration. Because that digest is derived from the configuration itself, editing a Harness or AgentTemplate compiles to a different digest, and therefore becomes a separate ActorTemplate. kagent never rewrites an existing one.
+Each compile produces one **{{< gloss "Revision" >}}revision{{< /gloss >}}**, identified by a digest: a SHA-256 hash of the compiled configuration. Because that digest is derived from the configuration itself, editing a Harness or AgentTemplate compiles to a different digest, and therefore becomes a separate ActorTemplate. kagent never rewrites an existing one.
 
 That immutability is what keeps running conversations stable. When you create an AgentInstance, kagent looks up the newest revision that compiled successfully for that Harness and AgentTemplate pair, and then creates an Actor from that revision. Editing the Harness or AgentTemplate afterward does not disturb that AgentInstance, which keeps running on the revision that it was created from. Only AgentInstances created after the edit use the new revision.
 
-Once created, an AgentInstance talks to callers over the A2A (Agent-to-Agent) protocol, through kagent's A2A gateway. The gateway resolves each request to the right AgentInstance and forwards it to the Actor running behind it.
+Once created, an AgentInstance talks to callers over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol, through kagent's A2A gateway. The gateway resolves each request to the right AgentInstance and forwards it to the Actor running behind it.
 
 For the AgentInstance gRPC service definition, see the [API reference]({{< link path="reference/api-ref" >}}).
 

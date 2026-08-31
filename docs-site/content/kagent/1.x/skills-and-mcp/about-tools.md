@@ -5,7 +5,7 @@ weight: 10
 author: kagent.dev
 ---
 
-An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}}'s `spec.tools` list defines what an agent can do beyond its system prompt. Each entry is a **tool binding**, and every binding selects exactly one source: a Model Context Protocol (MCP) server, or another AgentTemplate used as a tool. A binding that names both, or neither, is rejected.
+An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}}'s `spec.tools` list defines what an agent can do beyond its system prompt. Each entry is a **{{< gloss "Tool binding" >}}tool binding{{< /gloss >}}**, and every binding selects exactly one source: a {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) server, or another AgentTemplate used as a tool. A binding that names both, or neither, is rejected.
 
 - `mcp`: Binds tools from an MCP server.
 - `agent`: Binds another AgentTemplate, so that the agent can hand work to it.
@@ -66,7 +66,7 @@ The isolation setting determines whether a bound agent runs inside its parent's 
 
 ### What a Shared tree allows
 
-A `Shared` binding nests one agent inside another's runtime, so kagent constrains the shape of the resulting tree. The compiler enforces each of the following rules, and a violation surfaces as a failed revision rather than a failure at run time.
+A `Shared` binding nests one agent inside another's runtime, so kagent constrains the shape of the resulting tree. The compiler enforces each of the following rules, and a violation surfaces as a failed {{< gloss "Revision" >}}revision{{< /gloss >}} rather than a failure at run time.
 
 - **One level of nesting.** A bound agent cannot itself bind another agent. A second consecutive binding is rejected as exceeding the kagent runtime boundary.
 - **No cycles.** An AgentTemplate cannot reach itself through a chain of bindings.

@@ -48,3 +48,42 @@ Worker:
 WorkerPool:
   short: "A Kubernetes custom resource declaring how many Workers to keep running and which sandbox class they use. An operator must provision one before any Harness can create AgentInstances."
 
+
+# Added when the glossary widened from Substrate and Harness-model vocabulary to
+# any important concept. Same rules apply: gloss the first instance on a page only.
+
+ModelConfig:
+  short: "A Kubernetes custom resource naming one model at one provider, along with the credentials to reach it. An AgentTemplate references one by name, and every agent compiled from that template calls the model that it names."
+
+RemoteMCPServer:
+  short: "A Kubernetes custom resource pointing at a Model Context Protocol server that the cluster can reach. It is the only server kind that an AgentTemplate tool binding accepts."
+
+Revision:
+  short: "The compiled, immutable output of one Harness and AgentTemplate pairing, identified by a content digest. An AgentInstance runs the revision it was created from for its whole life, so editing either resource affects only instances created afterward."
+
+Snapshot:
+  short: "The stored state that an Actor suspends to, held in object storage. Resuming restores the Actor from its most recent snapshot, which is what makes suspending idle agents cheap."
+
+Fork:
+  short: "A second AgentInstance created from a checkpoint, starting with the transcript and state that the checkpoint pinned. A fork inherits the checkpoint's revision, so later edits to the AgentTemplate do not change what it runs."
+
+Transcript:
+  short: "The record of an AgentInstance's conversation, held server-side and append-only. It survives the Actor suspending between turns, and a resumed runtime cannot shrink it."
+
+Skill:
+  short: "A packaged piece of know-how that an agent can pick up: a directory holding a SKILL.md file of instructions, plus any scripts or reference files those instructions use. An AgentTemplate attaches skills by naming where each one comes from."
+
+Plugin package:
+  short: "A bundle that an AgentTemplate attaches with spec.plugins, carrying skills and optionally declaring Model Context Protocol servers. Packages follow the Agent Plugins format, which kagent consumes rather than defines."
+
+Tool binding:
+  short: "One entry in an AgentTemplate's spec.tools list. Each binding selects exactly one source: tools from a Model Context Protocol server, or another AgentTemplate used as a tool."
+
+Model Context Protocol:
+  short: "An open protocol for exposing tools and resources to a model. kagent reaches an MCP server through a RemoteMCPServer resource, and an AgentTemplate binds individual tools from it."
+
+A2A:
+  short: "The Agent-to-Agent protocol, which callers and other agents use to talk to an AgentInstance. The conversation's context identifier is the AgentInstance ID, so a second message on the same ID continues the same conversation."
+
+gVisor:
+  short: "A user-space kernel that isolates a workload from the host kernel by intercepting its system calls. kagent compiles every ActorTemplate to the gvisor sandbox class."

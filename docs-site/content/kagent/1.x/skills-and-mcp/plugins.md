@@ -5,7 +5,7 @@ weight: 30
 author: kagent.dev
 ---
 
-A **plugin package** is a bundle that an AgentTemplate attaches with `spec.plugins`. The package carries skills and can also declare Model Context Protocol (MCP) servers. Packages follow the [Agent Plugins](https://agent-plugins.org) 1.0.0 format, which kagent consumes rather than defines.This page covers what a package holds and how kagent handles it. To understand how to attach a plugin package with an AgentTemplate, see [Skills]({{< link path="skills-and-mcp/skills" >}}).
+A **{{< gloss "Plugin package" >}}plugin package{{< /gloss >}}** is a bundle that an AgentTemplate attaches with `spec.plugins`. The package carries {{< gloss "Skill" >}}skills{{< /gloss >}} and can also declare {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) servers. Packages follow the [Agent Plugins](https://agent-plugins.org) 1.0.0 format, which kagent consumes rather than defines. This page covers what a package holds and how kagent handles it. To understand how to attach a plugin package with an AgentTemplate, see [Skills]({{< link path="skills-and-mcp/skills" >}}).
 
 ## What a package holds
 

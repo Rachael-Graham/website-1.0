@@ -5,7 +5,7 @@ weight: 20
 author: kagent.dev
 ---
 
-An agent spends most of its life waiting. It waits on a person to reply, and it waits on a large language model (LLM) to answer. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, the unit that it suspends and resumes, and it treats that idle time as reclaimable: it suspends an idle Actor into a snapshot, frees the {{< gloss "Worker" >}}Worker{{< /gloss >}} that the Actor was running on, and restores the Actor when traffic arrives for it. This page explains what a snapshot captures, when kagent suspends an Actor, and what happens when a suspended Actor is addressed again.
+An agent spends most of its life waiting. It waits on a person to reply, and it waits on a large language model (LLM) to answer. [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs each agent inside an **Actor**, the unit that it suspends and resumes, and it treats that idle time as reclaimable: it suspends an idle Actor into a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, frees the {{< gloss "Worker" >}}Worker{{< /gloss >}} that the Actor was running on, and restores the Actor when traffic arrives for it. This page explains what a snapshot captures, when kagent suspends an Actor, and what happens when a suspended Actor is addressed again.
 
 ## Actor lifecycle operations
 
@@ -34,7 +34,7 @@ An {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}}'s snapshot configura
 
 Scopes describe only what a snapshot captures, and they are configured per trigger. The `onPause` setting selects what a pause captures on the node, and `onCommit` selects what a suspend uploads to snapshot storage. What `onCommit` captures must be a subset of what `onPause` captures.
 
-A **DurableDir volume** is the per-Actor application data surface. Its contents are preserved by the `Data` scope, so they survive a suspend and resume cycle independently of process memory. How many volumes an ActorTemplate can declare depends on its sandbox class. A `microvm` template can declare several, because they are subdirectories of a single shared filesystem. A `gvisor` template is limited to one, until gVisor accepts more than a single durable mount.
+A **DurableDir volume** is the per-Actor application data surface. Its contents are preserved by the `Data` scope, so they survive a suspend and resume cycle independently of process memory. How many volumes an ActorTemplate can declare depends on its sandbox class. A `microvm` template can declare several, because they are subdirectories of a single shared filesystem. A `gvisor` template is limited to one, until {{< gloss "gVisor" >}}gVisor{{< /gloss >}} accepts more than a single durable mount.
 
 When an Actor resumes from a `Data`-scope snapshot, the ActorTemplate's `onResume.fromData` setting decides where the rest of the guest state comes from. The default is `ColdBoot`, which starts the containers fresh from the container image with the durable volume contents restored over them.
 

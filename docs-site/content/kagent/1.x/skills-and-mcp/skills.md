@@ -5,7 +5,7 @@ weight: 20
 author: kagent.dev
 ---
 
-A **skill** packages a piece of know-how that an agent can pick up: a set of instructions, together with whatever scripts or reference files those instructions depend on. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} attaches skills by naming where each one comes from, and kagent fetches them and places them where the agent runtime can find them.
+A **{{< gloss "Skill" >}}skill{{< /gloss >}}** packages a piece of know-how that an agent can pick up: a set of instructions, together with whatever scripts or reference files those instructions depend on. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} attaches skills by naming where each one comes from, and kagent fetches them and places them where the agent runtime can find them.
 
 ## About
 
@@ -13,11 +13,11 @@ A skill is a directory whose root holds a `SKILL.md` file. That file carries fro
 
 The description is what makes a skill usable. When an agent starts, the runtime reads the front matter of every skill that is attached to it, and offers those skills to the model as tools that it can call. The model chooses a skill from its description, in the same way that it chooses any other tool. This means that a description that states plainly when to use the skill matters more than the length of the instructions behind it.
 
-A skill can be published on its own, or bundled with other skills in a [plugin package]({{< link path="skills-and-mcp/plugins" >}}), which can also declare Model Context Protocol (MCP) servers that kagent adds to the agent's [tools]({{< link path="skills-and-mcp/about-tools" >}}).
+A skill can be published on its own, or bundled with other skills in a [plugin package]({{< link path="skills-and-mcp/plugins" >}}), which can also declare {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) servers that kagent adds to the agent's [tools]({{< link path="skills-and-mcp/about-tools" >}}).
 
 ## Attach skills to an AgentTemplate
 
-An AgentTemplate attaches skills in two ways, and it can use both at once. Use `spec.skills` for a standalone skill, and `spec.plugins` for a plugin package.
+An AgentTemplate attaches skills in two ways, and it can use both at once. Use `spec.skills` for a standalone skill, and `spec.plugins` for a {{< gloss "Plugin package" >}}plugin package{{< /gloss >}}.
 
 ```yaml
 apiVersion: kagent.dev/v1alpha3

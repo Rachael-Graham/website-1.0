@@ -5,7 +5,7 @@ weight: 20
 author: kagent.dev
 ---
 
-A system prompt tells an agent how to behave. Tools tell it what it can do. This guide binds a Model Context Protocol (MCP) tool to the agent that you built in [Your first agent]({{< link path="get-started/your-first-agent" >}}), so that the agent can read live data out of your cluster instead of answering from the model alone. For the full tool binding schema, including binding one agent as another agent's tool, see [About tools]({{< link path="skills-and-mcp/about-tools" >}}).
+A system prompt tells an agent how to behave. Tools tell it what it can do. This guide binds a {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) tool to the agent that you built in [Your first agent]({{< link path="get-started/your-first-agent" >}}), so that the agent can read live data out of your cluster instead of answering from the model alone. For the full {{< gloss "Tool binding" >}}tool binding{{< /gloss >}} schema, including binding one agent as another agent's tool, see [About tools]({{< link path="skills-and-mcp/about-tools" >}}).
 
 ## Before you begin
 
@@ -19,7 +19,7 @@ kagent ships an MCP server of its own, and installs a `RemoteMCPServer` that poi
 
 The names must come from the server's own documentation rather than from the cluster, because kagent does not populate a server's discovered tools. This guide binds `k8s_get_resources` and `k8s_get_pod_logs`. For the full catalog that the built-in server serves, see the [tools ecosystem reference]({{< link path="reference/tools-ecosystem" >}}).
 
-1. List the RemoteMCPServers in the `kagent` namespace.
+1. List the {{< gloss "RemoteMCPServer" >}}RemoteMCPServers{{< /gloss >}} in the `kagent` namespace.
    ```bash
    kubectl get remotemcpserver -n kagent
    ```
@@ -68,7 +68,7 @@ The names must come from the server's own documentation rather than from the clu
    | `mcp.server.name` | The server's name. A binding resolves in the AgentTemplate's own namespace, so it cannot reach a server in another namespace. |
    | `mcp.tools` | The names of the tools to bind, between 1 and 50. An AgentTemplate takes at most 50 bindings in total. |
 
-3. Confirm that kagent compiled a new revision for the edited AgentTemplate. Every edit produces a new desired revision, and the pair is current when the latest successful revision matches it.
+3. Confirm that kagent compiled a new {{< gloss "Revision" >}}revision{{< /gloss >}} for the edited AgentTemplate. Every edit produces a new desired revision, and the pair is current when the latest successful revision matches it.
    ```bash
    kubectl get agenttemplate my-first-agent -n kagent \
      -o jsonpath='{range .status.harnesses[*]}{.harness}{"\t"}{.desiredRevision}{"\t"}{.latestSuccessfulRevision}{"\n"}{end}'
@@ -116,7 +116,7 @@ An {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} runs the revision th
 
    The agent calls `k8s_get_resources` and answers from the result rather than from the model's own knowledge.
 
-4. Ask a follow-up question that uses the second tool. The AgentInstance holds the transcript of the conversation, so the agent can act on the pods that it just listed.
+4. Ask a follow-up question that uses the second tool. The AgentInstance holds the {{< gloss "Transcript" >}}transcript{{< /gloss >}} of the conversation, so the agent can act on the pods that it just listed.
    ```bash
    kagent invoke --agent-instance $TOOL_INSTANCE_ID --task "Show me the last few log lines from the kagent controller pod."
    ```
