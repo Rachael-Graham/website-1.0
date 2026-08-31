@@ -225,7 +225,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    EOF
    ```
    > [!NOTE]
-   > `controller.grpc.reflection` lets a gRPC client discover the controller's methods without a local copy of kagent's proto files, which is how [Your first agent]({{< link path="get-started/your-first-agent" >}}) calls the API. Leave it on while you explore the API, and turn it off for a production installation.
+   > `controller.grpc.reflection` lets a gRPC client discover the controller's methods without a local copy of kagent's proto files. The kagent CLI does not need it, because the CLI ships with generated clients for every kagent API. Leave reflection on to explore the API with a general-purpose client such as [grpcurl](https://github.com/fullstorydev/grpcurl), and turn it off for a production installation.
 
 3. Wait for the controller to roll out.
    ```bash

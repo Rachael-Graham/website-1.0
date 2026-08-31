@@ -33,6 +33,9 @@ ActorTemplate:
 AgentInstance:
   short: "A running, conversational pairing of a Harness and an AgentTemplate. Unlike the two, it is not a Kubernetes resource: kagent's gRPC API creates it and its database tracks it."
 
+Checkpoint:
+  short: "A durable pin on the snapshot that an AgentInstance most recently suspended to, and a record of how far its transcript had advanced. Not a copy of the state: it tags a snapshot so that Agent Substrate does not collect it, and a second AgentInstance can be forked from it."
+
 AgentTemplate:
   short: "A Kubernetes custom resource defining what an agent does: its model, system prompt, tools, skills, and plugins. It runs only once a Harness accepts it."
 

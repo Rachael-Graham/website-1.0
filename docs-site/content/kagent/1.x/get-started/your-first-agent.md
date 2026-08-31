@@ -5,19 +5,20 @@ weight: 10
 author: kagent.dev
 ---
 
-This guide walks you through creating an agent, from applying a Harness and an AgentTemplate to holding a conversation with the AgentInstance that they produce. For definitions of each of these components, review the [core concepts]({{< link path="about/core-concepts" >}}). For an overview of how each component fits together in kagent, review the [architecture]({{< link path="about/architecture" >}}). For the complete schema of every field that this guide sets, see the [API reference]({{< link path="reference/api-ref" >}}).
+This guide walks you through creating an agent, from applying a Harness and an AgentTemplate to holding a conversation with the AgentInstance that they produce. You apply the Harness and the AgentTemplate as Kubernetes resources, and you create and talk to the AgentInstance with the kagent CLI. For definitions of each of these components, review the [core concepts]({{< link path="about/core-concepts" >}}). For an overview of how each component fits together in kagent, review the [architecture]({{< link path="about/architecture" >}}). For the complete schema of every field that this guide sets, see the [API reference]({{< link path="reference/api-ref" >}}).
 
 ## Before you begin
 
 1. [Install kagent with a WorkerPool provisioned]({{< link path="setup/installation" >}}).
-2. Install [grpcurl](https://github.com/fullstorydev/grpcurl).
-3. Port-forward the controller's gRPC port to your local machine.
-   ```shell
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+2. Download the kagent CLI.
+   ```bash
+   curl https://raw.githubusercontent.com/kagent-dev/kagent/refs/heads/main/scripts/get-kagent | bash
    ```
 
+3. Install [`jq`](https://jqlang.org/download/), to read the AgentInstance ID out of the CLI's JSON output.
+
 > [!NOTE]
-> This guide uses `kubectl` and `grpcurl` directly, as the kagent CLI does not yet have commands for Harness, AgentTemplate, or AgentInstance.
+> The CLI reaches the kagent controller at `localhost:8083` and `localhost:8084`. When nothing serves those ports, the CLI runs `kubectl port-forward` against the `kagent-controller` service for you, and closes the forward when the command exits. Keep `kubectl` on your path, and keep your kubeconfig pointed at the cluster that runs kagent.
 
 ## Create a Harness and an AgentTemplate
 
@@ -66,132 +67,99 @@ This guide walks you through creating an agent, from applying a Harness and an A
      systemPrompt: You are a concise, helpful assistant.
    ```
 
-3. Confirm that the pair is ready.
-   ```shell
-   kubectl get agenttemplate my-first-agent -n kagent -o jsonpath='{.status.harnesses}' | jq .
+3. Confirm that the pair is ready. The `HARNESS` column lists each Harness that admitted this AgentTemplate, and `READY` reports whether kagent compiled a runtime revision for that pairing.
+   ```bash
+   kagent get agent-template my-first-agent
    ```
 
-   A ready pair reports four conditions for `my-first-harness`, ending in `Ready`. If the status is empty, wait a few seconds for the kagent controller to reconcile, then check again.
-   ```json
-   [
-     {
-       "conditions": [
-         {
-           "lastTransitionTime": "2026-08-24T15:02:10Z",
-           "message": "Harness admission selector matches the AgentTemplate",
-           "observedGeneration": 1,
-           "reason": "Accepted",
-           "status": "True",
-           "type": "Accepted"
-         },
-         {
-           "lastTransitionTime": "2026-08-24T15:02:10Z",
-           "message": "All runtime references resolved",
-           "observedGeneration": 1,
-           "reason": "Resolved",
-           "status": "True",
-           "type": "ResolvedRefs"
-         },
-         {
-           "lastTransitionTime": "2026-08-24T15:02:10Z",
-           "message": "Resolved configuration is compatible with the Harness",
-           "observedGeneration": 1,
-           "reason": "Compatible",
-           "status": "True",
-           "type": "Compatible"
-         },
-         {
-           "lastTransitionTime": "2026-08-24T15:02:10Z",
-           "message": "ActorTemplate golden snapshot is ready",
-           "observedGeneration": 1,
-           "reason": "Ready",
-           "status": "True",
-           "type": "Ready"
-         }
-       ],
-       "desiredRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
-       "harness": "my-first-harness",
-       "latestSuccessfulRevision": "5f2b3c1a9e8d4b7a6c3e2f1d0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b"
-     }
-   ]
+   Example output:
+   ```console
+   +----------------+------------------+-------+----------------------+
+   | NAME           | HARNESS          | READY | CREATED              |
+   +----------------+------------------+-------+----------------------+
+   | my-first-agent | my-first-harness | TRUE  | 2026-08-31T15:01:44Z |
+   +----------------+------------------+-------+----------------------+
    ```
 
-   The `latestSuccessfulRevision` value is the compiled revision that kagent creates your AgentInstance from in the next section.
+   An empty `HARNESS` column with a `READY` value of `UNKNOWN` means that the kagent controller has not yet reconciled the pair. Wait a few seconds, then check again. If `READY` stays `FALSE`, inspect the individual conditions to find which stage failed.
+   ```bash
+   kagent get agent-template my-first-agent -o json
+   ```
+
+   Each entry in `status.harnesses` reports four conditions, ending in `Ready`. The `Accepted` condition covers the label selector match, `ResolvedRefs` covers the ModelConfig and tool references, `Compatible` covers whether the resolved configuration suits the Harness runtime, and `Ready` covers the compiled revision itself.
 
 ## Create the AgentInstance
 
+An AgentInstance is one running conversation. Creating it starts an Actor on the WorkerPool from the revision that kagent compiled for the Harness and AgentTemplate pair.
+
 1. Create an AgentInstance from the Harness and AgentTemplate pair.
-   ```shell
-   RESPONSE=$(grpcurl -plaintext \
-     -d '{"namespace":"kagent","harness":"my-first-harness","agentTemplate":"my-first-agent","requestId":"'"$(uuidgen)"'"}' \
-     localhost:8084 kagent.api.v1alpha1.AgentInstanceService/CreateAgentInstance)
-   echo "$RESPONSE"
+   ```bash
+   kagent create agent-instance --harness my-first-harness --agent-template my-first-agent
    ```
 
-   A successful response includes the new AgentInstance and its `id`.
-   ```json
-   {
-     "agentInstance": {
-       "id": "8f14e45f-ceea-4a37-b0f1-2b5c4d3a9c6e",
-       "namespace": "kagent",
-       "harness": {
-         "namespace": "kagent",
-         "name": "my-first-harness"
-       },
-       "agentTemplate": {
-         "namespace": "kagent",
-         "name": "my-first-agent"
-       },
-       "state": "AGENT_INSTANCE_STATE_READY"
-     }
-   }
+   The command returns output only after the AgentInstance reaches the `READY` state. Example output:
+   ```console
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | ID                                   | AGENT TEMPLATE | HARNESS          | STATE | CREATED              |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | 0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10 | my-first-agent | my-first-harness | READY | 2026-08-31T15:02:10Z |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
    ```
 
-2. Save the AgentInstance's `id` to an environment variable. The next step needs it to address the AgentInstance that you created.
-   ```shell
-   export INSTANCE_ID=$(echo "$RESPONSE" | jq -r '.agentInstance.id')
+   An error reporting that the AgentTemplate and Harness have no ready prepared revision means that the pair is not `READY` yet. Return to step 3 of the previous section to check the conditions.
+
+2. Save the AgentInstance's ID to an environment variable.
+   ```bash
+   export INSTANCE_ID=$(kagent get agent-instance -o json \
+     | jq -r '[.agentInstances[] | select(.agentTemplate.name == "my-first-agent")] | sort_by(.createdAt) | last | .id')
+   echo $INSTANCE_ID
    ```
 
 ## Talk to your agent
 
-Send a message to the AgentInstance over the A2A (Agent-to-Agent) protocol.
+1. Send a message to the AgentInstance. The CLI holds the conversation over the A2A (Agent-to-Agent) protocol.
+   ```bash
+   kagent invoke --agent-instance $INSTANCE_ID --task "What is 2+2?"
+   ```
 
-```shell
-grpcurl -plaintext \
-  -H "x-kagent-agent-instance-namespace: kagent" \
-  -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
-  -d '{"message":{"messageId":"'"$(uuidgen)"'","role":"ROLE_USER","parts":[{"text":"What is 2+2?"}]}}' \
-  localhost:8084 lf.a2a.v1.A2AService/SendMessage
-```
+   The agent's reply prints as text.
+   ```console
+   4
+   ```
 
-The response carries the agent's reply in the same `parts` shape as the request.
-```json
-{
-  "message": {
-    "messageId": "b2b1e2b4-5c3a-4f8e-9d1a-7e6f5c4b3a2d",
-    "role": "ROLE_AGENT",
-    "parts": [
-      {
-        "text": "4"
-      }
-    ]
-  }
-}
-```
+2. Send a follow-up message to the same AgentInstance. An AgentInstance holds the transcript of its conversation, so the agent answers with the earlier turns in context.
+   ```bash
+   kagent invoke --agent-instance $INSTANCE_ID --task "What did I just ask you?"
+   ```
+
+   ```console
+   You asked what 2+2 is.
+   ```
+
+> [!NOTE]
+> An AgentInstance gives its Worker back at the end of every turn. The AgentInstance itself stays `READY`, because suspension applies to the Actor running underneath it rather than to the conversation, and the next `kagent invoke` resumes that Actor automatically. To understand what happens to the Actor in between, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
+
+The `invoke` command takes a few more options that are useful beyond a first conversation.
+
+| Option | Description |
+| ------ | ----------- |
+| `--file` | Read the task from a file, or from standard input with `-`, instead of passing it inline with `--task`. |
+| `--stream` | Print the reply as the agent produces it, rather than waiting for the complete answer. |
+
+> [!TIP]
+> Run `kagent` with no arguments to open an interactive workspace in your terminal, where you can browse your AgentInstances and chat with them without passing an ID to each command.
 
 ## Clean up
 
-1. Delete the Harness and AgentTemplate.
-   ```shell
-   kubectl delete agenttemplate my-first-agent -n kagent
-   kubectl delete harness my-first-harness -n kagent
+1. Delete the AgentInstance. Deleting the Harness and the AgentTemplate does not delete the AgentInstances that you created from them, so delete the AgentInstance first.
+   ```bash
+   kagent delete agent-instance $INSTANCE_ID
    ```
 
-2. Delete the AgentInstance directly through the same `AgentInstanceService` that you used to create it, as deleting the Harness and AgentTemplate does not delete the AgentInstance that you created from them.
-   ```shell
-   grpcurl -plaintext \
-     -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'"}' \
-     localhost:8084 kagent.api.v1alpha1.AgentInstanceService/DeleteAgentInstance
+2. Delete the AgentTemplate and the Harness.
+   ```bash
+   kubectl delete agenttemplate my-first-agent -n kagent
+   kubectl delete harness my-first-harness -n kagent
    ```
 
 ## Next steps

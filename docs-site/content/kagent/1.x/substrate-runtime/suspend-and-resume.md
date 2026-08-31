@@ -11,8 +11,8 @@ An agent spends most of its life waiting. It waits on a person to reply, and it 
 
 {{< gloss "Agent Substrate" >}}Agent Substrate{{< /gloss >}} provides three lifecycle operations, and each one moves an Actor between states that you can observe on the Actor record.
 
-- **Suspend**: Writes the Actor's state to a durable snapshot in snapshot storage, then frees its Worker. A running Actor is checkpointed on its Worker. A paused Actor's node-local snapshot is uploaded instead.
-- **Pause**: Takes a short-term checkpoint whose files stay on the node. Pausing pins the Actor to that node, because the following resume is prioritized onto the node that holds the snapshot files.
+- **Suspend**: Writes the Actor's state to a durable snapshot in snapshot storage, then frees its Worker. A running Actor is snapshotted on its Worker. A paused Actor's node-local snapshot is uploaded instead.
+- **Pause**: Takes a short-term snapshot whose files stay on the node. Pausing pins the Actor to that node, because the following resume is prioritized onto the node that holds the snapshot files.
 - **Resume**: Restores a suspended or paused Actor onto a Worker, from its latest snapshot. The common path restores from a snapshot rather than cold-booting the workload.
 
 The following diagram traces an Actor through those operations, and shows the further path that opens once a snapshot is [pinned by a tag](#checkpoints).
@@ -84,3 +84,5 @@ A snapshot that Agent Substrate writes on suspend is transient. Agent Substrate 
 Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently and acts as a retention pin, such that Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
 
 An AgentInstance must be a turn boundary to be checkpointed, because the turn boundary is captured. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
+
+A checkpoint also records where the conversation had reached, which lets you start a second AgentInstance from that point. To create a checkpoint and fork an AgentInstance from it, work through the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}).

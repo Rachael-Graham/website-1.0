@@ -31,6 +31,8 @@ kagent names each atespace after the Kubernetes namespace of the AgentInstance w
 
 Because an Actor often runs a model-directed agent that calls tools and executes commands, Substrate runs each Actor in an isolated sandbox rather than a plain container. A WorkerPool's `sandboxClass` field selects the sandbox technology for its Workers: [gVisor](https://gvisor.dev) or a micro-VM technology such as [Kata Containers](https://katacontainers.io). Both technologies isolate an Actor from its Worker's host kernel, and both support suspend and resume operations.
 
+kagent compiles every ActorTemplate to the `gvisor` class, so a kagent agent runs in a gVisor sandbox today and the micro-VM class is a Substrate capability that kagent does not yet select. Keep a WorkerPool that backs kagent Harnesses on `gvisor`. For what each class isolates, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
+
 ## Suspend, snapshot, and resume
 
 Substrate's density model rests on one fact about agent workloads: an Actor spends most of its time idle, waiting on a person or a large language model (LLM) to respond, not actively computing. Substrate exploits that by suspending idle Actors and reclaiming their Worker, then resuming them on demand when traffic arrives. Suspending and resuming allows a WorkerPool to run far more Actors than it has Workers for at any given moment.

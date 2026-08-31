@@ -43,16 +43,16 @@ Everything works with a single `helm install`. No add-ons, no extra databases, n
 
 {{< feature-cards >}}
 {{< feature-card title="Agent lifecycle via CRDs" desc="Define, version, and roll out Harnesses and AgentTemplates with kubectl and GitOps, the same workflow as every other workload." >}}
-{{< feature-card title="Sandboxed by default" desc="Every AgentInstance runs on a Substrate Actor, sandboxed with gVisor or a micro-VM. Run untrusted, model-directed code safely." >}}
+{{< feature-card title="Sandboxed by default" desc="Every AgentInstance runs on a Substrate Actor, isolated from the host kernel by a gVisor sandbox. Run untrusted, model-directed code safely." >}}
 {{< feature-card title="Suspend and resume" desc="Idle AgentInstances suspend and free their compute, then resume on demand. Run far more agents than you have capacity for at any one moment." >}}
-{{< feature-card title="Bring your own runtime" desc="Run kagent's native Go or Python engine, or bring Claude Code or Codex as the runtime behind a Harness." >}}
-{{< feature-card title="Agent tools" desc="Compose agents from other agents. Choose Shared isolation for cheap nesting, or Dedicated isolation to give a nested agent its own Actor." >}}
+{{< feature-card title="Bring your own runtime" desc="Run kagent's native Go or Python engine behind a Harness. Codex is planned as an additional runtime." >}}
+{{< feature-card title="Agent tools" desc="Compose agents from other agents. A Shared binding nests an agent inside its parent's Actor, one level deep." >}}
 {{< feature-card title="Long-term memory" desc="Persistent, vector-backed memory across sessions. Agents remember context, not just the last prompt." >}}
 {{< feature-card title="Human-in-the-loop" desc="Tool approval gates and agent-initiated questions keep a person in control of consequential actions." >}}
 {{< feature-card title="Agent-to-Agent (A2A)" desc="AgentInstances talk to callers, and to each other, over the A2A protocol." >}}
 {{< feature-card title="Skills and plugins" desc="Load skills and capability packages from an Open Container Initiative (OCI) registry, Git, or S3 at startup." >}}
 {{< feature-card title="Prompt templates" desc="Reusable prompt fragments stored as ConfigMaps. Keep system prompts consistent across agents." >}}
-{{< feature-card title="Full observability" desc="OpenTelemetry tracing, Prometheus metrics, and structured logs. See every prompt, every tool call, every token." >}}
+{{< feature-card title="Full observability" desc="OpenTelemetry tracing, Prometheus metrics, and structured logs, with control plane traces carrying the Actor that they belong to." >}}
 {{< feature-card title="Postgres storage" desc="AgentInstances are tracked in production-grade, Postgres-backed storage with reviewable migrations." >}}
 {{< /feature-cards >}}
 
