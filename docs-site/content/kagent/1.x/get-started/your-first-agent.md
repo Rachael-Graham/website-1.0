@@ -151,9 +151,16 @@ The `invoke` command takes a few more options that are useful beyond a first con
 
 ## Clean up
 
-1. Delete the AgentInstance. Deleting the Harness and the AgentTemplate does not delete the AgentInstances that you created from them, so delete the AgentInstance first.
+> [!IMPORTANT]
+> Other guides build on the Harness, AgentTemplate, and AgentInstance that you created here, including [Your first MCP tool]({{< link path="get-started/your-first-mcp-tool" >}}) and [Agent Substrate]({{< link path="examples/agent-substrate" >}}). Leave the resources in place unless you are finished with the kagent guides.
+
+To remove the resources, follow these steps.
+
+1. Delete every AgentInstance that was created from the AgentTemplate. Later guides create their own instances from the same pair, so delete them all rather than only the one that you saved. Deleting the Harness and the AgentTemplate does not delete the AgentInstances that you created from them, so delete the instances first.
    ```bash
-   kagent delete agent-instance $INSTANCE_ID
+   kagent get agent-instance -o json \
+     | jq -r '.agentInstances[] | select(.agentTemplate.name == "my-first-agent") | .id' \
+     | xargs -n1 kagent delete agent-instance
    ```
 
 2. Delete the AgentTemplate and the Harness.
