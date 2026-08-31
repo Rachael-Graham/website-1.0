@@ -7,9 +7,11 @@ author: kagent.dev
 
 [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs every agent as an Actor: a sandboxed unit of compute that holds a {{< gloss "Worker" >}}Worker{{< /gloss >}} only while a turn is in progress, and whose state you can pin and branch. This example follows one agent through all three behaviors.
 
+The Actor that these steps follow is also the isolation boundary. Every Actor runs in its own gVisor sandbox rather than sharing one with its neighbors, which is why a model can safely run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
+
 ## Before you begin
 
-1. Complete [Your first agent]({{< link path="get-started/your-first-agent" >}}). The steps on this page continues from the Harness, AgentTemplate, and AgentInstance that the agent guide creates, and assumes that you have sent the agent at least one message.
+1. Complete [Your first agent]({{< link path="get-started/your-first-agent" >}}). The steps on this page continue from the Harness, AgentTemplate, and AgentInstance that the agent guide creates, and assumes that you have sent the agent at least one message.
 
 2. If you have not already, save the AgentInstance's ID to an environment variable. To find the ID, run `kagent get agent-instance` to list your AgentInstances and copy the value from the `ID` column.
    ```bash
@@ -25,43 +27,77 @@ author: kagent.dev
 
 ## Watch the Actor suspend between turns
 
-1. List the Actors in your namespace's {{< gloss "Atespace" >}}atespace{{< /gloss >}}. kagent names an AgentInstance's Actor `ai-<agent-instance-id>`.
+1. List the Actors in your namespace's {{< gloss "Atespace" >}}atespace{{< /gloss >}}. An AgentInstance's Actor name is formatted `ai-<agent-instance-id>`.
    ```bash
    kubectl ate get actors --atespace kagent
    ```
 
-   Between turns, the Actor reports `ACTOR_STATE_SUSPENDED` and holds no Worker, so the `ATEOM POD` column reads `<none>`. Example output:
+   Between turns, the Actor reports `ACTOR_STATE_SUSPENDED` and holds no Worker, so the `ATEOM POD` column reads `<none>` and the `ATEOM IP` column is blank. The `VERSION` column is the Actor record's revision counter, which increases each time the record is updated. Example output:
    ```console
-   ATESPACE   NAME                                        TEMPLATE                                                 STATE                   ATEOM POD   ATEOM IP   VERSION   AGE
-   kagent     ai-0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10     kagent/my-first-agent-my-first-harness-5f2b3c1a9e8d      ACTOR_STATE_SUSPENDED   <none>                 4         6m
+   ATESPACE   NAME                                      TEMPLATE                                              STATE                   ATEOM POD   ATEOM IP   VERSION   AGE
+   kagent     ai-0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10   kagent/my-first-agent-my-first-harness-5f2b3c1a9e8d   ACTOR_STATE_SUSPENDED   <none>                 4         11m
    ```
-
-   That Actor is also the isolation boundary. Every Actor runs in its own gVisor sandbox rather than sharing one with its neighbors, which is what makes it safe to let a model run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
 
 2. Send the agent another message. Nothing in the command acknowledges that the Actor was suspended, because resuming is automatic.
    ```bash
    kagent invoke --agent-instance $INSTANCE_ID --task "Summarize this conversation so far."
    ```
 
-3. List the Actors again while the turn is running, and the same Actor reports `ACTOR_STATE_RUNNING` against a real Worker pod. Once the turn finishes it returns to `ACTOR_STATE_SUSPENDED`.
+3. From a second terminal, list the Actors again while the turn is still running.
    ```bash
    kubectl ate get actors --atespace kagent
    ```
 
-The AgentInstance stays `READY` throughout all of this. Suspension is a property of the Actor underneath the conversation, not of the conversation, which is why a suspended agent is still listed and still readable. For the full cycle, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
+   The same Actor now reports `ACTOR_STATE_RUNNING`, names the Worker pod that it resumed onto, and carries a higher `VERSION`. Example output:
+   ```console
+   ATESPACE   NAME                                      TEMPLATE                                              STATE                 ATEOM POD                                ATEOM IP      VERSION   AGE
+   kagent     ai-0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10   kagent/my-first-agent-my-first-harness-5f2b3c1a9e8d   ACTOR_STATE_RUNNING   kagent/kagent-default-7c9f8b6d54-x2n4p   10.244.1.37   6         12m
+   ```
+
+   If the listing already reads `ACTOR_STATE_SUSPENDED`, the turn finished before the command ran. Repeat steps 2 and 3 to catch the Actor mid-turn. A turn is short, and the two transitions on either side of one, `ACTOR_STATE_RESUMING` and `ACTOR_STATE_SUSPENDING`, pass quickly enough that a single listing rarely catches them.
+
+4. After the turn finishes, list the Actors again.
+   ```bash
+   kubectl ate get actors --atespace kagent
+   ```
+
+   The Actor is back to `ACTOR_STATE_SUSPENDED` and holds no Worker again, at a higher `VERSION` than the listing in step 1. The `NAME` and `AGE` columns confirm that this is the same Actor throughout, rather than a new one per turn. Example output:
+   ```console
+   ATESPACE   NAME                                      TEMPLATE                                              STATE                   ATEOM POD   ATEOM IP   VERSION   AGE
+   kagent     ai-0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10   kagent/my-first-agent-my-first-harness-5f2b3c1a9e8d   ACTOR_STATE_SUSPENDED   <none>                 8         13m
+   ```
+
+5. Check the AgentInstance while its Actor is suspended.
+   ```bash
+   kagent get agent-instance
+   ```
+
+   The AgentInstance reports `READY`, even though the Actor that runs it holds no Worker. Example output:
+   ```console
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | ID                                   | AGENT TEMPLATE | HARNESS          | STATE | CREATED              |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | 0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10 | my-first-agent | my-first-harness | READY | 2026-08-31T15:02:10Z |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   ```
+
+The AgentInstance stays `READY` throughout all steps. A suspended agent remains listed and readable because suspension is a property of the Actor underneath the conversation, not of the conversation itself. For the full cycle, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
+
+> [!NOTE]
+> Two objects report state on this page, and each interface names its states differently. `kubectl ate get actors` reports the Actor's state in full, such as `ACTOR_STATE_SUSPENDED`, because the command prints the Agent Substrate enum name. The kagent CLI trims the prefix from the AgentInstance's state and prints `READY`, and the same value reaches you as `AGENT_INSTANCE_STATE_READY` in a `grpcurl` response. Checkpoints have no CLI command yet, so the next section calls the API directly and reads the checkpoint's state in full, as `CHECKPOINT_STATE_READY`.
 
 ## Pin the conversation with a checkpoint
 
-Each suspend writes a snapshot, and Agent Substrate is free to collect that snapshot once a newer one supersedes it. A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} pins one so that you can come back to it.
+Each suspend writes a snapshot, and Agent Substrate is free to collect that snapshot once a newer one supersedes it. A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} pins a snapshot so that you can come back to it.
 
-1. Create a checkpoint. The `requestId` field is a required idempotency key of 1 to 128 characters, so reusing it returns the same checkpoint rather than creating a second one.
+1. Create a checkpoint. The checkpoint records the snapshot it pinned and how far the transcript had advanced. The `requestId` field is a required idempotency key of 1 to 128 characters, so reusing it returns the same checkpoint rather than creating a second one.
    ```bash
    grpcurl -plaintext \
      -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'","requestId":"'"$(uuidgen)"'"}' \
      localhost:8084 kagent.api.v1alpha1.CheckpointService/CreateCheckpoint
    ```
 
-   The checkpoint records the snapshot it pinned and how far the transcript had advanced. Example output:
+   Example output:
    ```json
    {
      "checkpoint": {
@@ -76,7 +112,10 @@ Each suspend writes a snapshot, and Agent Substrate is free to collect that snap
    }
    ```
 
-2. Save the checkpoint's `id`, to fork from it in the next section.
+   > [!NOTE]
+   > A checkpoint captures a turn boundary, so two conditions must hold: the AgentInstance must be `READY` with no lifecycle operation in flight, and at least one turn must have reached a quiescent state. A request that fails either one reports `AgentInstance has no quiescent turn boundary`. Send the request again once the turn finishes.
+
+2. Save the checkpoint's `id` to fork from it in the next section.
    ```bash
    export CHECKPOINT_ID=<your-checkpoint-id>
    ```
@@ -88,10 +127,7 @@ Each suspend writes a snapshot, and Agent Substrate is free to collect that snap
      localhost:8084 kagent.api.v1alpha1.CheckpointService/ListCheckpoints
    ```
 
-Underneath, the checkpoint attaches an ActorSnapshotTag named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag with `kubectl ate get actor-snapshot-tag`.
-
-> [!NOTE]
-> A checkpoint captures a turn boundary, so two conditions have to hold and a request that fails either one reports `AgentInstance has no quiescent turn boundary`. The AgentInstance must be `READY` with no lifecycle operation in flight, and at least one turn must have reached a quiescent state. Send the request again once the turn finishes.
+Underneath, the checkpoint attaches an ActorSnapshotTag named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag by running `kubectl ate get actor-snapshot-tag`.
 
 ## Fork the conversation into a second agent
 
@@ -131,9 +167,19 @@ Forking creates a second AgentInstance that starts from the pinned snapshot, wit
 
    The fork answers from the transcript it inherited, which is what distinguishes a fork from a new AgentInstance that happens to use the same AgentTemplate.
 
-3. List your AgentInstances, and both branches appear, each with its own Actor.
+3. List your AgentInstances to verify that both branches appear as separate conversations.
    ```bash
    kagent get agent-instance
+   ```
+
+   The two rows share an AgentTemplate and a Harness, and differ in their IDs and creation times. Each one has its own Actor, named `ai-<agent-instance-id>`. Example output:
+   ```console
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | ID                                   | AGENT TEMPLATE | HARNESS          | STATE | CREATED              |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
+   | 0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10 | my-first-agent | my-first-harness | READY | 2026-08-31T15:02:10Z |
+   | 0198c3e5-1d62-7f38-a904-8b3c7e2f5d16 | my-first-agent | my-first-harness | READY | 2026-08-31T15:14:02Z |
+   +--------------------------------------+----------------+------------------+-------+----------------------+
    ```
 
 A fork runs the compiled revision that its checkpoint was taken on, not whatever revision the AgentTemplate resolves to now. Editing the AgentTemplate after checkpointing does not change what a fork of that checkpoint runs, which is what makes a fork a faithful continuation rather than a fresh start with an old transcript.
@@ -143,23 +189,16 @@ A fork runs the compiled revision that its checkpoint was taken on, not whatever
 
 ## Clean up
 
-1. Delete the checkpoint. Deleting removes the ActorSnapshotTag and releases the pin, and Agent Substrate can collect the snapshot once no tag names it.
+1. Delete the checkpoint. Deleting removes the ActorSnapshotTag and releases the pin, and Agent Substrate can collect the snapshot whenever no tag names it.
    ```bash
    grpcurl -plaintext \
      -d '{"namespace":"kagent","checkpointId":"'"$CHECKPOINT_ID"'"}' \
      localhost:8084 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
    ```
 
-2. Delete both AgentInstances.
+2. Delete the fork. A fork is an AgentInstance in its own right, so deleting the checkpoint that it started from does not remove it.
    ```bash
    kagent delete agent-instance $FORK_ID
-   kagent delete agent-instance $INSTANCE_ID
-   ```
-
-3. Delete the AgentTemplate and the Harness.
-   ```bash
-   kubectl delete agenttemplate my-first-agent -n kagent
-   kubectl delete harness my-first-harness -n kagent
    ```
 
 ## Next steps
