@@ -221,7 +221,7 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    substrateWorkerPool:
      create: true
      replicas: 1
-     ateomImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}"
+     workerImage: "ghcr.io/kagent-dev/substrate/ateom-gvisor:v{{< reuse "kagent-docs/versions/agent-substrate.md" >}}"
    EOF
    ```
    > [!NOTE]

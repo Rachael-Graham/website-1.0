@@ -17,17 +17,23 @@ A system prompt tells an agent how to behave. Tools tell it what it can do. This
 
 kagent ships an MCP server of its own, and installs a `RemoteMCPServer` that points at it, so the built-in server is the shortest path to a working tool. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} takes tools through an `mcp` binding, which names one server and the tools to take from it. Naming the tools is required, because a binding never takes a server's whole catalog.
 
-The names must come from the server's own documentation rather than from the cluster, because kagent does not populate a server's discovered tools. This guide binds `k8s_get_resources` and `k8s_get_pod_logs`. For the full catalog that the built-in server serves, see the [tools ecosystem reference]({{< link path="reference/tools-ecosystem" >}}).
+kagent records what it discovered on the server's status, so the tool names come from the cluster. This guide binds `k8s_get_resources` and `k8s_get_pod_logs`. For the full catalog that the built-in server serves, see the [tools ecosystem reference]({{< link path="reference/tools-ecosystem" >}}).
 
 1. List the {{< gloss "RemoteMCPServer" >}}RemoteMCPServers{{< /gloss >}} in the `kagent` namespace.
    ```bash
    kubectl get remotemcpserver -n kagent
    ```
 
-   Example output: The `ACCEPTED` column is empty because kagent does not yet write status back to a RemoteMCPServer. An empty column is expected, and does not mean that the server is unhealthy.
+   Example output: The `ACCEPTED` column reports whether kagent reached the server and read its catalog. No tool can be bound from a server that is not `True`.
    ```console
    NAME                 PROTOCOL          URL                                   ACCEPTED   AGE
-   kagent-tool-server   STREAMABLE_HTTP   http://kagent-tools.kagent:8084/mcp              14m
+   kagent-tool-server   STREAMABLE_HTTP   http://kagent-tools.kagent:8084/mcp   True       14m
+   ```
+
+   To see the tools that the server offers, read the discovered set from its status.
+   ```bash
+   kubectl get remotemcpserver kagent-tool-server -n kagent \
+     -o jsonpath='{range .status.discoveredTools[*]}{.name}{"\t"}{.description}{"\n"}{end}'
    ```
 
    > [!NOTE]

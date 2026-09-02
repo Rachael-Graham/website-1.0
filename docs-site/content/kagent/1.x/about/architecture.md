@@ -25,13 +25,18 @@ flowchart TB
         harness["Harness"]
         template["AgentTemplate"]
         controller["kagent controller"]
-        actortemplate["ActorTemplate (Substrate)"]
         operator --> harness
         operator --> template
         harness --> controller
         template --> controller
-        controller -->|compiles the pair into| actortemplate
     end
+
+    %% Declared outside both subgraphs on purpose. An ActorTemplate is a Substrate
+    %% resource reached over gRPC, not a Kubernetes object, so it belongs to
+    %% neither plane. A node joins whichever subgraph first references it, so both
+    %% of its edges have to live out here too.
+    actortemplate["ActorTemplate (Substrate)"]
+    controller -->|compiles the pair into| actortemplate
 
     subgraph kagentplane["kagent plane (gRPC auth)"]
         caller["Caller"]
@@ -44,19 +49,19 @@ flowchart TB
         instance -->|runs on| actor
     end
 
-    %% Declared outside both subgraphs on purpose: a node belongs to whichever
-    %% subgraph first references it, so putting this edge inside the kagent plane
-    %% would pull ActorTemplate out of the Kubernetes plane.
     actortemplate -->|instantiated as| instance
-    %% Invisible link: forces the kagent plane to sit fully below the Kubernetes
-    %% plane. Without it, the layout engine staggers the two planes diagonally.
-    %% actortemplate ~~~ caller
+    %% Invisible link: forces the kagent plane to sit fully below the ActorTemplate,
+    %% and the ActorTemplate below the Kubernetes plane. Without it the layout engine
+    %% staggers the two planes diagonally, which both wastes width and scrambles the
+    %% reading order. Anchor it to actortemplate, not controller: anchoring higher
+    %% loses the stacking. Verified by rendering.
+    actortemplate ~~~ caller
 
     classDef crd stroke:#a78bfa,stroke-width:2px
     class harness,template crd
 ```
 
-Follow the **Kubernetes plane** first. An operator applies a Harness and an AgentTemplate, governed by Kubernetes RBAC. The kagent controller watches for a valid pair with a matching `allowedAgentTemplates` selector, and compiles it into an {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}} on Substrate.
+Follow the **Kubernetes plane** first. An operator applies a Harness and an AgentTemplate, governed by Kubernetes RBAC. The kagent controller watches for a valid pair with a matching `allowedAgentTemplates` selector, and compiles it into an {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}} on Substrate. The ActorTemplate sits outside both planes in the diagram because that is where it sits in reality: it is a Substrate resource that the controller creates over gRPC, not a Kubernetes object, so no Kubernetes role grants access to it.
 
 The **kagent plane** starts once that ActorTemplate exists. A caller, who may or may not be the same person as the operator, calls `CreateAgentInstance` through kagent's gRPC API. This call is governed by kagent's own authentication and authorization, not by Kubernetes RBAC. kagent creates the AgentInstance from the newest ActorTemplate that compiled successfully, and that AgentInstance runs on an {{< gloss "Actor" >}}Actor{{< /gloss >}}.
 
