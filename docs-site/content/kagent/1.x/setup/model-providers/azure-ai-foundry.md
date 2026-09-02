@@ -103,6 +103,28 @@ spec:
     name: foundry-model-config
 ```
 
+## Memory embeddings
+
+A Foundry deployment can also serve the embedding model behind [long-term memory]({{< link path="agents/agent-memory" >}}). Point a second ModelConfig at your embedding deployment, then name it from the Harness's `spec.kagent.memory.modelConfigRef`.
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: kagent.dev/v1alpha3
+kind: ModelConfig
+metadata:
+  name: foundry-embeddings
+  namespace: kagent
+spec:
+  apiKeySecret: foundry-api-key
+  apiKeySecretKey: api-key
+  model: text-embedding-3-small
+  provider: Foundry
+  foundry:
+    endpoint: https://<account>.cognitiveservices.azure.com/
+    deployment: text-embedding-3-small
+EOF
+```
+
 ## Troubleshooting
 
 | Symptom | Cause |
