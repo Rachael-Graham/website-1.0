@@ -9,6 +9,9 @@ Amazon Bedrock serves models from several families behind one AWS API. kagent re
 
 Prefer the native provider. Use the OpenAI-compatible path when you need the OpenAI request format, or an inference profile that only that endpoint exposes.
 
+> [!NOTE]
+> Bedrock is the only provider that every runtime supports. A `codex` Harness accepts only OpenAI `gpt-*` model IDs, and both `codex` and `claude` accept no `bedrock` settings beyond `region`. For more information, see [Agent harness]({{< link path="agents/agent-harness#model-provider-support" >}}).
+
 > [!IMPORTANT]
 > Both paths authenticate with credentials from a Kubernetes Secret. Attaching an AWS IAM role to the agent, such as with [EKS IAM Roles for Service Accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html), is not currently supported: an agent runs as a Substrate Actor rather than as a pod that kagent controls, so there is no per-agent ServiceAccount to attach a role to.
 

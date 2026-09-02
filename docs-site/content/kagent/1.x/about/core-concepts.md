@@ -42,7 +42,7 @@ The Harness and AgentTemplate are the only two resources that an operator applie
 
 A **Harness** is a Kubernetes custom resource that defines _how an agent is allowed to run_. It specifies:
 
-- **Runtime**: The engine that executes the agent. A Harness selects exactly one of `kagent`, `codex`, or `claude`. kagent compiles only the `kagent` runtime, which runs kagent's own Go and Python engines.
+- **Runtime**: The engine that executes the agent. A Harness selects exactly one of `kagent`, `codex`, `claude`, or `byo`, and kagent compiles all four. `kagent` runs kagent's own Go and Python engines, `codex` and `claude` run those coding agents, and `byo` runs any image that implements kagent's A2A contract.
 - **Workload**: The container image and environment the runtime runs in.
 - **Substrate policy**: The [WorkerPool]({{< link path="about/agent-substrate#workers-and-workerpools" >}}) that the Harness's Actors are scheduled onto, and where their {{< gloss "Snapshot" >}}snapshots{{< /gloss >}} are stored.
 - **Allowed AgentTemplates**: A selector that names which AgentTemplates are permitted to run on this Harness.
@@ -50,7 +50,9 @@ A **Harness** is a Kubernetes custom resource that defines _how an agent is allo
 That last point is a one-way match, not a mutual handshake. An AgentTemplate has no field naming a Harness. Instead, a Harness's `allowedAgentTemplates` selector matches on labels, and any AgentTemplate in the same namespace carrying a matching label becomes eligible to run on it. Whoever controls a Harness's selector decides which AgentTemplates it accepts.
 
 > [!NOTE]
-> The `codex` and `claude` runtimes are part of the Harness API, so the Kubernetes API server accepts a Harness that selects either one. However, kagent currently has no compiler for them, so the pair then reports the `Compatible` condition as `False`, with the reason `UnsupportedConfiguration` and the message `Harness runtime is not supported by any compiler`.
+> Each runtime accepts a different subset of configuration. The `codex` and `claude` runtimes support fewer model providers than `kagent` does, and neither accepts a ModelConfig that sets `defaultHeaders`, `tls`, or `apiKeyPassthrough`. A Harness and AgentTemplate pair that asks for something its runtime cannot do reports the `Compatible` condition as `False`, with the reason `UnsupportedConfiguration` and a message naming the specific setting.
+
+A `byo` Harness has one extra requirement: it must set `spec.workload.command`, because kagent has no default entrypoint for an image that it does not build.
 
 A Harness owns no running compute by itself. Applying one registers a runtime and policy that an AgentTemplate can pair with.
 

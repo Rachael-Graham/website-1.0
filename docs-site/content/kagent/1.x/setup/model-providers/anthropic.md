@@ -5,7 +5,10 @@ weight: 20
 author: kagent.dev
 ---
 
-The `Anthropic` provider calls the Anthropic API directly. To reach Claude models through Google Cloud instead, see [Google Vertex AI]({{< link path="setup/model-providers/google-vertexai" >}}).
+The `Anthropic` provider calls the Anthropic API directly.
+
+> [!NOTE]
+> This provider works on the `kagent`, `byo`, and `claude` runtimes, but not on `codex`. A `claude` Harness accepts no `anthropic` settings beyond `baseUrl`. For more information, see [Agent harness]({{< link path="agents/agent-harness#model-provider-support" >}}). To reach Claude models through Google Cloud instead, see [Google Vertex AI]({{< link path="setup/model-providers/google-vertexai" >}}).
 
 ## Create the ModelConfig
 

@@ -5,7 +5,10 @@ weight: 10
 author: kagent.dev
 ---
 
-The `OpenAI` provider calls the OpenAI API directly. It also backs every OpenAI-compatible endpoint, so several other providers in this section set `provider: OpenAI` and point `openAI.baseUrl` somewhere else.
+The `OpenAI` provider calls the OpenAI API directly.
+
+> [!NOTE]
+> This provider works on the `kagent`, `byo`, and `codex` runtimes, but not on `claude`. A `codex` Harness additionally requires `openAI.apiFormat: responses` and accepts no other `openAI` settings beyond `baseUrl`. For more information, see [Agent harness]({{< link path="agents/agent-harness#model-provider-support" >}}). It also backs every OpenAI-compatible endpoint, so several other providers in this section set `provider: OpenAI` and point `openAI.baseUrl` somewhere else.
 
 ## Create the ModelConfig
 
@@ -65,7 +68,7 @@ The `openAI` block takes the following optional settings. For every field, inclu
 | `timeout` | How long to wait on a request to the provider. |
 
 > [!WARNING]
-> The `openAI` block also accepts `tokenExchange`, which acquires a bearer token from a mounted service account file. That configuration mounts a credential file into the agent, so it does not compile on a Harness. See [About model providers]({{< link path="setup/model-providers/about-model-providers" >}}) for the full list of configurations that this affects.
+> The `openAI` block also accepts `tokenExchange`, which acquires a bearer token from a mounted service account file. That configuration mounts a credential file into the agent, so it does not compile on a Harness. For the full list of configurations that this affects, see [About model providers]({{< link path="setup/model-providers/about-model-providers" >}}).
 
 ## Use the ModelConfig
 
