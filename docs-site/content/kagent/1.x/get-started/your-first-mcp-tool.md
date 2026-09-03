@@ -15,7 +15,7 @@ A system prompt tells an agent how to behave. Tools tell it what it can do. This
 
 ## Bind the tool to your AgentTemplate
 
-kagent ships an MCP server of its own, and installs a `RemoteMCPServer` that points at it, so the built-in server is the shortest path to a working tool. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} takes tools through an `mcp` binding, which names one server and the tools to take from it. Naming the tools is required, because a binding never takes a server's whole catalog.
+kagent ships an MCP server of its own, and installs a `RemoteMCPServer` that points at it, so the built-in server is the shortest path to a working tool. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} takes tools through an `mcp` binding, which names one server and, optionally, the tools to take from it. This guide names the tools specifically, so that the agent gets only the two tools it needs rather than the server's whole catalog.
 
 kagent records what it discovered on the server's status, so the tool names come from the cluster. This guide binds `k8s_get_resources` and `k8s_get_pod_logs`. For the full catalog that the built-in server serves, see the [tools ecosystem reference]({{< link path="reference/tools-ecosystem" >}}).
 
@@ -72,7 +72,7 @@ kagent records what it discovered on the server's status, so the tool names come
    | ----- | ----------- |
    | `mcp.server.kind` | The kind of server resource. `RemoteMCPServer` is the only accepted value. |
    | `mcp.server.name` | The server's name. A binding resolves in the AgentTemplate's own namespace, so it cannot reach a server in another namespace. |
-   | `mcp.tools` | The names of the tools to bind, between 1 and 50. An AgentTemplate takes at most 50 bindings in total. |
+   | `mcp.tools` | Optional. The names of the tools to bind, up to 50. An omitted or empty list exposes every tool on the server. An AgentTemplate takes at most 50 bindings in total. |
 
 3. Confirm that kagent compiled a new {{< gloss "Revision" >}}revision{{< /gloss >}} for the edited AgentTemplate. Every edit produces a new desired revision, and the pair is current when the latest successful revision matches it.
    ```bash

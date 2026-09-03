@@ -59,7 +59,7 @@ Memories are scoped to the agent and to the user who created them, and carry the
    EOF
    ```
 
-3. Upgrade your kagent installation with the file. The `--reuse-values` flag keeps every value that you installed kagent with, such as the Agent Substrate settings, and adds only the values in this file.
+3. Upgrade your kagent installation with the values file. The `--reuse-values` flag keeps every value that you installed kagent with, such as the Agent Substrate settings, and adds only the values in this file.
    ```bash
    helm upgrade kagent \
      oci://ghcr.io/kagent-dev/kagent/helm/kagent \
@@ -142,7 +142,7 @@ Add memory to a Harness that already exists. The examples in these steps use `my
    ```
 
 > [!NOTE]
-> Only the `kagent` runtime supports memory. `spec.kagent` is the one runtime block that takes settings, so a Harness selecting `codex`, `claude`, or `byo` has nowhere to configure it.
+> Only the `kagent` runtime supports memory. The `spec.kagent` runtime block is the only runtimes that has settings, so a Harness that selects `codex`, `claude`, or `byo` has settings to configure memory.
 
 ## Verify that memory works
 
@@ -183,29 +183,71 @@ Memory is working when a fact from one conversation reaches a later one. An Agen
 
 ### What kagent stored
 
-Each memory is one row in the `memory` table of the database that you connected. Query the table to read what an agent saved.
+Each memory is one row in the `memory` table, which the vector migration created in your database. A memory that the agent saves at the end of a session is summarized first, so one conversation typically produces several short rows rather than one long one.
 
-```sql
-SELECT agent_name, user_id, content, created_at, expires_at
-FROM memory ORDER BY created_at DESC LIMIT 10;
-```
+1. Connect to the database with the connection string that you stored in the Secret. Any PostgreSQL client works.
+   ```bash
+   psql 'postgres://<username>:<password>@<host>:5432/<database>?sslmode=require'
+   ```
 
-| Column | What it holds |
-| ------ | ------------- |
-| `content` | The text that the agent saved, which is what retrieval returns to a later conversation. |
-| `agent_name` | The agent that owns the memory, written as `<namespace>__NS__<agent-name>` with every hyphen replaced by an underscore. |
-| `user_id` | The user that the memory belongs to. |
-| `embedding` | The 768-dimensional vector that similarity search compares a query against. |
-| `created_at` and `expires_at` | When kagent wrote the memory, and `ttlDays` after that. |
-| `access_count` | How many times retrieval has returned this memory. |
+2. Read what an agent saved.
+   ```sql
+   SELECT agent_name, user_id, content, created_at, expires_at
+   FROM memory ORDER BY created_at DESC LIMIT 10;
+   ```
 
-A memory that the agent saves at the end of a session is summarized first, so one conversation usually produces several short rows rather than one long one.
+   Review the following table to understand the `memory` table output.
+   | Column | What it holds |
+   | ------ | ------------- |
+   | `content` | The text that the agent saved, which is what retrieval returns to a later conversation. |
+   | `agent_name` | The agent that owns the memory, written as `<namespace>__NS__<agent-name>` with every hyphen replaced by an underscore. |
+   | `user_id` | The user that the memory belongs to. |
+   | `embedding` | The 768-dimensional vector that similarity search compares a query against. |
+   | `created_at` and `expires_at` | When kagent wrote the memory, and `ttlDays` after that. |
+   | `access_count` | How many times retrieval has returned this memory. |
+
+## Manage memories
+
+The SQL query only reads the table. To list or clear memories, call the `MemoryService` that the kagent controller serves over gRPC.
+
+No CLI command wraps the service yet, so these examples call it with [grpcurl](https://github.com/fullstorydev/grpcurl), and both calls take the `agent_name` exactly as the memory table stores it.
+
+1. Port-forward the controller's gRPC port, and confirm that your kagent installation sets `controller.grpc.reflection=true`.
+   ```bash
+   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   ```
+
+2. List the memories that an agent stores for one user.
+   ```bash
+   grpcurl -plaintext -d '{
+     "agent_name": "kagent__NS__my_first_agent",
+     "user_id": "admin@kagent.dev"
+   }' localhost:8084 kagent.api.v1alpha1.MemoryService/List
+   ```
+
+   Each entry returns the `id`, `content`, `access_count`, `created_at`, and `expires_at` fields. Results are ranked by how often retrieval has returned them, so the most-used memories appear first.
+
+3. Delete the memories for an agent and user.
+   ```bash
+   grpcurl -plaintext -d '{
+     "agent_name": "kagent__NS__my_first_agent",
+     "user_id": "admin@kagent.dev"
+   }' localhost:8084 kagent.api.v1alpha1.MemoryService/Delete
+   ```
+
+The memory service also exposes `Search`, `AddSession`, and `AddSessionBatch`. Each method takes a 768-dimensional vector rather than text, because kagent does not embed on the caller's behalf. Call them from a program that already has an embedding model, rather than by hand.
 
 ## Memory lifetime
 
-A memory expires `ttlDays` after it is written, defaulting to 15 days. Expiry is per memory rather than per session, so an old preference ages out while a recent one survives.
+A memory expires `ttlDays` after it is written, which defaults to 15 days. Expiry is per memory rather than per session, so an old preference ages out while a recent one survives.
 
 Changing `ttlDays` on the Harness applies to memories written by AgentInstances created after the change, because the value is compiled into the revision.
+
+## Known limitations
+
+- **Memories are deleted for an agent and user together.** `Delete` clears everything for that pair, and no call removes a single memory.
+- **Memories are not shared between agents.** Each agent has its own store, so one agent cannot read what another learned, even on the same Harness and for the same user.
+- **The memory implementation is not pluggable.** kagent builds on the Google Agent Development Kit (ADK) memory implementation, and it cannot be swapped for another memory system. To use an alternative, run it as a Model Context Protocol (MCP) server, [bind it as a tool]({{< link path="skills-and-mcp/about-tools" >}}), and instruct the agent to use that instead of the built-in tools.
 
 ## Next steps
 

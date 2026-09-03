@@ -14,7 +14,7 @@ Both kinds resolve within the AgentTemplate's own namespace, so a binding cannot
 
 ## MCP tools
 
-An `mcp` binding names a server and the tools to take from it. Naming the tools is required. A binding takes between 1 and 50 named tools, never the server's whole catalog.
+An `mcp` binding names a server, and optionally the tools to take from it. Listing tools narrows the binding to those tools. Omitting the list, or leaving it empty, exposes every tool that the server offers.
 
 ```yaml
 tools:
@@ -31,7 +31,7 @@ tools:
 | ----- | ----------- |
 | `mcp.server.kind` | The kind of server resource. `RemoteMCPServer` is the only accepted value. |
 | `mcp.server.name` | The server's name, in the AgentTemplate's namespace. |
-| `mcp.tools` | The names of the tools to bind, between 1 and 50. Duplicates in the list are collapsed. |
+| `mcp.tools` | Optional. The names of the tools to bind, up to 50. Duplicates are collapsed. An omitted or empty list exposes every tool on the server. |
 
 ## Agents as tools
 
