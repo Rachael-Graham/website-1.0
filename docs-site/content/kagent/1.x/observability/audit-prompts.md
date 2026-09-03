@@ -11,7 +11,11 @@ Audit every prompt (input) and reply (output) that passes between your agents an
 
 The agent runtime emits each message as an OpenTelemetry (OTel) log event. You export these events over the OpenTelemetry Protocol (OTLP) to a logging backend or to a security information and event management (SIEM) system.
 
-The runtime emits each event from inside the model call. When you also enable tracing, the event records the trace ID and the span ID of the request that produced it. Those IDs let you match an audit record to the trace of the same request. When tracing is disabled, the runtime still emits audit events, but it sets both IDs to zeros, because no span is recording. For more information, see [Tracing]({{< link path="observability/tracing" >}}).
+### Trace correlation
+
+The runtime emits each event from inside the model call. Each event records the trace ID and the span ID of the request that produced it. Those IDs let you match an audit record to the trace of the same request. The runtime populates both IDs whether or not you enable tracing, but only an enabled tracing pipeline exports the matching trace. With tracing disabled, a lookup of the trace ID in your tracing backend returns nothing. For more information, see [Tracing]({{< link path="observability/tracing" >}}).
+
+### Events
 
 The runtime emits three event names for each model call. The system prompt and the model's reply each produce one event. The message history produces one event for every entry that it holds.
 
@@ -19,10 +23,14 @@ The runtime emits three event names for each model call. The system prompt and t
 | ---------- | ------------- |
 | `gen_ai.system.message` | The system prompt for the request, as one concatenated string. |
 | `gen_ai.user.message` | One entry from the request's message history. The entry holds a person's message, an earlier agent turn, or a tool result. |
-| `gen_ai.choice` | The model's reply, with the reply content and a `finish_reason`. |
+| `gen_ai.choice` | The model's reply, with the reply content and a `finish_reason`. On a turn that calls a tool, the reply content holds the tool call and its arguments instead of text. |
+
+An audit returns more than the prompts that your team wrote. A `gen_ai.system.message` body holds the `systemPrompt` field of your AgentTemplate followed by instructions that the runtime appends, which name the agent and repeat its description. Tool traffic is included as well, because a tool call reaches the log with its arguments, and the tool's output returns as a `gen_ai.user.message` that holds the tool response.
 
 > [!NOTE]
-> The runtime labels every history entry `gen_ai.user.message`, including the agent's own earlier turns and tool results. The `content.role` field in the event body names the speaker. To select only the messages that a person sent, filter on `content.role` instead of on the event name. Each turn also re-emits the full history, so a long conversation produces repeated events. Account for that volume when you set a retention period.
+> The runtime labels every history entry as `gen_ai.user.message`, including the agent's own earlier turns and tool results. The `content.role` field in the event body names the speaker. To select only the messages that a person sent, filter on `content.role` instead of on the event name. Each turn also re-emits the full history, so a long conversation produces repeated events. Account for that volume when you set a retention period.
+
+### Environment variables
 
 Two environment variables on the agent runtime control the audit output.
 
@@ -30,7 +38,9 @@ Two environment variables on the agent runtime control the audit output.
 - **`OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`**: Whether the events include message content. The default value for log events is `false`, and the runtime then replaces each message body with `<elided>`. The event metadata remains.
 
 > [!IMPORTANT]
-> The `otel.logging` settings in the kagent Helm chart configure the controller only. The controller passes a fixed list of tracing variables to the agent runtimes that it starts. That list holds no logging variable. As a result, `otel.logging.enabled=true` alone produces no audit events for an AgentInstance. Set the logging variables on the {{< gloss "Harness" >}}Harness{{< /gloss >}} instead, as the following steps do. A Harness `spec.env` entry for a logging variable takes effect as written. An entry for a tracing variable does not, because the controller's own value overrides it.
+> The `otel.logging` settings in the kagent Helm chart configure the controller only. The controller passes a fixed list of tracing variables to the agent runtimes that it starts. That list holds no logging variable. As a result, `otel.logging.enabled=true` alone produces no audit events for an AgentInstance. Set the logging variables on the {{< gloss "Harness" >}}Harness{{< /gloss >}} instead, as shown in the following steps. A Harness `spec.env` entry for a logging variable takes effect as written. An entry for a tracing variable does not, because the controller's own value overrides it.
+
+### Runtime support
 
 Only the `kagent` runtime emits these events. The runtime emits them from the model call itself, not from a provider-specific instrumentation library. Auditing therefore covers every model provider that the `kagent` runtime supports. For the available runtimes, see [Choose a runtime]({{< link path="agents/agent-harness#choose-a-runtime" >}}).
 
@@ -39,9 +49,11 @@ Only the `kagent` runtime emits these events. The runtime emits them from the mo
 1. [Install kagent]({{< link path="setup/installation" >}}).
 2. [Create your first agent]({{< link path="get-started/your-first-agent" >}}), so that you have a Harness and an {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} to configure.
 
-## Install an OpenTelemetry collector
+## Install a collector and a logging backend
 
-Export the audit events to an OpenTelemetry collector, not directly to the logging backend. The collector holds the rules for which content and metadata leave your cluster. Audit events carry prompt text, so those rules matter more than they do for other telemetry. The collector also lets you change the rules without creating a new AgentInstance.
+Set up the path that audit events take from the agent runtime to a logging backend. The runtime exports to an OpenTelemetry collector, and the collector forwards the events to the backend. These steps install Grafana Loki as that backend, because Loki supports the queries that this guide runs later. Datadog, Splunk, and other OTLP-compatible systems work in the same way.
+
+Export to a collector rather than directly to the backend. The collector holds the rules for which content and metadata leave your cluster. Audit events carry prompt text, so those rules matter more than they do for other telemetry. The collector also lets you change the rules without creating a new AgentInstance.
 
 1. Add the OpenTelemetry Helm repository.
    ```bash
@@ -49,7 +61,7 @@ Export the audit events to an OpenTelemetry collector, not directly to the loggi
    helm repo update
    ```
 
-2. Install a logging backend that accepts OTLP. These steps install Grafana Loki in single-binary mode, which supports the manual queries in this guide. Datadog, Splunk, and other OTLP-compatible systems work in the same way.
+2. Install Loki in single-binary mode. The values file disables the two Loki memcached caches, because the chart requests roughly 10 GB of memory for them by default and a single-node cluster cannot schedule that request.
    ```yaml
    helm upgrade --install loki loki \
    --repo https://grafana.github.io/helm-charts \
@@ -84,6 +96,10 @@ Export the audit events to an OpenTelemetry collector, not directly to the loggi
        grafanaAgent:
          installOperator: false
    lokiCanary:
+     enabled: false
+   chunksCache:
+     enabled: false
+   resultsCache:
      enabled: false
    limits_config:
      allow_structured_metadata: true
@@ -124,11 +140,9 @@ Export the audit events to an OpenTelemetry collector, not directly to the loggi
    ```
    Example output:
    ```console
-   NAME                    READY   STATUS    RESTARTS   AGE
-   loki-0                  2/2     Running   0          112s
-   loki-chunks-cache-0     2/2     Running   0          112s
-   loki-minio-0            1/1     Running   0          112s
-   loki-results-cache-0    2/2     Running   0          112s
+   NAME           READY   STATUS    RESTARTS   AGE
+   loki-0         2/2     Running   0          112s
+   loki-minio-0   1/1     Running   0          112s
    ```
 
 4. Create a Helm values file for the collector. The `debug` exporter prints each received event to the collector's own log. Use that log to confirm that events arrive, before you query the backend.
@@ -152,7 +166,7 @@ Export the audit events to an OpenTelemetry collector, not directly to the loggi
      exporters:
        debug:
          verbosity: detailed
-       otlphttp:
+       otlp_http:
          endpoint: "http://loki.telemetry.svc.cluster.local:3100/otlp"
          tls:
            insecure: true
@@ -161,16 +175,17 @@ Export the audit events to an OpenTelemetry collector, not directly to the loggi
          logs:
            receivers: [otlp]
            processors: [batch]
-           exporters: [debug, otlphttp]
+           exporters: [debug, otlp_http]
    EOF
    ```
 
-   To use a backend other than Loki, replace the `otlphttp` endpoint with the OTLP address of that backend. For example, Datadog uses `https://api.datadoghq.com`.
+   To use a backend other than Loki, replace the `otlp_http` endpoint with the OTLP address of that backend. For example, Datadog uses `https://api.datadoghq.com`.
 
 5. Install the collector with the values file that you created.
    ```bash
    helm install opentelemetry-collector-audit open-telemetry/opentelemetry-collector \
      --namespace telemetry \
+     --version {{< reuse "kagent-docs/versions/otel-collector.md" >}} \
      --values otel-collector-audit.yaml
    ```
 
@@ -227,7 +242,7 @@ Add the audit variables to the Harness that your agents run on. The runtime then
    | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | The address that the runtime exports events to. Set it to the address of the collector. To export over HTTP instead of gRPC, set `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` to `http/protobuf` and use port `4318`. |
    | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` | Includes message content in the events. If omitted, each event body reads `<elided>`, and the runtime exports only the metadata and the trace IDs. Those fields still record which agent handled a request, and when. |
 
-2. Confirm that kagent compiled a new {{< gloss "Revision" >}}revision{{< /gloss >}} for the edited Harness. An environment change produces a new desired revision. The Harness is current when `latestSuccessfulRevision` matches `desiredRevision`.
+2. Confirm that kagent compiled a new {{< gloss "Revision" >}}revision{{< /gloss >}} for the edited Harness. The Harness is current when `latestSuccessfulRevision` matches `desiredRevision`.
    ```bash
    kubectl get agenttemplate my-first-agent -n kagent \
      -o jsonpath='{range .status.harnesses[*]}{.harness}{"\t"}{.desiredRevision}{"\t"}{.latestSuccessfulRevision}{"\n"}{end}'
@@ -252,22 +267,29 @@ Add the audit variables to the Harness that your agents run on. The runtime then
    kagent invoke --agent-instance $INSTANCE_ID --task "What is 2+2?"
    ```
 
-2. Check that the collector received the events.
+2. Check that the collector received the events. The collector logs its own metrics to the same stream, so filter the output for the audit records.
    ```bash
-   kubectl -n telemetry logs -l app.kubernetes.io/name=opentelemetry-collector --tail=100
+   kubectl -n telemetry logs -l app.kubernetes.io/name=opentelemetry-collector --tail=200 \
+     | grep -B 5 -A 4 "EventName: gen_ai"
    ```
    Example output:
    ```console
-   LogRecord #0
-   ObservedTimestamp: 2026-09-03 14:22:11.278948633 +0000 UTC
-   Timestamp: 2026-09-03 14:22:11.278943258 +0000 UTC
+   LogRecord #1
+   ObservedTimestamp: 2026-09-03 19:26:18.48324493 +0000 UTC
+   Timestamp: 1970-01-01 00:00:00 +0000 UTC
    SeverityText:
    SeverityNumber: Unspecified(0)
    EventName: gen_ai.user.message
    Body: Map({"content":{"parts":[{"text":"What is 2+2?"}],"role":"user"}})
-   Trace ID: c421bc11e93daaceee59b9e5ff8aa6d0
-   Span ID: 02552aea76988990
+   Trace ID: 3d34d2f1b74f30a5cce0d5ed8571e928
+   Span ID: 12671255711f5511
+   Flags: 1
    ```
+
+   The runtime leaves the `Timestamp` field unset, so every record reports `1970-01-01 00:00:00`. Read `ObservedTimestamp` instead, which records when the collector received the event.
+
+   > [!NOTE]
+   > The runtime buffers audit events and exports them in batches, and Agent Substrate suspends an Actor as soon as its response completes. A short conversation can therefore finish before the runtime exports its events, and this command then returns nothing. Send another request to the AgentInstance and check again.
 
 3. Forward the Loki query port. Leave the command running.
    ```bash
@@ -282,7 +304,7 @@ Add the audit variables to the Harness that your agents run on. The runtime then
      --data-urlencode "end=$(date +%s)000000000" | jq
    ```
 
-   Each entry holds the message content in the log line. The `stream` labels hold the agent identity, the event name, and the trace IDs. Example output:
+   Each entry holds the message content in the log line. The `stream` object holds the agent identity in the `service_name` and `service_namespace` labels, and holds the trace IDs as structured metadata. Loki does not record the event name, so the response carries no `event_name` field, and every event from one request shares a single stream. Example output:
    ```json
    {
      "status": "success",
@@ -293,29 +315,19 @@ Add the audit variables to the Harness that your agents run on. The runtime then
            "stream": {
              "service_name": "my_first_agent_my_first_harness",
              "service_namespace": "kagent",
-             "event_name": "gen_ai.user.message",
-             "trace_id": "c421bc11e93daaceee59b9e5ff8aa6d0",
-             "span_id": "02552aea76988990"
+             "scope_name": "gcp.vertex.agent",
+             "trace_id": "3d34d2f1b74f30a5cce0d5ed8571e928",
+             "span_id": "12671255711f5511",
+             "flags": "1"
            },
            "values": [
              [
-               "1779893787755324418",
+               "1788463578483244930",
                "{\"content\":{\"parts\":[{\"text\":\"What is 2+2?\"}],\"role\":\"user\"}}"
-             ]
-           ]
-         },
-         {
-           "stream": {
-             "service_name": "my_first_agent_my_first_harness",
-             "service_namespace": "kagent",
-             "event_name": "gen_ai.choice",
-             "trace_id": "c421bc11e93daaceee59b9e5ff8aa6d0",
-             "span_id": "02552aea76988990"
-           },
-           "values": [
+             ],
              [
-               "1779893788912004217",
-               "{\"content\":{\"parts\":[{\"text\":\"4\"}],\"role\":\"model\"},\"finish_reason\":\"STOP\",\"index\":0}"
+               "1788463578483063303",
+               "{\"content\":\"You are a concise, helpful assistant. ...\"}"
              ]
            ]
          }
@@ -326,20 +338,20 @@ Add the audit variables to the Harness that your agents run on. The runtime then
 
 ## Refine audit queries
 
-An audit usually needs a narrower set of events than the full message history of one agent. The following three examples use the Loki query language. Adapt each example to the query language of your own backend.
+An audit usually needs a narrower set of events than the full message history of one agent. Loki does not index the event name, so each of the following examples selects an event type by a field in the event body instead. The examples use the Loki query language. Adapt each example to the query language of your own backend.
 
-- Return only the model's replies, by filtering on the `event_name` label.
+- Return only the model's replies. Only a `gen_ai.choice` event carries a `finish_reason` field, so that field selects the replies.
   ```bash
   curl -s -G 'http://localhost:3100/loki/api/v1/query_range' \
-    --data-urlencode 'query={service_namespace="kagent"} | event_name="gen_ai.choice"' \
+    --data-urlencode 'query={service_namespace="kagent"} | json reason="finish_reason" | reason != ""' \
     --data-urlencode "start=$(( $(date +%s) - 3600 ))000000000" \
     --data-urlencode "end=$(date +%s)000000000" | jq
   ```
 
-- Return only the messages that a person sent, and exclude the agent's replayed history. The filter reads `content.role` from the event body, because the event name does not separate the two.
+- Return only the messages that a person sent, and exclude the agent's replayed history. The filter reads `content.role` from the event body, because only a person's message sets that field to `user`.
   ```bash
   curl -s -G 'http://localhost:3100/loki/api/v1/query_range' \
-    --data-urlencode 'query={service_namespace="kagent"} | event_name="gen_ai.user.message" | json role="content.role" | role="user"' \
+    --data-urlencode 'query={service_namespace="kagent"} | json role="content.role" | role="user"' \
     --data-urlencode "start=$(( $(date +%s) - 3600 ))000000000" \
     --data-urlencode "end=$(date +%s)000000000" | jq
   ```
@@ -352,7 +364,7 @@ An audit usually needs a narrower set of events than the full message history of
     --data-urlencode "end=$(date +%s)000000000" | jq
   ```
 
-To follow a request from its audit records into its trace, take the `trace_id` from any entry and look it up in your tracing backend. The `trace_id` holds a usable value only when [tracing]({{< link path="observability/tracing" >}}) is also enabled.
+To follow a request from its audit records into its trace, take the `trace_id` from any entry and look it up in your tracing backend. The lookup returns a trace only when [tracing]({{< link path="observability/tracing" >}}) is also enabled. With tracing disabled, the record still carries a trace ID, but no pipeline exported the trace that the ID names.
 
 ## Turn off audit logging
 

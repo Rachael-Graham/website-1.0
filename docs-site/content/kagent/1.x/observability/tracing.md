@@ -48,14 +48,16 @@ Both processes report themselves as separate OpenTelemetry (OTel) services, whic
 
 ### Spans
 
-The agent runtime names its spans after the operation rather than the agent, so the same three names appear for every agent. Filter to a particular agent by service name instead.
+The agent runtime creates the same spans for every agent, and most span names describe the operation rather than the agent. The `invoke_agent` span is the exception, because its name carries the service name of the agent that ran. To narrow a search to one agent, filter by service name rather than by span name. The following spans appear in nesting order, from the span that accepts the request down to the model and tool calls that serve it.
 
 | Span | When it is created |
 | ---- | ------------------ |
-| `invocation` | Once per request, as the root of the runtime's half of the trace. |
+| `POST /lf.a2a.v1.A2AService/SendMessage` | Once per request, as the root of the runtime's half of the trace. The runtime creates it when it accepts the A2A call from the controller. |
+| `invocation` | Once per request, as the parent of the agent's own work. |
+| `invoke_agent <agent>` | Once per request, named for the AgentTemplate and Harness pair that serves it. |
 | `generate_content <model>` | Once per model call, named for the model that was called. |
 | `execute_tool <tool>` | Once per tool call, named for the tool that was called. |
-| `execute_tool (merged)` | In place of the individual spans when the agent runs more than one tool call at once. |
+| `execute_tool (merged)` | Once per model turn that calls more than one tool, as the parent of that turn's `execute_tool` spans. A turn that calls a single tool creates no merged span. |
 
 ### Correlation attributes
 
@@ -175,9 +177,9 @@ Tracing is off by default. Turning it on is a Helm change, because the controlle
 
 4. From the **Service** dropdown, select `my_first_agent_my_first_harness`, the service that the AgentTemplate and Harness pair reports as. Selecting `kagent-controller` instead returns the same traces from the controller's side.
 
-5. Leave **Operation** on `all`, or select `invocation` to start from the root of the runtime's half of the trace, and click **Find Traces**.
+5. Leave **Operation** on `all`, or select `invocation` to start from the agent's own work rather than from the A2A call that carries it, and click **Find Traces**.
 
-6. Click a trace to open it. The span tree shows the controller's gRPC and gateway spans, followed by the `invocation` and the `generate_content` and `execute_tool` spans.
+6. Click a trace to open it. The span tree shows the controller's gRPC and gateway spans, followed by the runtime's `POST /lf.a2a.v1.A2AService/SendMessage` span, and finlly the `invocation`, `invoke_agent`, `generate_content`, and `execute_tool` spans.
 
 7. To narrow a search to one conversation, put a correlation attribute in the **Tags** field, such as `gen_ai.conversation.id=<context-id>`.
 
