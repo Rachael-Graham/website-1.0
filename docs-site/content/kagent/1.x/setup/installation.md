@@ -23,7 +23,7 @@ kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-subs
      kubectl ate --help
      ```
 
-2. Set your model provider API key. The examples in this guide use OpenAI. For other providers, see [Configure model providers]({{< link path="setup/configure-model-providers" >}}).
+2. Set your model provider API key. The examples in this guide use OpenAI. For other providers, see [Configure model providers]({{< link path="setup/model-providers" >}}).
    ```bash
    export OPENAI_API_KEY="your-api-key-here"
    ```
@@ -281,5 +281,5 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
 
 {{< cards >}}
   {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
-  {{< card link=`{{< link path="setup/configure-model-providers" >}}` title="Configure model providers" subtitle="Point kagent at OpenAI, Anthropic, Gemini, or a provider of your own." >}}
+  {{< card link=`{{< link path="setup/model-providers" >}}` title="Configure model providers" subtitle="Point kagent at OpenAI, Anthropic, Gemini, or a provider of your own." >}}
 {{< /cards >}}

@@ -1,1 +1,1 @@
-{{< version include-if="0.x" >}}0.0.6{{< /version >}}{{< version include-if="1.x" >}}0.0.22{{< /version >}}
+{{< version include-if="0.x" >}}0.0.6{{< /version >}}{{< version include-if="1.x" >}}0.0.24{{< /version >}}
