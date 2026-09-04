@@ -39,7 +39,7 @@ A {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} selects its class through t
 
 A **SandboxConfig** is a cluster-scoped resource that holds the material needed to start one sandbox runtime family. It carries the runtime assets that the node agent fetches, keyed by processor architecture, along with the pause image that holds the sandbox's namespaces as its root container. One SandboxConfig can be marked as the cluster default for its class, and a WorkerPool that names no configuration explicitly resolves to that default.
 
-Defining these assets in a cluster resource is what lets one configuration pin a runtime version for many ActorTemplates at once, rather than each template carrying its own copy.
+Defining these assets in a cluster resource lets one configuration pin a runtime version for many ActorTemplates at once, rather than each template carrying its own copy.
 
 A default installation creates a single `gvisor-default` configuration, which looks like the following:
 
@@ -81,7 +81,7 @@ The sandbox draws a boundary in three places.
 
 ## How traffic reaches a sandboxed Actor
 
-Every Actor is addressed by its {{< gloss "Atespace" >}}atespace{{< /gloss >}} and name, at `<actor-name>.<atespace>.actors.resources.substrate.ate.dev`. Reaching it involves several hops, and each one is what keeps a sandboxed Actor addressable without exposing the Worker that it happens to be running on.
+Every Actor is addressed by its {{< gloss "Atespace" >}}atespace{{< /gloss >}} and name, at `<actor-name>.<atespace>.actors.resources.substrate.ate.dev`. Reaching it involves several hops, and each one keeps a sandboxed Actor addressable without exposing the Worker that it happens to be running on.
 
 1. Agent Substrate runs its own Domain Name System (DNS) service that answers queries for that address pattern with the address of the router, rather than any individual Worker.
 2. The router reads the Actor name and atespace from the request, asks the Agent Substrate API to resume that Actor and report which Worker it is now assigned to, then selects that Worker as the destination.

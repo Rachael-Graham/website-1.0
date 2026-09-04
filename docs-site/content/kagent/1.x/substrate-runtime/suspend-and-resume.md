@@ -23,7 +23,7 @@ The following diagram traces an Actor through those operations, and shows the fu
 An Actor reports its position in that cycle through its state, which is one of `RESUMING`, `RUNNING`, `SUSPENDING`, `SUSPENDED`, `PAUSING`, `PAUSED`, `CRASHED`, or `DELETING`. Only a suspended Actor can be deleted.
 
 > [!NOTE]
-> Resume restores an Actor onto whichever Worker in the pool is free, which is not necessarily the Worker that the Actor ran on before. Suspend and resume are what let a {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} carry far more Actors than it has Workers at any one moment.
+> Resume restores an Actor onto whichever Worker in the pool is free, which is not necessarily the Worker that the Actor ran on before. Suspend and resume let a {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} carry far more Actors than it has Workers at any one moment.
 
 ## What a snapshot captures
 
@@ -75,7 +75,7 @@ The {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}}'s own state does no
 
 Every Actor is reachable at a uniform address built from its {{< gloss "Atespace" >}}atespace{{< /gloss >}} and name, `<actor-name>.<atespace>.actors.resources.substrate.ate.dev`, resolved by Agent Substrate's own Domain Name System (DNS) server. Traffic sent to that name is routed to the right Worker, and an Actor that is currently suspended is resumed automatically to receive it. Nothing in the calling path needs to know whether the Actor was running beforehand.
 
-Resume speed is what makes suspending at every turn boundary practical rather than costly. Agent Substrate's own target for this cycle is 100 milliseconds at the ninety-fifth percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
+Resume speed makes suspending at every turn boundary practical rather than costly. Agent Substrate's own target for this cycle is 100 milliseconds at the ninety-fifth percentile, measured from the moment traffic arrives for a suspended Actor to the moment that Actor can receive it.
 
 ## Checkpoints
 

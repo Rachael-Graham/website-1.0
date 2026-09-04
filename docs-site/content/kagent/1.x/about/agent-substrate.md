@@ -11,7 +11,7 @@ The [kagent architecture]({{< link path="about/architecture" >}}) page establish
 
 Every Actor is created from an **ActorTemplate**, the compiled definition that the kagent controller produces from a {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} pair.
 
-What Substrate adds is enforcement. Substrate rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled {{< gloss "Revision" >}}revision{{< /gloss >}} instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
+Substrate adds enforcement. It rejects any change to an ActorTemplate's spec after it is created, so immutability is a property of the resource itself rather than a convention that the controller follows. That immutability requires the controller to create a new ActorTemplate for every compiled {{< gloss "Revision" >}}revision{{< /gloss >}} instead of editing an existing one, and allows the controller to safely reclaim an old ActorTemplate once no AgentInstance references it.
 
 ## Workers and WorkerPools
 

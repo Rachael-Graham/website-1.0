@@ -11,7 +11,7 @@ A **{{< gloss "Skill" >}}skill{{< /gloss >}}** packages a piece of know-how that
 
 A skill is a directory whose root holds a `SKILL.md` file. That file carries front matter naming the skill and describing what it is for, followed by the instructions themselves.
 
-The description is what makes a skill usable. When an agent starts, the runtime reads the front matter of every skill that is attached to it, and offers those skills to the model as tools that it can call. The model chooses a skill from its description, in the same way that it chooses any other tool. This means that a description that states plainly when to use the skill matters more than the length of the instructions behind it.
+The description makes a skill usable. When an agent starts, the runtime reads the front matter of every skill that is attached to it, and offers those skills to the model as tools that it can call. The model chooses a skill from its description, in the same way that it chooses any other tool. This means that a description that states plainly when to use the skill matters more than the length of the instructions behind it.
 
 A skill can be published on its own, or bundled with other skills in a [plugin package]({{< link path="skills-and-mcp/plugins" >}}), which can also declare {{< gloss "Model Context Protocol" >}}Model Context Protocol{{< /gloss >}} (MCP) servers that kagent adds to the agent's [tools]({{< link path="skills-and-mcp/about-tools" >}}).
 

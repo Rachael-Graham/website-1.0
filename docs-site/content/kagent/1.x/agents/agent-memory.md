@@ -199,8 +199,8 @@ Each memory is one row in the `memory` table, which the vector migration created
    Review the following table to understand the `memory` table output.
    | Column | What it holds |
    | ------ | ------------- |
-   | `content` | The text that the agent saved, which is what retrieval returns to a later conversation. |
-   | `agent_name` | The agent that owns the memory, written as `<namespace>__NS__<agent-name>` with every hyphen replaced by an underscore. |
+   | `content` | The text that the agent saved. Retrieval returns it to a later conversation. |
+   | `agent_name` | The agent that owns the memory, written as `<namespace>__NS__<agent-template>_<harness>` with every hyphen replaced by an underscore. The AgentTemplate and Harness pair identifies a runtime, so the same AgentTemplate on two Harnesses owns two separate sets of memories. |
    | `user_id` | The user that the memory belongs to. |
    | `embedding` | The 768-dimensional vector that similarity search compares a query against. |
    | `created_at` and `expires_at` | When kagent wrote the memory, and `ttlDays` after that. |
@@ -210,7 +210,7 @@ Each memory is one row in the `memory` table, which the vector migration created
 
 The SQL query only reads the table. To list or clear memories, call the `MemoryService` that the kagent controller serves over gRPC.
 
-No CLI command wraps the service yet, so these examples call it with [grpcurl](https://github.com/fullstorydev/grpcurl), and both calls take the `agent_name` exactly as the memory table stores it.
+No CLI command wraps the service yet, so these examples call it with [grpcurl](https://github.com/fullstorydev/grpcurl), and both calls take the `agent_name` exactly as the memory table stores it. Be sure to copy the value out of the table rather than assembling it by hand, because an incorrect name fails silently.
 
 1. Port-forward the controller's gRPC port, and confirm that your kagent installation sets `controller.grpc.reflection=true`.
    ```bash
@@ -220,7 +220,7 @@ No CLI command wraps the service yet, so these examples call it with [grpcurl](h
 2. List the memories that an agent stores for one user.
    ```bash
    grpcurl -plaintext -d '{
-     "agent_name": "kagent__NS__my_first_agent",
+     "agent_name": "kagent__NS__my_first_agent_my_first_harness",
      "user_id": "admin@kagent.dev"
    }' localhost:8084 kagent.api.v1alpha1.MemoryService/List
    ```
@@ -230,7 +230,7 @@ No CLI command wraps the service yet, so these examples call it with [grpcurl](h
 3. Delete the memories for an agent and user.
    ```bash
    grpcurl -plaintext -d '{
-     "agent_name": "kagent__NS__my_first_agent",
+     "agent_name": "kagent__NS__my_first_agent_my_first_harness",
      "user_id": "admin@kagent.dev"
    }' localhost:8084 kagent.api.v1alpha1.MemoryService/Delete
    ```

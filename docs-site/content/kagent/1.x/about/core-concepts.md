@@ -87,7 +87,7 @@ Under the hood, the kagent controller watches for valid Harness and AgentTemplat
 
 Each compile produces one **{{< gloss "Revision" >}}revision{{< /gloss >}}**, identified by a digest: a SHA-256 hash of the compiled configuration. Because that digest is derived from the configuration itself, editing a Harness or AgentTemplate compiles to a different digest, and therefore becomes a separate ActorTemplate. kagent never rewrites an existing one.
 
-That immutability is what keeps running conversations stable. When you create an AgentInstance, kagent looks up the newest revision that compiled successfully for that Harness and AgentTemplate pair, and then creates an Actor from that revision. Editing the Harness or AgentTemplate afterward does not disturb that AgentInstance, which keeps running on the revision that it was created from. Only AgentInstances created after the edit use the new revision.
+That immutability keeps running conversations stable. When you create an AgentInstance, kagent looks up the newest revision that compiled successfully for that Harness and AgentTemplate pair, and then creates an Actor from that revision. Editing the Harness or AgentTemplate afterward does not disturb that AgentInstance, which keeps running on the revision that it was created from. Only AgentInstances created after the edit use the new revision.
 
 Once created, an AgentInstance talks to callers over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol, through kagent's A2A gateway. The gateway resolves each request to the right AgentInstance and forwards it to the Actor running behind it.
 
