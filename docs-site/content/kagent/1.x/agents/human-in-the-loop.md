@@ -144,7 +144,7 @@ Because the client negotiates HITL rather than the agent offering it, what a per
 | Client | HITL |
 | ------ | ---- |
 | Your own A2A client | Full. Request the extension URI and handle the four payload types. |
-| An MCP client that supports tasks | Supported. `invoke_agent_instance` returns a task, and input requests surface as MCP elicitations. |
+| An {{< gloss "MCP" >}}MCP{{< /gloss >}} client that supports tasks | Supported. `invoke_agent_instance` returns a task, and input requests surface as MCP elicitations. |
 | The kagent CLI | Not supported, and a turn that pauses is stranded. `kagent invoke` does not request the extension, so an agent that needs a person parks the task at `INPUT_REQUIRED` with nothing to answer it by. The CLI reports `Input required to continue this AgentInstance.` and stops there. Send the turn again from a client that requests the extension. |
 
 ## Next steps

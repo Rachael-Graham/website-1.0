@@ -116,7 +116,7 @@ Some supported combinations still carry restrictions.
 | `claude` with `AnthropicVertexAI` | Accepts only `projectID` and `location`. The Secret has to hold a `service_account` key whose `project_id` matches and whose `token_uri` is `https://oauth2.googleapis.com`. |
 
 > [!IMPORTANT]
-> Neither `codex` nor `claude` accepts a ModelConfig that sets `defaultHeaders`, `tls`, or `apiKeyPassthrough`. Separately, the `kagent` and `byo` runtimes cannot use a ModelConfig whose credential is a file rather than a string, which is what rules out both Vertex AI providers there. For more information about that limitation, see [About model providers]({{< link path="setup/model-providers/about-model-providers" >}}).
+> Neither `codex` nor `claude` accepts a ModelConfig that sets `defaultHeaders`, `tls`, or `apiKeyPassthrough`. Separately, the `kagent` and `byo` runtimes cannot use a ModelConfig whose credential is a file rather than a string. This restriction rules out both Vertex AI providers there. For more information about that limitation, see [About model providers]({{< link path="setup/model-providers/about-model-providers" >}}).
 
 ## Tool and skill support
 
@@ -125,7 +125,7 @@ The coding-agent runtimes also constrain what an AgentTemplate can ask for.
 | Constraint | Applies to |
 | ---------- | ---------- |
 | A `Shared` agent-tool binding cannot itself carry tools, skills, plugins, or nested agents, and has to use the same provider and credentials as the agent that binds it. | `codex`, `claude` |
-| An MCP server is bound whole. Claude does not support partial tool selection, so the agent sees every tool the server offers rather than only the ones a binding names. The compiler warns rather than failing. | `claude` |
+| An {{< gloss "MCP" >}}MCP{{< /gloss >}} server is bound whole. Claude does not support partial tool selection, so the agent sees every tool the server offers rather than only the ones a binding names. The compiler warns rather than failing. | `claude` |
 | A `RemoteMCPServer` has to use the `STREAMABLE_HTTP` protocol. `SSE` is rejected. | `codex` |
 
 The `kagent` and `byo` runtimes take the full set. For more information about what an AgentTemplate can bind, see [About tools]({{< link path="skills-and-mcp/about-tools" >}}).

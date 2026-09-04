@@ -65,7 +65,7 @@ Snapshot:
   short: "The stored state that an Actor suspends to, held in object storage. Resuming restores the Actor from its most recent snapshot, which is what makes suspending idle agents cheap."
 
 Fork:
-  short: "A second AgentInstance created from a checkpoint, starting with the transcript and state that the checkpoint pinned. A fork inherits the checkpoint's revision, so later edits to the AgentTemplate do not change what it runs."
+  short: "A second AgentInstance created from a checkpoint, starting from the durable state that the checkpoint pinned. A fork inherits the checkpoint's revision, so later edits to the AgentTemplate do not change what it runs, and it begins its own transcript rather than continuing the original's."
 
 Transcript:
   short: "The record of an AgentInstance's conversation, held server-side and append-only. It survives the Actor suspending between turns, and a resumed runtime cannot shrink it."
@@ -81,6 +81,9 @@ Tool binding:
 
 Model Context Protocol:
   short: "An open protocol for exposing tools and resources to a model. kagent reaches an MCP server through a RemoteMCPServer resource, and an AgentTemplate binds individual tools from it."
+
+MCP:
+  short: "Model Context Protocol, an open protocol for exposing tools and resources to a model. kagent reaches an MCP server through a RemoteMCPServer resource, and an AgentTemplate binds individual tools from it."
 
 A2A:
   short: "The Agent-to-Agent protocol, which callers and other agents use to talk to an AgentInstance. The conversation's context identifier is the AgentInstance ID, so a second message on the same ID continues the same conversation."

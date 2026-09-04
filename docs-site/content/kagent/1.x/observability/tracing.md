@@ -38,7 +38,7 @@ A caller reaches the gRPC API on the kagent controller, which starts the trace. 
 > [!IMPORTANT]
 > The controller passes its tracing configuration only to the `kagent` runtime. An agent on the `codex`, `claude`, or `byo` runtime produces no runtime spans, and its half of the trace is missing. For a `byo` image that implements OTel itself, set the exporter variables in the Harness `spec.env` instead. For the available runtimes, see [Choose a runtime]({{< link path="agents/agent-harness#choose-a-runtime" >}}).
 
-Both processes report themselves as separate OpenTelemetry (OTel) services, which is how a tracing backend groups the spans.
+Both processes report themselves as separate OpenTelemetry (OTel) services. A tracing backend uses these service names to group the spans.
 
 - **The controller** reports as `kagent-controller` in the `kagent` service namespace. Its spans also carry the pod, node, and namespace that the controller runs on.
 - **Each agent runtime** reports as its own service, named for the {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} and {{< gloss "Harness" >}}Harness{{< /gloss >}} pair it was compiled from, with hyphens replaced by underscores. The `my-first-agent` template on the `my-first-harness` Harness reports as `my_first_agent_my_first_harness`.

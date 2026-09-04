@@ -45,7 +45,7 @@ When an Actor resumes from a `Data`-scope snapshot, the ActorTemplate's `onResum
 
 Two kinds of snapshot serve different purposes, and both appear in a normal installation.
 
-- **Golden snapshot**: Captured once, when an ActorTemplate is created, from a temporary golden boot of the workload. Every Actor of that template is first restored from this one shared snapshot, so a new Actor starts from an already-booted image rather than a cold start. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} is not ready until its golden snapshot exists, which is why the kagent controller reports `waiting for the ActorTemplate golden snapshot` while Agent Substrate captures it.
+- **Golden snapshot**: Captured once, when an ActorTemplate is created, from a temporary golden boot of the workload. Every Actor of that template is first restored from this one shared snapshot, so a new Actor starts from an already-booted image rather than a cold start. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} is not ready until its golden snapshot exists. Until then, the kagent controller reports `waiting for the ActorTemplate golden snapshot` while Agent Substrate captures it.
 - **Last snapshot**: The most recent per-Actor snapshot, written on every suspend and used to restore that specific Actor on its next resume. Because it carries the Actor's own accumulated state, the conversation continues from where it stopped.
 
 Snapshots are persisted to object storage, either Google Cloud Storage or Amazon Simple Storage Service (S3), so that Actor state is durable and portable across the cluster. A {{< gloss "Harness" >}}Harness{{< /gloss >}} names the location for its Actors' snapshots in its `substrate.snapshotPolicy` section.
@@ -85,4 +85,4 @@ Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the Agen
 
 An AgentInstance must be a turn boundary to be checkpointed, because the turn boundary is captured. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
 
-A checkpoint also records where the conversation had reached, which lets you start a second AgentInstance from that point. To create a checkpoint and fork an AgentInstance from it, work through the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}).
+A checkpoint also records how far the conversation had advanced, and it lets you start a second AgentInstance from the state it pinned. That second AgentInstance, a {{< gloss "Fork" >}}fork{{< /gloss >}}, begins its own conversation rather than continuing the original's. To create a checkpoint and fork an AgentInstance from it, work through the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}).

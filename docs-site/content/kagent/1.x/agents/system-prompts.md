@@ -96,7 +96,7 @@ The following values are available to a template.
 | `.AgentTemplateName` | The AgentTemplate's `metadata.name`. |
 | `.AgentTemplateNamespace` | The AgentTemplate's `metadata.namespace`. |
 | `.Description` | The AgentTemplate's `spec.description`. |
-| `.ToolNames` | The tool names selected from every MCP server the AgentTemplate binds. Agents bound as tools are not included. Prefer this value over listing tools by hand, because it cannot drift from the bindings that the AgentTemplate declares. |
+| `.ToolNames` | The tool names selected from every {{< gloss "MCP" >}}MCP{{< /gloss >}} server the AgentTemplate binds. Agents bound as tools are not included. Prefer this value over listing tools by hand, because it cannot drift from the bindings that the AgentTemplate declares. |
 
 Additionally, the `include` function pulls in one key from a ConfigMap that `dataSources` lists. The argument is formatted `"<source>/<key>"`, where the source is the ConfigMap's name. Every key in every listed ConfigMap becomes available, so two sources that share a key name collide. kagent rejects that at compile time rather than picking one.
 

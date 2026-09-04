@@ -1,13 +1,13 @@
 ---
 title: Agent Substrate
-description: Watch an agent's Actor suspend between turns, pin the conversation with a checkpoint, and fork it into two independent branches.
+description: Watch an agent's Actor suspend between turns, pin its state with a checkpoint, and fork that checkpoint into a second agent.
 weight: 10
 author: kagent.dev
 ---
 
 [Agent Substrate]({{< link path="about/agent-substrate" >}}) runs every agent as an Actor: a sandboxed unit of compute that holds a {{< gloss "Worker" >}}Worker{{< /gloss >}} only while a turn is in progress, and whose state you can pin and branch. This example follows one agent through all three behaviors.
 
-The Actor that these steps follow is also the isolation boundary. Every Actor runs in its own {{< gloss "gVisor" >}}gVisor{{< /gloss >}} sandbox rather than sharing one with its neighbors, which is why a model can safely run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
+The Actor that these steps follow is also the isolation boundary. Every Actor runs in its own {{< gloss "gVisor" >}}gVisor{{< /gloss >}} sandbox rather than sharing one with its neighbors. This isolation allows a model to safely run tools and execute commands. For what the sandbox blocks, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
 
 ## Before you begin
 
@@ -129,9 +129,12 @@ Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent 
 
 Underneath, the checkpoint attaches an ActorSnapshotTag named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag by running `kubectl ate get actor-snapshot-tag`.
 
-## Fork the conversation into a second agent
+## Fork a checkpoint into a second agent
 
-Forking creates a second AgentInstance that starts from the pinned snapshot, with the transcript up to the checkpoint's position already in place. The original is untouched, so the two conversations diverge from that point.
+Forking creates a second AgentInstance from the pinned snapshot, running the revision that the checkpoint was taken on. The original is untouched, so you end up with two independent AgentInstances that started from the same state.
+
+> [!IMPORTANT]
+> A fork does not carry the conversation. It inherits the Actor's durable state as of the checkpoint, and it runs the checkpoint's pinned revision, but it starts its own {{< gloss "Transcript" >}}transcript{{< /gloss >}} rather than continuing the original's. A transcript belongs to the AgentInstance that produced it, so asking a fork about earlier turns returns nothing. Expect this to change: carrying the conversation across a fork is the behavior the API is shaped for, and it is not what the current build does.
 
 1. Fork the checkpoint.
    ```bash
@@ -162,12 +165,12 @@ Forking creates a second AgentInstance that starts from the pinned snapshot, wit
 2. Save the fork's ID, then send it down a different path than the original.
    ```bash
    export FORK_ID=<your-fork-agent-instance-id>
-   kagent invoke --agent-instance $FORK_ID --task "What did I ask you first?"
+   kagent invoke --agent-instance $FORK_ID --task "List the pods in the kagent namespace."
    ```
 
-   The fork answers from the transcript it inherited, which is what distinguishes a fork from a new AgentInstance that happens to use the same AgentTemplate.
+   The fork answers as a new conversation. Send the original a different question and the two diverge from here, each holding its own transcript.
 
-3. List your AgentInstances to verify that both branches appear as separate conversations.
+3. List your AgentInstances to verify that both appear as separate AgentInstances.
    ```bash
    kagent get agent-instance
    ```
@@ -182,7 +185,7 @@ Forking creates a second AgentInstance that starts from the pinned snapshot, wit
    +--------------------------------------+----------------+------------------+-------+----------------------+
    ```
 
-A fork runs the compiled {{< gloss "Revision" >}}revision{{< /gloss >}} that its checkpoint was taken on, not whatever revision the AgentTemplate resolves to now. Editing the AgentTemplate after checkpointing does not change what a fork of that checkpoint runs, which is what makes a fork a faithful continuation rather than a fresh start with an old transcript.
+A fork runs the compiled {{< gloss "Revision" >}}revision{{< /gloss >}} that its checkpoint was taken on, not whatever revision the AgentTemplate resolves to now. Editing the AgentTemplate after checkpointing does not change what a fork of that checkpoint runs. That stability is the point of a checkpoint: it holds a known-good configuration you can return to, rather than tracking the template as it moves on.
 
 > [!NOTE]
 > A checkpoint can only be forked when its snapshot captured durable data alone. kagent compiles every ActorTemplate to take a `Data`-scope snapshot on commit, so a checkpoint taken on a suspended AgentInstance is forkable. A checkpoint whose snapshot also captured process state is rejected with `Checkpoint includes process state and cannot be forked`, because process memory belongs to the one Actor that produced it.
