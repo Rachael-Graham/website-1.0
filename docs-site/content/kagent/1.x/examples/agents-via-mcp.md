@@ -27,8 +27,11 @@ The MCP server is part of the controller's HTTP port rather than a separate depl
 
 ## Before you begin
 
-1. [Install kagent]({{< link path="setup/installation" >}}).
+1. [Install kagent]({{< link path="setup/installation" >}}). Make sure that your installation sets `controller.grpc.reflection=true`.
+
 2. [Create your first agent]({{< link path="get-started/your-first-agent" >}}), so that you have at least one AgentInstance in the `READY` state. The MCP server lists ready instances only.
+
+3. Install [grpcurl](https://github.com/fullstorydev/grpcurl). Deleting a checkpoint has neither an MCP tool nor a kagent command, so cleaning one up calls `CheckpointService` directly.
 
 ## Connect a client
 
@@ -94,7 +97,7 @@ Claude Code and Cursor read the tool schemas and build each call, so you work in
 
 2. Ask the agent a question by naming the instance you want to use. The client calls `invoke_agent_instance` and fills in the arguments from the tool schema.
    ```console
-   > Ask kagent agent instance 01a068e3-aeb6-7abc-8d6f-5ba9becd3143 in the
+   > Ask kagent agent instance <agent-instance-id> in the
      kagent namespace: what is 2+2? Answer with just the number.
    ```
 
@@ -114,14 +117,32 @@ This is the same pause that any other client sees, reached through MCP instead o
 
 ### Checkpoint and fork
 
-Ask the client to checkpoint an instance before letting an agent try something risky, then to fork that checkpoint later to start a second agent from the pinned state. The client calls the three {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} tools, which give it the same operations that the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}) performs from the command line.
+You can checkpoint an instance before letting an agent try something risky, then fork that checkpoint to start a second agent from the pinned state. The client calls the three {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} tools, which give it the same operations that the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}) performs from the command line.
 
-```console
-> Checkpoint kagent agent instance 01a068e3-aeb6-7abc-8d6f-5ba9becd3143,
-  then fork that checkpoint and ask the fork what 10+5 is.
-```
+1. Ask the client to checkpoint the instance.
+   ```console
+   > Checkpoint kagent agent instance <agent-instance-id>.
+   ```
 
-A fork begins its own conversation rather than continuing the original's, so plan for the two AgentInstances to share a starting state and nothing else. It also runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint was taken on, so editing the AgentTemplate afterwards does not change what the fork runs.
+   The client reports the checkpoint's own ID, the turn that it pinned, and a state of `CHECKPOINT_STATE_READY`. Because the client holds that result in context, you can refer to the checkpoint without repeating its ID.
+
+2. Ask the client to fork that checkpoint.
+   ```console
+   > Fork that checkpoint.
+   ```
+
+   The client reports a second AgentInstance with its own ID, already `READY`, on the same Harness and AgentTemplate as the original.
+
+3. Ask the fork a question.
+   ```console
+   > Ask that fork what 10+5 is.
+   ```
+
+   The fork answers `15`. Ask it about an earlier turn of the original conversation and it has nothing to report, because a fork begins its own conversation rather than continuing the original's.
+
+Plan for the two AgentInstances to share a starting state and nothing else. A fork also runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint was taken on, so editing the AgentTemplate afterwards does not change what the fork runs.
+
+You can now safely [clean up these resources](#clean-up).
 
 ## Use agents from curl
 
@@ -153,7 +174,12 @@ With `curl` you build each request yourself, so every field is visible: the tool
    kagent/01a068e3-aeb6-7abc-8d6f-5ba9becd3143 (my-first-agent via my-first-harness)
    ```
 
-2. Send a message and wait for the reply. A blocking call needs no `_meta`, because the tool's default behavior asks nothing of the client.
+2. Save the ID of the instance that you want to use.
+   ```bash
+   export INSTANCE_ID=<agent-instance-id>
+   ```
+
+3. Send a message and wait for the reply. A blocking call needs no `_meta`, because the tool's default behavior asks nothing of the client.
    ```bash
    curl -s -X POST http://localhost:8083/mcp \
      -H 'Content-Type: application/json' \
@@ -166,7 +192,7 @@ With `curl` you build each request yourself, so every field is visible: the tool
          "name": "invoke_agent_instance",
          "arguments": {
            "namespace": "kagent",
-           "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+           "agent_instance_id": "'"$INSTANCE_ID"'",
            "message": "What is 2+2? Answer with just the number."
          }
        }
@@ -185,7 +211,26 @@ With `curl` you build each request yourself, so every field is visible: the tool
    }
    ```
 
-3. Send the same request again with `Multiply that by 10.` as the `message`. The word "that" resolves only when the earlier turns are in context. Note that `context_id` is unchanged while `task_id` is new, so the second turn joined the first conversation instead of starting its own. Example output:
+4. Send the same request again with `Multiply that by 10.` as the `message`. The word "that" resolves only when the earlier turns are in context. Note that `context_id` is unchanged while `task_id` is new, so the second turn joined the first conversation instead of starting its own. 
+   ```bash
+   curl -s -X POST http://localhost:8083/mcp \
+     -H 'Content-Type: application/json' \
+     -H 'Accept: application/json, text/event-stream' \
+     -d '{
+       "jsonrpc": "2.0",
+       "id": 2,
+       "method": "tools/call",
+       "params": {
+         "name": "invoke_agent_instance",
+         "arguments": {
+           "namespace": "kagent",
+           "agent_instance_id": "'"$INSTANCE_ID"'",
+           "message": "Multiply that by 10."
+         }
+       }
+     }'
+   ```
+   Example output:
    ```json
    {
      "namespace": "kagent",
@@ -214,7 +259,7 @@ Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's 
          "name": "invoke_agent_instance",
          "arguments": {
            "namespace": "kagent",
-           "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+           "agent_instance_id": "'"$INSTANCE_ID"'",
            "message": "Count to three."
          },
          "_meta": {
@@ -239,7 +284,12 @@ Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's 
    }
    ```
 
-2. Poll the task with `tasks/get`, waiting the interval that `pollIntervalMs` suggests between calls. Carry the same `_meta` declaration on every poll: a request that omits it is rejected with `-32021 tasks capability required but not declared by client` rather than falling back to a blocking read.
+2. Save the task ID. The value ends in base64, so quote it.
+   ```bash
+   export TASK_ID='<task-id>'
+   ```
+
+3. Poll the task with `tasks/get`. Carry the same `_meta` declaration on every poll: a request that omits it is rejected with `-32021 tasks capability required but not declared by client` rather than falling back to a blocking read.
    ```bash
    curl -s -X POST http://localhost:8083/mcp \
      -H 'Content-Type: application/json' \
@@ -249,7 +299,7 @@ Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's 
        "id": 4,
        "method": "tasks/get",
        "params": {
-         "taskId": "<your-task-id>",
+         "taskId": "'"$TASK_ID"'",
          "_meta": {
            "io.modelcontextprotocol/clientCapabilities": {
              "extensions": { "io.modelcontextprotocol/tasks": {} }
@@ -259,9 +309,9 @@ Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's 
      }'
    ```
 
-   Read `status` to decide whether to keep polling: it reports `working`, `input_required`, `completed`, or `cancelled`. A status of `input_required` means the agent is waiting on a person, which [Answer an agent's question](#answer-an-agents-question-1) covers.
+4. If the `status` reports `working` or `cancelled`, send the request from the previous step again, waiting the interval that `pollIntervalMs` suggests between calls. A status of `input_required` means the agent is waiting on a person, which is explored in [Answer an agent's question](#answer-an-agents-question-1).
 
-3. Take the answer once `status` reads `completed`. The `result` field holds the same content that a blocking call would have returned, as both `content` and `structuredContent`. Example output:
+5. When the `status` reads `completed`, stop polling. The `result` field holds the same content that a blocking call would have returned as both `content` and `structuredContent`. Example output:
    ```json
    {
      "status": "completed",
@@ -318,7 +368,12 @@ When an agent pauses to ask something, the task's status becomes `input_required
    - **A question** becomes one string field per question, named `response` when the agent asks one question and `response_1`, `response_2`, and so on when it asks more than one. A question with a fixed set of choices restricts the field to those values with `enum`, and one that accepts more than one answer takes an array.
    - **A tool approval** becomes one boolean field per tool, named `approve_1`, `approve_2`, and so on. A response must decide every tool in the request.
 
-2. Send the answer with `tasks/update`, keying `inputResponses` by the same request ID. An elicitation result of `accept` sends the answers on, while `decline` and `cancel` tell the agent that the person refused. An agent can adapt to a refusal rather than treating it as an error.
+2. Save the request ID that keys the entry.
+   ```bash
+   export INPUT_REQUEST_ID=<input-request-id>
+   ```
+
+3. Send the answer with `tasks/update`, keying `inputResponses` by the same request ID. An elicitation result of `accept` sends the answers on, while `decline` and `cancel` tell the agent that the person refused. An agent can adapt to a refusal rather than treating it as an error.
    ```bash
    curl -s -X POST http://localhost:8083/mcp \
      -H 'Content-Type: application/json' \
@@ -328,9 +383,9 @@ When an agent pauses to ask something, the task's status becomes `input_required
        "id": 5,
        "method": "tasks/update",
        "params": {
-         "taskId": "<your-task-id>",
+         "taskId": "'"$TASK_ID"'",
          "inputResponses": {
-           "01a06d12-4832-7e1f-873d-c25bc6b6b70b": {
+           "'"$INPUT_REQUEST_ID"'": {
              "action": "accept",
              "content": { "response": "PostgreSQL" }
            }
@@ -349,7 +404,7 @@ When an agent pauses to ask something, the task's status becomes `input_required
    { "resultType": "complete" }
    ```
 
-3. Poll the task again to collect the resumed turn. The agent picks up where it paused, so the status returns to `working` and then `completed` with the answer your response produced. Example output:
+4. Poll the task again to collect the resumed turn. The agent picks up where it paused, so the status returns to `working` and then `completed` with the answer your response produced. Example output:
    ```json
    {
      "status": "completed",
@@ -383,7 +438,7 @@ The three checkpoint tools pin an instance's state and start a second agent from
          "name": "create_agent_instance_checkpoint",
          "arguments": {
            "namespace": "kagent",
-           "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+           "agent_instance_id": "'"$INSTANCE_ID"'",
            "request_id": "my-first-checkpoint"
          }
        }
@@ -405,7 +460,12 @@ The three checkpoint tools pin an instance's state and start a second agent from
    }
    ```
 
-2. List the instance's checkpoints to confirm what you can fork from.
+2. Save the checkpoint ID.
+   ```bash
+   export CHECKPOINT_ID=<checkpoint-id>
+   ```
+
+3. List the instance's checkpoints to confirm what you can fork from.
    ```bash
    curl -s -X POST http://localhost:8083/mcp \
      -H 'Content-Type: application/json' \
@@ -418,7 +478,7 @@ The three checkpoint tools pin an instance's state and start a second agent from
          "name": "list_agent_instance_checkpoints",
          "arguments": {
            "namespace": "kagent",
-           "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143"
+           "agent_instance_id": "'"$INSTANCE_ID"'"
          }
        }
      }'
@@ -450,7 +510,7 @@ The three checkpoint tools pin an instance's state and start a second agent from
    }
    ```
 
-3. Fork the checkpoint into a second AgentInstance. This call takes `checkpoint_id` rather than an instance ID, because the checkpoint already identifies the instance it was taken on.
+4. Fork the checkpoint into a second AgentInstance. This call takes `checkpoint_id` rather than an instance ID, because the checkpoint already identifies the instance it was taken on.
    ```bash
    curl -s -X POST http://localhost:8083/mcp \
      -H 'Content-Type: application/json' \
@@ -463,7 +523,7 @@ The three checkpoint tools pin an instance's state and start a second agent from
          "name": "fork_agent_instance",
          "arguments": {
            "namespace": "kagent",
-           "checkpoint_id": "01a06d19-540a-7040-befb-ec4499c96ff2",
+           "checkpoint_id": "'"$CHECKPOINT_ID"'",
            "request_id": "my-first-fork"
          }
        }
@@ -483,7 +543,7 @@ The three checkpoint tools pin an instance's state and start a second agent from
    }
    ```
 
-4. Invoke the fork with `invoke_agent_instance` and its new ID. Note that `context_id` matches the fork's own ID rather than the original's, so the fork holds a separate conversation from the moment it is created. Example output:
+5. Invoke the fork with `invoke_agent_instance` and its new ID. Note that `context_id` matches the fork's own ID rather than the original's, so the fork holds a separate conversation from the moment it is created. Example output:
    ```json
    {
      "namespace": "kagent",
@@ -497,22 +557,24 @@ The three checkpoint tools pin an instance's state and start a second agent from
 
 A fork runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint was taken on, so editing the AgentTemplate afterwards does not change what the fork runs. For what a checkpoint captures, why a checkpoint taken on a suspended instance is the forkable kind, and what a fork does and does not inherit, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}) and the [Agent Substrate example]({{< link path="examples/agent-substrate" >}}).
 
+You can now safely [clean up these resources](#clean-up).
+
 ## Clean up
 
 1. Delete the fork that you created. No MCP tool deletes an AgentInstance, so use the kagent command line interface.
    ```bash
-   kagent delete agent-instance <your-fork-agent-instance-id>
+   kagent delete agent-instance <fork-agent-instance-id>
    ```
 
-2. Forward the controller's gRPC port, and leave the command running. Deleting a checkpoint has neither an MCP tool nor a kagent command, so it goes through `CheckpointService` on a different port from the one that serves MCP.
+2. Forward the controller's gRPC port, and leave the command running. `CheckpointService` listens there rather than on the HTTP port that serves MCP.
    ```bash
    kubectl port-forward -n kagent svc/kagent-controller 8084:8084
    ```
 
-3. Delete the checkpoint that you created, with [grpcurl](https://github.com/fullstorydev/grpcurl). The call reads the service definition from the server, so it needs your installation to set `controller.grpc.reflection`.
+3. Delete the checkpoint that you created.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","checkpointId":"<your-checkpoint-id>"}' \
+     -d '{"namespace":"kagent","checkpointId":"<checkpoint-id>"}' \
      localhost:8084 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
    ```
 
@@ -522,7 +584,7 @@ A fork runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint wa
 
 ## MCP tool reference
 
-The server exposes five tools. Two cover discovery and conversation, and three expose the {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} operations, so a client can pin and branch an agent's state as well as talk to it. Every tool takes a `namespace`, because an AgentInstance is scoped to one. Nothing here deletes an object, so removing an AgentInstance or a checkpoint means leaving MCP for the command line.
+The server exposes five tools. Two cover discovery and conversation, and three expose the {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} operations, so a client can pin and branch an agent's state as well as talk to it. Every tool takes a `namespace` because an AgentInstance is scoped to one. No tool deletes an object, so removing an AgentInstance or a checkpoint means leaving MCP for the command line.
 
 | Tool | Required arguments | What it does |
 | ---- | ------------------ | ------------ |
@@ -535,7 +597,7 @@ The server exposes five tools. Two cover discovery and conversation, and three e
 ## Next steps
 
 {{< cards >}}
-  {{< card link=`{{< link path="examples/agent-substrate" >}}` title="Agent Substrate" subtitle="Follow suspend, checkpoint, and fork from the command line instead." >}}
-  {{< card link=`{{< link path="agents/human-in-the-loop" >}}` title="Human in the loop" subtitle="Understand the pauses an agent can raise and how a client answers them." >}}
+  {{< card link=`{{< link path="examples/agent-substrate" >}}` title="Agent Substrate" subtitle="Watch the Actor beneath an agent suspend between turns and resume on demand." >}}
+  {{< card link=`{{< link path="agents/human-in-the-loop" >}}` title="Human in the loop" subtitle="Understand the pauses that an agent can raise and how a client answers them." >}}
   {{< card link=`{{< link path="get-started/your-first-mcp-tool" >}}` title="Your first MCP tool" subtitle="Point kagent at an MCP server so that your agent gains tools of its own." >}}
 {{< /cards >}}
