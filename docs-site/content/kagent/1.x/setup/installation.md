@@ -32,7 +32,7 @@ kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-subs
 
    {{< tabs >}}
    {{% tab name="Local kind cluster" %}}
-   For local testing and development, create a [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster at Kubernetes 1.37 or later. Use kind **v0.33.0 or later**, which is the first release that ships a Kubernetes 1.37 node image. Enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
+   For local testing and development, create a [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster at Kubernetes 1.37 or later. Use kind v0.32.0 or later. Enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
    ```bash
    kind create cluster --image kindest/node:v1.37.0 --config=- <<EOF
    kind: Cluster
@@ -68,24 +68,6 @@ kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-subs
       certificates.k8s.io/v1
       certificates.k8s.io/v1beta1
       ```
-   {{% /tab %}}
-
-   {{% tab name="1.36 or earlier cluster" %}}
-   Agent Substrate depends on the `ClusterTrustBundle`, `ClusterTrustBundleProjection`, and `PodCertificateRequest` feature gates, along with the `certificates.k8s.io/v1beta1` API. In 1.36 and earlier, none of these are enabled by default, and must be manually enabled.
-   
-   > [!WARNING]
-   > Changing these settings requires control over your control plane configuration. When planning a kagent installation on a managed Kubernetes service, confirm that the provider lets you set API server flags and kubelet configuration.
-   > If you cannot change the component configuration, use the **Local kind cluster** tab instead.
-
-   * **kube-apiserver**: Add `--feature-gates=ClusterTrustBundle=true` and `--runtime-config=certificates.k8s.io/v1beta1=true`.
-   * **kube-controller-manager**: Add `--feature-gates=ClusterTrustBundle=true`.
-   * **kubelet, on every node**: Add all three gates to the kubelet configuration file.
-     ```yaml
-     featureGates:
-       ClusterTrustBundle: true
-       ClusterTrustBundleProjection: true
-       PodCertificateRequest: true
-     ```
    {{% /tab %}}
    {{< /tabs >}}
 
@@ -178,7 +160,7 @@ Deploy the Agent Substrate control plane and data plane into the `ate-system` na
    atenet-egress-66f5699886-6rgg9    2/2     Running     0          9m
    atenet-router-645bd98bdd-dlrv2    2/2     Running     0          9m
    dns-6bf4fff5bb-zqsnm              2/2     Running     0          9m
-   postgres-0                        1/1     Running     0          9m
+   postgres-0                        2/2     Running     0          9m
    rustfs-56cdbc9dcb-2ntck           1/1     Running     0          9m
    rustfs-bucket-init-4pxgt          0/1     Completed   0          9m
    ```
