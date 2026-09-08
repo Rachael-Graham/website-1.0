@@ -350,7 +350,7 @@ A skill that kagent cannot fetch stops the agent from starting at all, rather th
      | grep -i "materialize"
    ```
 
-   Example output, abbreviated:
+   Example output:
    ```console
    {"error":"materialize agent plugins: materialize skill \"release-notes\": pull ghcr.io/example-org/release-notes@sha256:3091b91...: Get \"https://ghcr.io/v2/\": EOF","labels":{"ate.atespace":"ate-golden","ate.template.name":"release-writer-my-first-harness-23c20dcb296d"},"level":"ERROR","msg":"failed to materialize Agent Plugins"}
    ```

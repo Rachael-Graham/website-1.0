@@ -33,7 +33,7 @@ The following methods are used in this example. The service defines more, includ
 | Method | What it does |
 | ------ | ------------ |
 | `GetExtendedAgentCard` | Returns the agent card describing the instance. |
-| `SendMessage` | Sends a message and returns the finished task. |
+| `SendMessage` | Sends a message and returns the task after the agent either finishes the turn or pauses for a person. |
 | `SendStreamingMessage` | Sends a message and streams events as the agent works. |
 | `GetTask` | Reads a task that a previous call created. |
 | `CancelTask` | Stops a task that is still running. |
@@ -93,7 +93,7 @@ An A2A client typically starts by reading the agent card, which tells it what th
 
 ## Send a message
 
-`SendMessage` blocks until the agent finishes, then returns the whole task. A message needs its own ID, a role, and at least one part.
+`SendMessage` blocks until the agent finishes the turn, or pauses to ask a person, and then returns the whole task. A message needs its own ID, a role, and at least one part.
 
 1. Send a message to the AgentInstance.
    ```bash
@@ -194,9 +194,75 @@ A task that is still running reports `TASK_STATE_WORKING` and has no artifacts y
 
 ## When an agent needs a person
 
-An agent can stop mid-task to ask a question or to request approval for a tool call. The task then reports `TASK_STATE_INPUT_REQUIRED` and waits, and the caller answers by sending a message that carries the same task ID.
+An agent can stop mid-task to ask a question or to request approval for a tool call. The task then reports `TASK_STATE_INPUT_REQUIRED` and waits until a caller answers it. Every kagent agent can raise the question kind, because the runtime gives each one a built-in `ask_user` tool, so a system prompt that tells an agent to ask before it answers is enough to see a pause.
 
-A client only sees these pauses if it requests the human-in-the-loop extension that the agent card advertises. A client that never requests it is never interrupted. For the pause types, the approval model, and what the agent receives back, see [Human in the loop]({{< link path="agents/human-in-the-loop" >}}).
+Answering a pause needs the human-in-the-loop extension, which a caller requests per call. The extension is a versioned URI, and a request names it in two places: the `A2A-Extensions` header, and the message's own `extensions` list.
+
+1. Send a message that requests the extension.
+   ```bash
+   grpcurl -plaintext \
+     -H "x-kagent-agent-instance-namespace: kagent" \
+     -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
+     -H "A2A-Extensions: https://kagent.dev/extensions/hitl/v1" \
+     -d '{"message":{"messageId":"'"$(uuidgen)"'","role":"ROLE_USER","extensions":["https://kagent.dev/extensions/hitl/v1"],"parts":[{"text":"Should I increase the replica count?"}]}}' \
+     localhost:8084 lf.a2a.v1.A2AService/SendMessage
+   ```
+
+2. Read the pause. The task stops at `TASK_STATE_INPUT_REQUIRED`, and the status message's `metadata` holds the request, keyed by the extension URI. Example output:
+   ```json
+   {
+     "task": {
+       "id": "01a0828d-6bc4-700a-b27e-9115b3174827",
+       "status": {
+         "state": "TASK_STATE_INPUT_REQUIRED",
+         "message": {
+           "parts": [{ "text": "Which environment do you mean for increasing the replica count?" }],
+           "metadata": {
+             "https://kagent.dev/extensions/hitl/v1": {
+               "type": "ask_user_request",
+               "id": "adk-823f48ab-4a0b-4652-a23f-e9db9724d35f",
+               "questions": [
+                 {
+                   "question": "Which environment do you mean for increasing the replica count?",
+                   "choices": ["development", "staging", "production"],
+                   "multiple": false
+                 }
+               ]
+             }
+           },
+           "extensions": ["https://kagent.dev/extensions/hitl/v1"]
+         }
+       }
+     }
+   }
+   ```
+
+3. Save both identifiers to environment variables. The request `id` is within the extension metadata and starts with `adk-`.
+   ```bash
+   export PAUSED_TASK_ID=<your-task-id>
+   export REQUEST_ID=<your-request-id>
+   ```
+
+4. Answer on the same task. The response goes in the same metadata key, names the request `id` it answers, and sets `taskId` so that it answers the paused task rather than starting a new turn.
+   ```bash
+   grpcurl -plaintext \
+     -H "x-kagent-agent-instance-namespace: kagent" \
+     -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
+     -H "A2A-Extensions: https://kagent.dev/extensions/hitl/v1" \
+     -d '{"message":{"messageId":"'"$(uuidgen)"'","taskId":"'"$PAUSED_TASK_ID"'","contextId":"'"$INSTANCE_ID"'","role":"ROLE_USER","extensions":["https://kagent.dev/extensions/hitl/v1"],"parts":[{"text":"staging"}],"metadata":{"https://kagent.dev/extensions/hitl/v1":{"type":"ask_user_response","id":"'"$REQUEST_ID"'","answers":[{"answer":["staging"]}]}}}}' \
+     localhost:8084 lf.a2a.v1.A2AService/SendMessage
+   ```
+
+   The agent resumes where it paused and finishes the turn. Example output:
+   ```console
+   "state": "TASK_STATE_COMPLETED"
+   "text": "For the staging environment, I recommend increasing the replica count to ensure better load distribution and fault tolerance during testing."
+   ```
+
+> [!IMPORTANT]
+> A caller that does not request the extension is still interrupted. The task stops at `TASK_STATE_INPUT_REQUIRED` exactly as before, and the question arrives as ordinary text on the status message, but the metadata carries no request `id`. Without that `id` there is nothing to answer, so the task waits until something cancels it. Request the extension on any call to an agent that can pause.
+
+A tool approval works the same way with a different payload, `tool_approval_request` answered by `tool_approval_response`. For the pause kinds, the approval model, and what a nested agent's pause looks like, see [Human in the loop]({{< link path="agents/human-in-the-loop" >}}).
 
 ## Clean up
 

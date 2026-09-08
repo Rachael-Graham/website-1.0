@@ -244,7 +244,7 @@ With `curl` you build each request yourself, so every field is visible: the tool
 
 ### Invoke without waiting
 
-Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's result. Rather than blocking, `invoke_agent_instance` returns immediately with a task to poll, which keeps a long agent run from holding a request open. Because the handler is stateless, the declaration travels in the `_meta` of every request rather than being established once, and that includes each poll.
+Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's result. Rather than blocking, `invoke_agent_instance` returns immediately with a task to poll, which keeps a long agent run from holding a request open. Because the handler is stateless, every request repeats the declaration in its `_meta` rather than establishing it once, and that includes each poll.
 
 1. Invoke the agent with the extension declared in `params._meta`. Leave the declaration out and the tool blocks instead, as in [List and invoke an agent](#list-and-invoke-an-agent-1).
    ```bash
