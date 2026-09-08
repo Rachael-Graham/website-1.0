@@ -5,7 +5,7 @@ weight: 20
 author: kagent.dev
 ---
 
-The `Foundry` provider calls a model deployment in an Azure AI Foundry resource. The chat model has to be reachable through Foundry's OpenAI-compatible chat completions API.
+The `Foundry` provider calls a model deployment in an Azure AI Foundry resource. The chat model must be reachable through Foundry's OpenAI-compatible chat completions API.
 
 ## Create the ModelConfig
 

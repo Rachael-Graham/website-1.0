@@ -50,7 +50,7 @@ The difference is how each runtime receives the Google credentials. Vertex AI au
    | `apiKeySecretKey` | The key within that Secret that holds the JSON document. |
    | `model` | The Vertex AI model ID, such as `claude-sonnet-4@20250514`. |
    | `provider` | The provider to use, `AnthropicVertexAI`. |
-   | `anthropicVertexAI.projectID` | Your Google Cloud project ID. This field is required, and has to match the `project_id` inside the service account key. |
+   | `anthropicVertexAI.projectID` | Your Google Cloud project ID. This field is required, and must match the `project_id` inside the service account key. |
    | `anthropicVertexAI.location` | The Vertex AI region, such as `us-east5`. This field is required. |
 
    The `claude` runtime accepts no other settings in the `anthropicVertexAI` block yet, and rejects a ModelConfig that sets `defaultHeaders`, `tls`, or `apiKeyPassthrough`. For every field, including its type, default, and validation rules, see the [API reference]({{< link path="reference/api-ref#anthropicvertexaiconfig" >}}).
@@ -67,10 +67,10 @@ The difference is how each runtime receives the Google credentials. Vertex AI au
 
 kagent validates the service account key at compile time rather than failing at run time, so a malformed credential surfaces on the AgentTemplate's `Compatible` condition.
 
-- The Secret key has to hold valid JSON.
-- The document has to be a `service_account` key. Other credential types are not accepted yet.
-- Its `project_id` has to match `anthropicVertexAI.projectID`.
-- Its `token_uri` has to be `https://oauth2.googleapis.com`.
+- The Secret key must hold valid JSON.
+- The document must be a `service_account` key. Other credential types are not accepted yet.
+- Its `project_id` must match `anthropicVertexAI.projectID`.
+- Its `token_uri` must be `https://oauth2.googleapis.com`.
 
 ## Gemini models on Vertex AI
 

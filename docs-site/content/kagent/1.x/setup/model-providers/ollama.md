@@ -93,7 +93,7 @@ EOF
 
 | Field | Description |
 | ----- | ----------- |
-| `model` | The name of the model as Ollama knows it, such as `llama3`. This has to be a model that you already pulled onto the server. |
+| `model` | The name of the model as Ollama knows it, such as `llama3`. This must be a model that you already pulled onto the server. |
 | `provider` | The provider to use, `Ollama`. |
 | `ollama.host` | The address of the Ollama server. Use the in-cluster Service address when Ollama runs in the same cluster. |
 
@@ -117,7 +117,7 @@ spec:
 ```
 
 > [!NOTE]
-> An agent runs inside a sandboxed Actor with controlled egress, so the Ollama server has to be reachable from the cluster network. An Ollama server on your laptop is not reachable from an agent, even when `kubectl port-forward` makes it reachable from your terminal.
+> An agent runs inside a sandboxed Actor with controlled egress, so the Ollama server must be reachable from the cluster network. An Ollama server on your laptop is not reachable from an agent, even when `kubectl port-forward` makes it reachable from your terminal.
 
 ## Next steps
 

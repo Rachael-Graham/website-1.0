@@ -39,7 +39,7 @@ author: kagent.dev
    EOF
    ```
 
-3. Create an `AgentgatewayModel` resource for each model that kagent should reach. The resource name becomes the model name that kagent sends in its requests, so it has to match the `model` field of the ModelConfig that you create later. The following example routes requests for `gpt-4o-mini` to OpenAI. For more provider and authentication options, see the [agentgateway model documentation](https://docs.solo.io/agentgateway/latest/llm/models/).
+3. Create an `AgentgatewayModel` resource for each model that kagent should reach. The resource name becomes the model name that kagent sends in its requests, so it must match the `model` field of the ModelConfig that you create later. The following example routes requests for `gpt-4o-mini` to OpenAI. For more provider and authentication options, see the [agentgateway model documentation](https://docs.solo.io/agentgateway/latest/llm/models/).
    ```yaml
    kubectl apply -f - <<EOF
    apiVersion: agentgateway.dev/v1alpha1
@@ -87,7 +87,7 @@ EOF
 
 | Field | Description |
 | ----- | ----------- |
-| `model` | The model name to request from agentgateway. This has to match the name of an `AgentgatewayModel` resource in your agentgateway deployment. |
+| `model` | The model name to request from agentgateway. This must match the name of an `AgentgatewayModel` resource in your agentgateway deployment. |
 | `provider` | The provider to use, `OpenAI`, because agentgateway serves an OpenAI-compatible API. |
 | `openAI.baseUrl` | The Kubernetes Service address of your agentgateway Gateway. |
 {{% /tab %}}
@@ -123,7 +123,7 @@ When your agentgateway deployment applies an `apiKeyAuthentication` policy with 
    | ----- | ----------- |
    | `apiKeySecret` | The name of the Kubernetes Secret that stores the agentgateway API key. |
    | `apiKeySecretKey` | The key within that Secret that holds the API key. |
-   | `model` | The model name to request from agentgateway. This has to match the name of an `AgentgatewayModel` resource in your agentgateway deployment. |
+   | `model` | The model name to request from agentgateway. This must match the name of an `AgentgatewayModel` resource in your agentgateway deployment. |
    | `provider` | The provider to use, `OpenAI`, because agentgateway serves an OpenAI-compatible API. |
    | `openAI.baseUrl` | The Kubernetes Service address of your agentgateway Gateway. |
 {{% /tab %}}

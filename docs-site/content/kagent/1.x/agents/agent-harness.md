@@ -47,11 +47,11 @@ EOF
 | Field | Required | Description |
 | ----- | -------- | ----------- |
 | One of `kagent`, `codex`, `claude`, `byo` | Yes | The runtime that executes the agent. Naming none, or more than one, is rejected. For the available runtimes, see [Choose a runtime](#choose-a-runtime). |
-| `workload.image` | Yes | The runtime image, pinned by `sha256` digest. A tag alone is rejected, because a revision has to be reproducible. |
+| `workload.image` | Yes | The runtime image, pinned by `sha256` digest. A tag alone is rejected, because a revision must be reproducible. |
 | `workload.command` | For `byo` | Overrides the image entrypoint, up to 32 entries. Required for the `byo` runtime, optional otherwise. |
 | `workload.args` | No | Overrides the image arguments, up to 64 entries. |
 | `env` | No | Environment variables for the runtime, up to 100. Each entry sets either a literal `value` or a `credentialRef` naming a key in a same-namespace Secret, never both. |
-| `substrate.workerPoolRef.name` | Yes | The {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} that this Harness's Actors are scheduled onto. An operator has to provision one before any agent can run. |
+| `substrate.workerPoolRef.name` | Yes | The {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} that this Harness's Actors are scheduled onto. An operator must provision one before any agent can run. |
 | `substrate.snapshotPolicy.location` | Yes | The object storage location for Actor {{< gloss "Snapshot" >}}snapshots{{< /gloss >}}. |
 | `allowedAgentTemplates.selector` | No | A label selector naming which AgentTemplates this Harness admits. Omitting it admits none, which makes the Harness unusable. Admission is a one-way match. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} has no field naming a Harness, so whoever controls a Harness's selector decides what it accepts. |
 
@@ -113,7 +113,7 @@ Some supported combinations still carry restrictions.
 | `codex` with `Bedrock` | Accepts only OpenAI `gpt-*` model IDs, and no `bedrock` settings beyond `region`. |
 | `claude` with `Anthropic` | Accepts no `anthropic` settings beyond `baseUrl`. |
 | `claude` with `Bedrock` | Accepts no `bedrock` settings beyond `region`. |
-| `claude` with `AnthropicVertexAI` | Accepts only `projectID` and `location`. The Secret has to hold a `service_account` key whose `project_id` matches and whose `token_uri` is `https://oauth2.googleapis.com`. |
+| `claude` with `AnthropicVertexAI` | Accepts only `projectID` and `location`. The Secret must hold a `service_account` key whose `project_id` matches and whose `token_uri` is `https://oauth2.googleapis.com`. |
 
 > [!IMPORTANT]
 > Neither `codex` nor `claude` accepts a ModelConfig that sets `defaultHeaders`, `tls`, or `apiKeyPassthrough`. Separately, the `kagent` and `byo` runtimes cannot use a ModelConfig whose credential is a file rather than a string. This restriction rules out both Vertex AI providers there. For more information about that limitation, see [About model providers]({{< link path="setup/model-providers/about-model-providers" >}}).
@@ -124,9 +124,9 @@ The coding-agent runtimes also constrain what an AgentTemplate can ask for.
 
 | Constraint | Applies to |
 | ---------- | ---------- |
-| A `Shared` agent-tool binding cannot itself carry tools, skills, plugins, or nested agents, and has to use the same provider and credentials as the agent that binds it. | `codex`, `claude` |
+| A `Shared` agent-tool binding cannot itself carry tools, skills, plugins, or nested agents, and must use the same provider and credentials as the agent that binds it. | `codex`, `claude` |
 | An {{< gloss "MCP" >}}MCP{{< /gloss >}} server is bound whole. Claude does not support partial tool selection, so the agent sees every tool the server offers rather than only the ones a binding names. The compiler warns rather than failing. | `claude` |
-| A `RemoteMCPServer` has to use the `STREAMABLE_HTTP` protocol. `SSE` is rejected. | `codex` |
+| A `RemoteMCPServer` must use the `STREAMABLE_HTTP` protocol. `SSE` is rejected. | `codex` |
 
 The `kagent` and `byo` runtimes take the full set. For more information about what an AgentTemplate can bind, see [About tools]({{< link path="skills-and-mcp/about-tools" >}}).
 

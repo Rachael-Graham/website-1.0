@@ -15,7 +15,7 @@ kagent reaches SAP AI Core through its [Orchestration Service](https://help.sap.
    export SAP_AI_CORE_CLIENT_SECRET=<your_client_secret>
    ```
 
-2. Create a Kubernetes Secret that stores both credentials. The Secret has to contain the keys `client_id` and `client_secret` under exactly those names.
+2. Create a Kubernetes Secret that stores both credentials. The Secret must contain the keys `client_id` and `client_secret` under exactly those names.
    ```bash
    kubectl create secret generic kagent-sapaicore -n kagent \
      --from-literal client_id=$SAP_AI_CORE_CLIENT_ID \

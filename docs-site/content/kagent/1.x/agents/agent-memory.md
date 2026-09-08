@@ -19,7 +19,7 @@ Enabling memory adds three tools to every agent on the Harness, and appends a sh
 | `load_memory` | Searches stored memories by query when the agent needs context it does not have. |
 | `prefetch_memory` | Retrieves memories relevant to the current message before the agent answers. |
 
-Retrieval works by similarity rather than by keyword. kagent encodes the query as a vector, compares it against stored memories by cosine similarity, and puts the closest matches into the agent's context. A search returns at most five memories, and only those that score above 0.3. The agent also saves memories from a finished session on its own, so a user does not have to ask it to remember anything.
+Retrieval works by similarity rather than by keyword. kagent encodes the query as a vector, compares it against stored memories by cosine similarity, and puts the closest matches into the agent's context. A search returns at most five memories, and only those that score above 0.3. The agent also saves memories from a finished session on its own, so a user does not need to ask it to remember anything.
 
 Memories are scoped to the agent and to the user who created them, and carry the time that kagent wrote them. One agent cannot read another agent's memories, even on the same Harness.
 

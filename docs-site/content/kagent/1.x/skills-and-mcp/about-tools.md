@@ -72,4 +72,4 @@ A `Shared` binding nests one agent inside another's runtime, so kagent constrain
 - **No cycles.** An AgentTemplate cannot reach itself through a chain of bindings.
 - **No reuse within one tree.** The same AgentTemplate cannot appear twice in the same tree.
 - **Unique binding names.** Two bindings on one AgentTemplate cannot share a `name`.
-- **The bound template must be admitted too.** A nested AgentTemplate has to match the same {{< gloss "Harness" >}}Harness{{< /gloss >}}'s `allowedAgentTemplates` selector. Binding a template that the Harness does not admit is rejected.
+- **The bound template must be admitted too.** A nested AgentTemplate must match the same {{< gloss "Harness" >}}Harness{{< /gloss >}}'s `allowedAgentTemplates` selector. Binding a template that the Harness does not admit is rejected.
