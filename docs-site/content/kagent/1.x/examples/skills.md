@@ -13,7 +13,7 @@ For the fields that attach a skill and the rules that govern their names, see [S
 
 kagent does not fetch a skill when you apply an AgentTemplate. The compiled revision records where each skill comes from, and the {{< gloss "Actor" >}}Actor{{< /gloss >}} fetches it when the agent starts. Every artifact is unpacked under `/plugins`, whether it holds one skill or a package of them, and each enabled skill is then copied to `/skills/<skill-name>`. The agent reads skills only from `/skills`.
 
-As a consquence, the following potential gotchas can occur. 
+Because kagent fetches a skill this late, review the following considerations.
 
 * **A wrong source still compiles.** kagent validates skill names before it accepts an AgentTemplate, but it never checks that the artifact exists or that it holds a `SKILL.md` file. A bad digest produces a revision that reports `Ready`, and the agent then fails to start.
 * **Scripts run in the runtime image.** A skill's scripts get whatever the Harness image provides. The kagent runtime image is Alpine Linux with `bash`, `git`, and the standard Alpine utilities, and it does **not** include Python.
@@ -35,7 +35,7 @@ On a `kagent` Harness, attaching a skill adds seven tools to the agent, whether 
 Attaching a skill also changes what the agent is told. The runtime appends the name and description of every attached skill to the model request, along with an instruction to call `load_skill` before acting on one, so a skill reaches the model even before any tool is called.
 
 > [!IMPORTANT]
-> The `bash` tool gives the agent shell access inside its own Actor sandbox, and the sandbox is the boundary that contains it. Review a skill before you attach it, and treat the [egress]({{< link path="substrate-runtime/sandboxing" >}}) the Actor is granted as the reach the skill has. Writes are confined to the session directory, so a skill cannot modify `/skills` or another skill's files.
+> The `bash` tool gives the agent shell access inside its own Actor sandbox, and the sandbox is the boundary that contains it. Review a skill before you attach it, and treat the [egress]({{< link path="substrate-runtime/sandboxing" >}}) that the Actor is granted as the reach that the skill has. Writes are confined to the session directory, so a skill cannot modify `/skills` or another skill's files.
 
 ## Before you begin
 
@@ -51,7 +51,7 @@ Attaching a skill also changes what the agent is told. The runtime appends the n
    ```
 
    > [!WARNING]
-   > kagent pulls a skill image over HTTPS with certificate verification, and v1alpha3 has no option to disable it. kagent 0.x accepted an `insecureSkipVerify` flag for a local registry, and that field does not exist in 1.x. A plain HTTP registry, and a `localhost` registry that only the host can reach, both fail at agent startup.
+   > kagent pulls a skill image over HTTPS with certificate verification, and v1alpha3 has no option to disable it. kagent 0.x accepted an `insecureSkipVerify` flag for a local registry, but that field does not exist in 1.x. A plain HTTP registry, and a `localhost` registry that only the host can reach, both fail at agent startup.
 
 ## Build the skill
 
@@ -148,24 +148,20 @@ kagent pulls an `oci` source as a container image and unpacks its flattened file
    EOF
    ```
 
-2. Build and push the image. Build for the architecture your worker nodes run, because kagent pulls the `linux/amd64` or `linux/arm64` manifest that matches the node.
+2. Build and push the image. Build for the architecture that your worker nodes run, because kagent pulls the `linux/amd64` or `linux/arm64` manifest that matches the node.
    ```bash
    docker buildx build --push --platform linux/amd64 -t "$SKILL_REPO:1.0.0" .
    ```
 
-3. Read the image digest. An `oci` source must be pinned to a digest, and a tag alone is rejected.
+3. Read the image digest and save the pinned reference. An `oci` source must be pinned to a digest, and a tag alone is rejected.
    ```bash
-   docker buildx imagetools inspect "$SKILL_REPO:1.0.0" | awk '/^Digest:/{print $2}'
+   export SKILL_OCI="$SKILL_REPO@$(docker buildx imagetools inspect --format '{{.Manifest.Digest}}' "$SKILL_REPO:1.0.0")"
+   echo "$SKILL_OCI"
    ```
 
    Example output:
    ```console
-   sha256:9f2c1e4a7b3d5086c1a2f4e7b9d0c3a5e8f1b4d7a0c3e6f9b2d5a8c1e4f7b0d3
-   ```
-
-4. Save the digest reference.
-   ```bash
-   export SKILL_OCI="$SKILL_REPO@sha256:<your-digest>"
+   ghcr.io/example-org/release-notes@sha256:3091b917d23de93c40e38a574aea1e5615989ca4d7b38f79431c87e04adfa58a
    ```
 
 ## Attach the skill to an AgentTemplate
@@ -208,14 +204,16 @@ kagent pulls an `oci` source as a container image and unpacks its flattened file
    > [!NOTE]
    > A ready revision means that kagent accepted the reference, not that the image exists. kagent fetches the skill when the agent starts, so a wrong digest surfaces in the next step rather than this one.
 
-3. Create an AgentInstance. An AgentInstance pins the revision it was created on, so an instance that already exists does not pick up the skill.
+3. Create an AgentInstance. An AgentInstance pins the revision that it was created on, so an instance that already exists does not pick up the skill.
    ```bash
    kagent create agent-instance --harness my-first-harness --agent-template release-writer
    ```
 
-4. Save the AgentInstance ID.
+4. Save the AgentInstance's ID to an environment variable.
    ```bash
-   export INSTANCE_ID=<your-agent-instance-id>
+   export INSTANCE_ID=$(kagent get agent-instance -o json \
+     | jq -r '[.agentInstances[] | select(.agentTemplate.name == "release-writer")] | sort_by(.createdAt) | last | .id')
+   echo $INSTANCE_ID
    ```
 
 ## Ask the agent to use the skill
@@ -245,31 +243,25 @@ kagent pulls an `oci` source as a container image and unpacks its flattened file
    kagent invoke --agent-instance $INSTANCE_ID --task "What skills do you have?"
    ```
 
-## Troubleshoot a skill that does not load
+## Publish a new version of the skill
 
-A skill that kagent cannot fetch stops the agent from starting at all, rather than producing an agent without that skill. The runtime logs the failure and exits, so the AgentInstance never reaches a state where you can talk to it.
+A source is immutable, so changing a skill is a two-step change: publish new content, then point the AgentTemplate at it.
 
-1. Read the Actor's logs for the agent that will not start.
+1. Edit the skill.
+
+2. Build and push the skill under a new tag and read the new digest.
    ```bash
-   kubectl logs -n kagent -l app.kubernetes.io/name=kagent-default --tail=50 | grep -i "materialize"
+   docker buildx build --push --platform linux/amd64 -t "$SKILL_REPO:1.1.0" .
+   export SKILL_OCI="$SKILL_REPO@$(docker buildx imagetools inspect --format '{{.Manifest.Digest}}' "$SKILL_REPO:1.1.0")"
    ```
 
-2. Match the message to its cause.
+3. Update `skills[].source.oci` on the AgentTemplate with the new digest, which compiles a new revision.
 
-   | Message | Cause |
-   | ------- | ----- |
-   | `pull <image>: ... 401 Unauthorized` | The registry needs credentials that the cluster does not have. |
-   | `pull <image>: ... x509` or a TLS error | The registry does not serve HTTPS with a certificate the runtime trusts. |
-   | `SKILL.md is required` | The artifact was fetched, but no `SKILL.md` file sits at the root that `source.path` selects. |
-   | `symlink "..." escapes artifact root` | A symlink in the artifact points outside it. |
-   | `artifact contains more than 10000 filesystem entries`, or `artifact exceeds 104857600 bytes` | The artifact is over one of the package limits. |
-
-> [!TIP]
-> Build the skill image with `--platform` set to the architecture of your worker nodes. kagent asks the registry for the `linux/amd64` or `linux/arm64` manifest that matches the node it runs on, so an image published for one architecture alone fails on the other.
+4. Create a new AgentInstance. Agents that are already running keep the skill content they started with, because their revision is pinned.
 
 ## Bundle the skill in a plugin package
 
-A standalone source carries one skill. A {{< gloss "Plugin package" >}}plugin package{{< /gloss >}} carries several, and an AgentTemplate attaches the package once and names the skills it wants. Use a package when you ship a set of skills together, or when you want the same artifact to contribute [MCP servers]({{< link path="skills-and-mcp/plugins" >}}) as well.
+A standalone source carries one skill. A {{< gloss "Plugin package" >}}plugin package{{< /gloss >}} carries several skills, and an AgentTemplate attaches the package once and names the skills it wants. Use a package when you ship a set of skills together, or when you want the same artifact to contribute [MCP servers]({{< link path="skills-and-mcp/plugins" >}}) as well.
 
 1. Restructure the directory so that each skill sits under `skills/`, and add the manifest that makes it a package.
    ```bash
@@ -293,47 +285,111 @@ A standalone source carries one skill. A {{< gloss "Plugin package" >}}plugin pa
    export PLUGIN_REPO=ghcr.io/<your-org>/release-tools
    mv skills/release-notes/Dockerfile .
    docker buildx build --push --platform linux/amd64 -t "$PLUGIN_REPO:1.0.0" .
-   docker buildx imagetools inspect "$PLUGIN_REPO:1.0.0" | awk '/^Digest:/{print $2}'
+   export PLUGIN_OCI="$PLUGIN_REPO@$(docker buildx imagetools inspect --format '{{.Manifest.Digest}}' "$PLUGIN_REPO:1.0.0")"
    ```
 
 3. Attach the package with `plugins` instead of `skills`, and list the skills to enable.
-   ```yaml
+   ```bash
+   kubectl apply -f - <<EOF
+   apiVersion: kagent.dev/v1alpha3
+   kind: AgentTemplate
+   metadata:
+     name: release-writer
+     namespace: kagent
+     labels:
+       kagent.dev/harness: my-first-harness
    spec:
+     modelConfig:
+       name: default-model-config
+     description: Writes release notes from commit subjects.
+     systemPrompt: You help maintainers turn commit history into release notes.
      plugins:
        - source:
-           oci: <your-plugin-digest-reference>
+           oci: ${PLUGIN_OCI}
          skills:
            - release-notes
+   EOF
    ```
 
    > [!IMPORTANT]
-   > Attaching a package enables nothing on its own. Only the names in `plugins[].skills` are turned on, so a package that gains a skill in a later version does not grant it to your agent until you add the name. An omitted or empty list is accepted and enables no skills.
+   > A package enables only the skills that you list. If you omit `plugins[].skills`, or leave it empty, the agent gets none of them, and kagent accepts that rather than reporting an error. For why an explicit list is the safer default, see [Skills]({{< link path="skills-and-mcp/skills" >}}).
 
-## Publish a new version of the skill
-
-A source is immutable, so changing a skill is a two-step change: publish new content, then point the AgentTemplate at it.
-
-1. Edit the skill, then build and push it under a new tag and read the new digest.
+4. Create an AgentInstance on the new revision, and confirm that the agent still has the skill. The instance from the previous section is pinned to the revision that carried the standalone skill.
    ```bash
-   docker buildx build --push --platform linux/amd64 -t "$SKILL_REPO:1.1.0" .
-   docker buildx imagetools inspect "$SKILL_REPO:1.1.0" | awk '/^Digest:/{print $2}'
+   kagent create agent-instance --harness my-first-harness --agent-template release-writer
+   export PLUGIN_INSTANCE_ID=$(kagent get agent-instance -o json \
+     | jq -r '[.agentInstances[] | select(.agentTemplate.name == "release-writer")] | sort_by(.createdAt) | last | .id')
+   kagent invoke --agent-instance $PLUGIN_INSTANCE_ID --task "What skills do you have?"
    ```
 
-2. Update `skills[].source.oci` on the AgentTemplate with the new digest, which compiles a new revision.
+   The agent reports `release-notes` exactly as before. A skill behaves the same whether it arrives on its own or inside a package, because kagent copies both into `/skills` before the agent starts.
 
-3. Create a new AgentInstance. Agents that are already running keep the skill content they started with, because their revision is pinned.
+## Troubleshoot a skill that does not load
+
+A skill that kagent cannot fetch stops the agent from starting at all, rather than producing an agent without that skill. The runtime logs the failure and exits, and the AgentTemplate never becomes ready.
+
+1. Check the AgentTemplate's `Ready` condition. A skill that cannot be fetched leaves it waiting, because the Actor that builds the template's golden snapshot is the Actor that fetches the skill.
+   ```bash
+   kubectl get agenttemplate <template-name> -n kagent \
+     -o jsonpath='{range .status.harnesses[0].conditions[?(@.type=="Ready")]}{.status} {.reason} {.message}{end}'
+   ```
+
+   Example output:
+   ```console
+   False ActorTemplatePending waiting for the ActorTemplate golden snapshot
+   ```
+
+   > [!NOTE]
+   > This condition does not name the skill, and reports the same reason for any Actor that has not yet produced a snapshot. An agent that is merely still starting looks identical to one whose skill cannot be fetched.
+
+2. Find the WorkerPool that the Harness runs on, and read its Workers' logs. The Actor writes the failure there rather than to the AgentTemplate.
+   ```bash
+   export WORKER_POOL=$(kubectl get harness my-first-harness -n kagent \
+     -o jsonpath='{.spec.substrate.workerPoolRef.name}')
+   kubectl logs -n kagent -l ate.dev/worker-pool=$WORKER_POOL --tail=200 \
+     | grep -i "materialize"
+   ```
+
+   Example output, abbreviated:
+   ```console
+   {"error":"materialize agent plugins: materialize skill \"release-notes\": pull ghcr.io/example-org/release-notes@sha256:3091b91...: Get \"https://ghcr.io/v2/\": EOF","labels":{"ate.atespace":"ate-golden","ate.template.name":"release-writer-my-first-harness-23c20dcb296d"},"level":"ERROR","msg":"failed to materialize Agent Plugins"}
+   ```
+
+   A pool runs the Workers for every agent on it, so filter by the `ate.template.name` label to find one agent. Its value is the AgentTemplate name, the Harness name, and the revision's short form, joined by hyphens.
+
+3. Match the message to its cause.
+
+   | Message | Cause |
+   | ------- | ----- |
+   | `pull <image>: ... 401 Unauthorized` | The registry needs credentials that the cluster does not have. |
+   | `pull <image>: ... x509` or a TLS error | The registry does not serve HTTPS with a certificate the runtime trusts. |
+   | `SKILL.md is required` | The artifact was fetched, but no `SKILL.md` file sits at the root that `source.path` selects. |
+   | `symlink "..." escapes artifact root` | A symlink in the artifact points outside it. |
+   | `artifact contains more than 10000 filesystem entries`, or `artifact exceeds 104857600 bytes` | The artifact is over one of the package limits. |
+
+> [!TIP]
+> Build the skill image with `--platform` set to the architecture of your worker nodes. kagent asks the registry for the `linux/amd64` or `linux/arm64` manifest that matches the node it runs on, so an image published for one architecture alone fails on the other.
 
 ## Clean up
 
-* Delete the AgentInstances that you created.
-  ```bash
-  kagent delete agent-instance $INSTANCE_ID
-  ```
-* Delete the AgentTemplate.
-  ```bash
-  kubectl delete agenttemplate release-writer -n kagent
-  ```
-* Delete the skill image from your registry, and remove the `release-notes` directory from your machine.
+1. Delete the AgentInstances that you created. Deleting the AgentTemplate does not remove them. Skip the second command if you did not complete the plugin package section.
+   ```bash
+   kagent delete agent-instance $INSTANCE_ID
+   kagent delete agent-instance $PLUGIN_INSTANCE_ID
+   ```
+
+2. Delete the AgentTemplate.
+   ```bash
+   kubectl delete agenttemplate release-writer -n kagent
+   ```
+
+3. Remove the skill directory from your machine. The directory is `release-notes`, or `release-tools` if you completed the plugin package section.
+   ```bash
+   cd ..
+   rm -rf release-notes release-tools
+   ```
+
+4. Delete the images that you pushed, `$SKILL_REPO` and `$PLUGIN_REPO`, using your registry's own tooling.
 
 ## Next steps
 
