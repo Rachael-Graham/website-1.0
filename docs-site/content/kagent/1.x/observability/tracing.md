@@ -179,7 +179,7 @@ Tracing is off by default. Turning it on is a Helm change, because the controlle
 
 5. Leave **Operation** on `all`, or select `invocation` to start from the agent's own work rather than from the A2A call that carries it, and click **Find Traces**.
 
-6. Click a trace to open it. The span tree shows the controller's gRPC and gateway spans, followed by the runtime's `POST /lf.a2a.v1.A2AService/SendMessage` span, and finlly the `invocation`, `invoke_agent`, `generate_content`, and `execute_tool` spans.
+6. Click a trace to open it. The span tree shows the controller's gRPC and gateway spans, followed by the runtime's `POST /lf.a2a.v1.A2AService/SendMessage` span, and finally the `invocation`, `invoke_agent`, `generate_content`, and `execute_tool` spans.
 
 7. To narrow a search to one conversation, put a correlation attribute in the **Tags** field, such as `gen_ai.conversation.id=<context-id>`.
 

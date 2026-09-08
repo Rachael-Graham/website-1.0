@@ -32,7 +32,7 @@ kagent 1.0 runs every agent on [Agent Substrate]({{< link path="about/agent-subs
 
    {{< tabs >}}
    {{% tab name="Local kind cluster" %}}
-   For local testing and development, create a [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster at Kubernetes 1.37 or later. Enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
+   For local testing and development, create a [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster at Kubernetes 1.37 or later. Use kind **v0.33.0 or later**, which is the first release that ships a Kubernetes 1.37 node image. Enable the `certificates.k8s.io/v1beta1` API, which Agent Substrate depends on.
    ```bash
    kind create cluster --image kindest/node:v1.37.0 --config=- <<EOF
    kind: Cluster
@@ -226,6 +226,11 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
    ```
    > [!NOTE]
    > `controller.grpc.reflection` lets a gRPC client discover the controller's methods without a local copy of kagent's proto files. The kagent CLI does not need it, because the CLI ships with generated clients for every kagent API. Leave reflection on to explore the API with a general-purpose client such as [grpcurl](https://github.com/fullstorydev/grpcurl), and turn it off for a production installation.
+
+   <!--
+   > [!NOTE]
+   > The kagent chart carries two settings that enable something called `substrate`, and this step sets only the one nested under `controller`. `controller.substrate.enabled` turns on the controller's Agent Substrate integration, which is what lets a Harness run an agent. The top-level `substrate.enabled` is a different toggle that installs Agent Substrate as a subchart of the kagent release, which places most of its resources in the `kagent` namespace while parts of the chart still reference `ate-system`. Leave the top-level setting at its default of `false`, because the preceding steps install Agent Substrate into `ate-system` themselves.
+   -->
 
 3. Wait for the controller to roll out.
    ```bash

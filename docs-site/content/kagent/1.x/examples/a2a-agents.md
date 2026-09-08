@@ -5,7 +5,7 @@ weight: 30
 author: kagent.dev
 ---
 
-Every {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} is reachable over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol through the kagent controller. A2A is not a side door; it is how kagent talks to its own agents. The CLI, the [MCP server]({{< link path="examples/agents-via-mcp" >}}), and any client you write all take the same path.
+Every {{< gloss "AgentInstance" >}}AgentInstance{{< /gloss >}} is reachable over the {{< gloss "A2A" >}}A2A{{< /gloss >}} (Agent-to-Agent) protocol through the kagent controller. kagent uses the A2A protocol for its own agent traffic, rather than an extra interface beside it. The CLI, the [MCP server]({{< link path="examples/agents-via-mcp" >}}), and any client you write all take the same path.
 
 This example uses [grpcurl](https://github.com/fullstorydev/grpcurl) to show the requests and replies directly. Real callers use an A2A client library rather than assembling requests by hand.
 
@@ -26,24 +26,25 @@ An AgentInstance is not addressed by a URL path. A caller names the instance in 
 > [!WARNING]
 > The open source build does not authenticate this port. Any caller that can reach it can invoke any AgentInstance, so do not expose port `8084` outside the cluster. For what the open source build does guarantee, see [Identity]({{< link path="substrate-runtime/identity" >}}).
 
+### A2A methods
+
+The following methods are used in this example. The service defines more, including `ListTasks` and the push notification configuration calls, but an agent card that reports `pushNotifications` as `false` does not support being called back.
+
+| Method | What it does |
+| ------ | ------------ |
+| `GetExtendedAgentCard` | Returns the agent card describing the instance. |
+| `SendMessage` | Sends a message and returns the finished task. |
+| `SendStreamingMessage` | Sends a message and streams events as the agent works. |
+| `GetTask` | Reads a task that a previous call created. |
+| `CancelTask` | Stops a task that is still running. |
+
 ## Before you begin
 
-1. [Install kagent]({{< link path="setup/installation" >}}).
-2. [Create your first agent]({{< link path="get-started/your-first-agent" >}}), and save the AgentInstance's ID.
-   ```bash
-   export INSTANCE_ID=<your-agent-instance-id>
-   ```
-
-3. Install [grpcurl](https://github.com/fullstorydev/grpcurl), and confirm that your kagent installation sets `controller.grpc.reflection=true`. Reflection lets grpcurl discover the service without a local copy of the A2A protocol buffer definitions.
-
-4. Port-forward the controller's gRPC port, and leave the command running.
-   ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
-   ```
+{{< reuse "kagent-docs/snippets/grpcurl-prerequisites.md" >}}
 
 ## Read the agent card
 
-An A2A client normally starts by reading the agent card, which tells it what the agent is and which protocol features the agent supports.
+An A2A client typically starts by reading the agent card, which tells it what the agent is and which protocol features the agent supports.
 
 1. Fetch the card for your AgentInstance.
    ```bash
@@ -82,10 +83,13 @@ An A2A client normally starts by reading the agent card, which tells it what the
    }
    ```
 
-2. Read the card for the three things a caller acts on. The `name` field is the {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}}'s name with hyphens replaced by underscores, and `description` comes from the AgentTemplate's `spec.description`, so the description a caller sees is the one you wrote. The `supportedInterfaces` URL is the controller's in-cluster address rather than the Actor's, because a caller reaches the agent through the controller. The `extensions` list advertises human-in-the-loop support, which a client opts into per call.
+2. Read the card for what a caller acts on.
+   * Both `name` and `description` come from the {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}}. `name` replaces hyphens with underscores, and `description` is `spec.description` verbatim, so a caller sees the description you wrote.
+   * The `supportedInterfaces` URL is the controller's in-cluster address rather than the Actor's, because a caller reaches the agent through the controller.
+   * The `capabilities.extensions` list advertises human-in-the-loop support, which a client opts into per call.
 
 > [!NOTE]
-> The card carries no `skills`. kagent 0.x let you declare agent card skills in an `a2aConfig` block, and v1alpha3 has no such field, so kagent generates the card from the AgentTemplate's name and description alone. An AgentTemplate's `spec.skills` field is a different feature: those are [Agent Skills]({{< link path="skills-and-mcp/skills" >}}) that the agent can use, not advertisements to a caller.
+> The card carries no `skills`. kagent 0.x let you declare agent card skills in an `a2aConfig` block. However, v1alpha3 has no such field, so kagent generates the card from the AgentTemplate's name and description alone. An AgentTemplate's `spec.skills` field is a different feature: those are [Agent Skills]({{< link path="skills-and-mcp/skills" >}}) that the agent can use, not advertisements to a caller.
 
 ## Send a message
 
@@ -120,51 +124,73 @@ An A2A client normally starts by reading the agent card, which tells it what the
      }
    }
    ```
+   The task returns two identifiers, `id` and `contextId`, and a caller uses them differently.
+   * The `id` identifies one turn, and every message returns a new one.
+   * The `contextId` identifies the conversation, and matches the AgentInstance's own ID. A second message to the same instance therefore continues the conversation rather than starting a new one.
 
-2. Save the task ID to read the task again later.
+   Each artifact also carries runtime metadata under `adk_` keys, including the token counts for that turn.
+
+2. Save the task's `id` so that you can read the task again later.
    ```bash
    export TASK_ID=<your-task-id>
    ```
-
-Two identifiers come back, and they mean different things. The `id` is one turn, and a new one appears on every message. The `contextId` is the conversation, and it is the AgentInstance's own ID, which is why a second message to the same instance continues the conversation rather than starting a new one. Each artifact also carries runtime metadata under `adk_` keys, including the token counts for that turn.
 
 ## Stream a reply
 
 `SendStreamingMessage` takes the same request and returns a sequence of events instead of one result. A caller can then show a reply as the agent produces it.
 
-Send a message on the streaming method.
-```bash
-grpcurl -plaintext \
-  -H "x-kagent-agent-instance-namespace: kagent" \
-  -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
-  -d '{"message":{"messageId":"'"$(uuidgen)"'","role":"ROLE_USER","parts":[{"text":"Count from 1 to 3."}]}}' \
-  localhost:8084 lf.a2a.v1.A2AService/SendStreamingMessage
-```
+1. Send a message on the streaming method.
+   ```bash
+   grpcurl -plaintext \
+     -H "x-kagent-agent-instance-namespace: kagent" \
+     -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
+     -d '{"message":{"messageId":"'"$(uuidgen)"'","role":"ROLE_USER","parts":[{"text":"Count from 1 to 3."}]}}' \
+     localhost:8084 lf.a2a.v1.A2AService/SendStreamingMessage
+   ```
 
-The stream opens with the task at `TASK_STATE_SUBMITTED`, moves to `TASK_STATE_WORKING`, and then emits an artifact update for each chunk of the reply. Every chunk shares one `artifactId`, so a client appends them into a single artifact rather than treating each as a separate answer. Example output, abbreviated to the text of each event:
-```console
-"state": "TASK_STATE_SUBMITTED"
-"state": "TASK_STATE_WORKING"
-"artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": "1"
-"artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": ","
-"artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": " "
-"artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": "2"
-```
+2. Read the event sequence. The stream opens with the task at `TASK_STATE_SUBMITTED`, moves to `TASK_STATE_WORKING`, and then emits an artifact update for each chunk of the reply. Every chunk shares one `artifactId`, so a client appends them into a single artifact rather than treating each as a separate answer. Example output, abbreviated to the text of each event:
+   ```console
+   "state": "TASK_STATE_SUBMITTED"
+   "state": "TASK_STATE_WORKING"
+   "artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": "1"
+   "artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": ","
+   "artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": " "
+   "artifactId": "01a06cfd-1c3c-7e65-8650-2e86f5d7f5eb", "text": "2"
+   ```
 
 ## Read a task later
 
 A task outlives the call that created it, so a caller that lost its connection can read the result rather than asking the agent again.
 
-Read the task by ID.
-```bash
-grpcurl -plaintext \
-  -H "x-kagent-agent-instance-namespace: kagent" \
-  -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
-  -d '{"id":"'"$TASK_ID"'"}' \
-  localhost:8084 lf.a2a.v1.A2AService/GetTask
-```
+1. Read the task by ID.
+   ```bash
+   grpcurl -plaintext \
+     -H "x-kagent-agent-instance-namespace: kagent" \
+     -H "x-kagent-agent-instance-id: $INSTANCE_ID" \
+     -d '{"id":"'"$TASK_ID"'"}' \
+     localhost:8084 lf.a2a.v1.A2AService/GetTask
+   ```
 
-The task comes back with the same `status`, `artifacts`, and `history` that `SendMessage` returned. A task that is still running reports `TASK_STATE_WORKING` and has no artifacts yet, and `CancelTask` takes the same `id` to stop it.
+2. Read the task's fields. `GetTask` returns the task itself, rather than wrapping it in a `task` field the way `SendMessage` does. The `status`, `artifacts`, and `history` values are the ones that the original call returned.
+   ```json
+   {
+     "id": "01a06cfb-a9ae-7ddb-be98-baaf17414998",
+     "contextId": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+     "status": {
+       "state": "TASK_STATE_COMPLETED",
+       "timestamp": "2026-09-04T15:13:52.990137169Z"
+     },
+     "artifacts": [
+       {
+         "artifactId": "01a06cfb-bf2c-70ea-8e65-e3ef15133a96",
+         "parts": [{ "text": "42" }]
+       }
+     ],
+     "history": [ ]
+   }
+   ```
+   
+A task that is still running reports `TASK_STATE_WORKING` and has no artifacts yet. To stop a task that is still running, call `CancelTask` with the same `id`.
 
 ## When an agent needs a person
 
@@ -174,19 +200,9 @@ A client only sees these pauses if it requests the human-in-the-loop extension t
 
 ## Clean up
 
-This example creates no Kubernetes resources, so there is nothing to delete. Stop the port-forward with `Ctrl+C`. The tasks that your messages created stay on the AgentInstance as part of its conversation, and deleting the AgentInstance removes them with it.
-
-## A2A method reference
-
-These are the methods that this example uses. The service defines more, including `ListTasks` and the push notification configuration calls, but an agent card that reports `pushNotifications` as `false` does not support being called back.
-
-| Method | What it does |
-| ------ | ------------ |
-| `GetExtendedAgentCard` | Returns the agent card describing the instance. |
-| `SendMessage` | Sends a message and returns the finished task. |
-| `SendStreamingMessage` | Sends a message and streams events as the agent works. |
-| `GetTask` | Reads a task that a previous call created. |
-| `CancelTask` | Stops a task that is still running. |
+* This example creates no Kubernetes resources, so you have nothing to delete.
+* You can stop the 8084 port-forward for the kagent-controller service with `Ctrl+C`.
+* The tasks that your messages created stay on the AgentInstance as part of its conversation, and deleting the AgentInstance removes them.
 
 ## Next steps
 

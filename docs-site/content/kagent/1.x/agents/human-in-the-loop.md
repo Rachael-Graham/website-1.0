@@ -67,7 +67,7 @@ grpcurl -plaintext \
   -H 'x-kagent-agent-instance-id: <instance-id>' \
   -d '{
     "message": {
-      "message_id": "msg-1",
+      "messageId": "msg-1",
       "role": "ROLE_USER",
       "parts": [{"text": "Delete the obsolete pod in the production namespace."}]
     }

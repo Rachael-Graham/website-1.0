@@ -27,7 +27,7 @@ The MCP server is part of the controller's HTTP port rather than a separate depl
 
 ## Before you begin
 
-1. [Install kagent]({{< link path="setup/installation" >}}). Make sure that your installation sets `controller.grpc.reflection=true`.
+1. [Install kagent]({{< link path="setup/installation" >}}), and confirm that your installation sets `controller.grpc.reflection=true`. Reflection lets a gRPC client discover the controller's methods without a local copy of kagent's protocol buffer definitions.
 
 2. [Create your first agent]({{< link path="get-started/your-first-agent" >}}), so that you have at least one AgentInstance in the `READY` state. The MCP server lists ready instances only.
 
@@ -35,7 +35,7 @@ The MCP server is part of the controller's HTTP port rather than a separate depl
 
 ## Connect a client
 
-1. Forward the controller's HTTP port, and leave the command running.
+1. Port-forward the controller's HTTP port, and leave the command running.
    ```bash
    kubectl port-forward -n kagent svc/kagent-controller 8083:8083
    ```
@@ -566,7 +566,7 @@ You can now safely [clean up these resources](#clean-up).
    kagent delete agent-instance <fork-agent-instance-id>
    ```
 
-2. Forward the controller's gRPC port, and leave the command running. `CheckpointService` listens there rather than on the HTTP port that serves MCP.
+2. Port-forward the controller's gRPC port, and leave the command running. `CheckpointService` listens there rather than on the HTTP port that serves MCP.
    ```bash
    kubectl port-forward -n kagent svc/kagent-controller 8084:8084
    ```

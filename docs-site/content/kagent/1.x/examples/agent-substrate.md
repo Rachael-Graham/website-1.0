@@ -11,19 +11,9 @@ The Actor that these steps follow is also the isolation boundary. Every Actor ru
 
 ## Before you begin
 
-1. Complete [Your first agent]({{< link path="get-started/your-first-agent" >}}). The steps on this page continue from the Harness, AgentTemplate, and AgentInstance that the agent guide creates, and assumes that you have sent the agent at least one message.
+Checkpoints and {{< gloss "Fork" >}}forks{{< /gloss >}} have no kagent CLI commands yet, so this example calls `CheckpointService` with grpcurl. The steps also assume that you have already sent your agent at least one message, because a checkpoint needs a completed turn to pin.
 
-2. If you have not already, save the AgentInstance's ID to an environment variable. To find the ID, run `kagent get agent-instance` to list your AgentInstances and copy the value from the `ID` column.
-   ```bash
-   export INSTANCE_ID=<your-agent-instance-id>
-   ```
-
-3. Install [grpcurl](https://github.com/fullstorydev/grpcurl), and confirm that your kagent installation sets `controller.grpc.reflection`. Checkpoints and {{< gloss "Fork" >}}forks{{< /gloss >}} have no kagent CLI commands yet, so this example calls `CheckpointService` directly.
-
-4. Port-forward the controller's gRPC port to your local machine.
-   ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
-   ```
+{{< reuse "kagent-docs/snippets/grpcurl-prerequisites.md" >}}
 
 ## Watch the Actor suspend between turns
 
