@@ -63,7 +63,6 @@ A call from outside the cluster addresses the agent with two more headers, becau
 ```bash
 grpcurl -plaintext \
   -H 'A2A-Extensions: https://kagent.dev/extensions/hitl/v1' \
-  -H 'x-kagent-agent-instance-namespace: kagent' \
   -H 'x-kagent-agent-instance-id: <instance-id>' \
   -d '{
     "message": {
@@ -71,7 +70,7 @@ grpcurl -plaintext \
       "role": "ROLE_USER",
       "parts": [{"text": "Delete the obsolete pod in the production namespace."}]
     }
-  }' localhost:8084 lf.a2a.v1.A2AService/SendStreamingMessage
+  }' localhost:8083 lf.a2a.v1.A2AService/SendStreamingMessage
 ```
 
 When the agent pauses, the payload arrives in the status message's `metadata`, keyed by the extension URI. The URI is also listed in the message's `extensions` array. Each payload carries a `type` field that specifies its shape.

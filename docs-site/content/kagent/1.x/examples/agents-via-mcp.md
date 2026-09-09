@@ -20,7 +20,7 @@ The MCP server is part of the controller's HTTP port rather than a separate depl
 - **Extensions**: The server advertises the `io.modelcontextprotocol/tasks` extension, which changes how invocations behave. For more information, see [Invoke without waiting](#invoke-without-waiting).
 
 > [!NOTE]
-> The tools take no session or conversation argument, because an AgentInstance **is** the conversation. Sending a second message to the same `agent_instance_id` continues where the first left off, and the reply's `context_id` matches the instance's own ID. To hold two independent conversations on one AgentTemplate, create two AgentInstances.
+> The tools take no session or conversation argument, because an AgentInstance **is** the conversation. Sending a second message to the same `agent_instance_id` continues where the first left off. The reply's `context_id` names the durable conversation rather than the instance, so it differs from the `agent_instance_id` and is shared by any fork taken from it. To hold two independent conversations on one AgentTemplate, create two AgentInstances.
 
 > [!WARNING]
 > The open source build does not authenticate this endpoint. Every request is accepted, and the caller's identity is read from an `X-User-Id` header that the caller sets itself, defaulting to `admin@kagent.dev`. Because the endpoint can invoke agents, create checkpoints, and create AgentInstances, do not expose port `8083` outside the cluster. For the wider identity model and what the open source build does guarantee, see [Identity]({{< link path="substrate-runtime/identity" >}}).
@@ -138,9 +138,9 @@ You can checkpoint an instance before letting an agent try something risky, then
    > Ask that fork what 10+5 is.
    ```
 
-   The fork answers `15`. Ask it about an earlier turn of the original conversation and it has nothing to report, because a fork begins its own conversation rather than continuing the original's.
+   The fork answers `15`. Ask it about an earlier turn and it answers from the conversation it inherited, because a fork continues from the checkpoint rather than starting fresh.
 
-Plan for the two AgentInstances to share a starting state and nothing else. A fork also runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint was taken on, so editing the AgentTemplate afterwards does not change what the fork runs.
+The two AgentInstances share everything up to the checkpoint and nothing after it, because new turns append only to the branch that received them. A fork also runs the {{< gloss "Revision" >}}revision{{< /gloss >}} its checkpoint was taken on, so editing the AgentTemplate afterwards does not change what the fork runs.
 
 You can now safely [clean up these resources](#clean-up).
 
@@ -164,7 +164,7 @@ With `curl` you build each request yourself, so every field is visible: the tool
        "method": "tools/call",
        "params": {
          "name": "list_agent_instances",
-         "arguments": { "namespace": "kagent" }
+         "arguments": {}
        }
      }'
    ```
@@ -191,7 +191,6 @@ With `curl` you build each request yourself, so every field is visible: the tool
        "params": {
          "name": "invoke_agent_instance",
          "arguments": {
-           "namespace": "kagent",
            "agent_instance_id": "'"$INSTANCE_ID"'",
            "message": "What is 2+2? Answer with just the number."
          }
@@ -202,10 +201,9 @@ With `curl` you build each request yourself, so every field is visible: the tool
    The reply text comes back as the tool's content, with the task identifiers alongside it. Example output:
    ```json
    {
-     "namespace": "kagent",
      "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
      "task_id": "01a06d0d-5fcf-7b07-aae3-1f470a8ee157",
-     "context_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+     "context_id": "ce5a10b8-7789-4ba7-8395-e60a339de763",
      "state": "TASK_STATE_COMPLETED",
      "text": "4"
    }
@@ -223,7 +221,6 @@ With `curl` you build each request yourself, so every field is visible: the tool
        "params": {
          "name": "invoke_agent_instance",
          "arguments": {
-           "namespace": "kagent",
            "agent_instance_id": "'"$INSTANCE_ID"'",
            "message": "Multiply that by 10."
          }
@@ -233,10 +230,9 @@ With `curl` you build each request yourself, so every field is visible: the tool
    Example output:
    ```json
    {
-     "namespace": "kagent",
      "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
      "task_id": "01a06d0d-6864-79f1-a4cb-8547f77638ba",
-     "context_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
+     "context_id": "ce5a10b8-7789-4ba7-8395-e60a339de763",
      "state": "TASK_STATE_COMPLETED",
      "text": "40"
    }
@@ -258,7 +254,6 @@ Declaring the `io.modelcontextprotocol/tasks` extension changes the same tool's 
        "params": {
          "name": "invoke_agent_instance",
          "arguments": {
-           "namespace": "kagent",
            "agent_instance_id": "'"$INSTANCE_ID"'",
            "message": "Count to three."
          },
@@ -437,7 +432,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
        "params": {
          "name": "create_agent_instance_checkpoint",
          "arguments": {
-           "namespace": "kagent",
            "agent_instance_id": "'"$INSTANCE_ID"'",
            "request_id": "my-first-checkpoint"
          }
@@ -450,7 +444,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
    {
      "checkpoint": {
        "id": "01a06d19-540a-7040-befb-ec4499c96ff2",
-       "namespace": "kagent",
        "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
        "head_task_id": "01a06d13-2504-7245-9eaf-9c1870c51d26",
        "history_sequence": 398,
@@ -477,7 +470,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
        "params": {
          "name": "list_agent_instance_checkpoints",
          "arguments": {
-           "namespace": "kagent",
            "agent_instance_id": "'"$INSTANCE_ID"'"
          }
        }
@@ -490,7 +482,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
      "checkpoints": [
        {
          "id": "01a0690f-5548-7935-b7ca-70919fc9c221",
-         "namespace": "kagent",
          "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
          "head_task_id": "01a0690f-058d-7d29-a880-9b5d6d30b772",
          "history_sequence": 91,
@@ -499,7 +490,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
        },
        {
          "id": "01a06d19-540a-7040-befb-ec4499c96ff2",
-         "namespace": "kagent",
          "agent_instance_id": "01a068e3-aeb6-7abc-8d6f-5ba9becd3143",
          "head_task_id": "01a06d13-2504-7245-9eaf-9c1870c51d26",
          "history_sequence": 398,
@@ -522,7 +512,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
        "params": {
          "name": "fork_agent_instance",
          "arguments": {
-           "namespace": "kagent",
            "checkpoint_id": "'"$CHECKPOINT_ID"'",
            "request_id": "my-first-fork"
          }
@@ -535,7 +524,6 @@ The three checkpoint tools pin an instance's state and start a second agent from
    {
      "agent_instance": {
        "id": "01a06d19-7eec-797b-87b8-7397a96b1544",
-       "namespace": "kagent",
        "harness": "my-first-harness",
        "agent_template": "my-first-agent",
        "state": "AGENT_INSTANCE_STATE_READY"
@@ -543,13 +531,12 @@ The three checkpoint tools pin an instance's state and start a second agent from
    }
    ```
 
-5. Invoke the fork with `invoke_agent_instance` and its new ID. Note that `context_id` matches the fork's own ID rather than the original's, so the fork holds a separate conversation from the moment it is created. Example output:
+5. Invoke the fork with `invoke_agent_instance` and its new ID. Note that `context_id` matches the original's rather than the fork's own ID, because the fork continues the conversation that the checkpoint pinned. Example output:
    ```json
    {
-     "namespace": "kagent",
      "agent_instance_id": "01a06d19-7eec-797b-87b8-7397a96b1544",
      "task_id": "01a06d19-80e7-7554-8288-377eda9e861b",
-     "context_id": "01a06d19-7eec-797b-87b8-7397a96b1544",
+     "context_id": "ce5a10b8-7789-4ba7-8395-e60a339de763",
      "state": "TASK_STATE_COMPLETED",
      "text": "15"
    }
@@ -568,14 +555,14 @@ You can now safely [clean up these resources](#clean-up).
 
 2. Port-forward the controller's gRPC port, and leave the command running. `CheckpointService` listens there rather than on the HTTP port that serves MCP.
    ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   kubectl port-forward -n kagent svc/kagent-controller 8083:8083
    ```
 
 3. Delete the checkpoint that you created.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","checkpointId":"<checkpoint-id>"}' \
-     localhost:8084 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
+     -d '{"checkpointId":"<checkpoint-id>"}' \
+     localhost:8083 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
    ```
 
 4. Remove the server entry from your client. In Claude Code, run `claude mcp remove kagent`. In Cursor, delete the `kagent` entry from your MCP settings.

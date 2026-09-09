@@ -9,5 +9,5 @@
 
 4. Port-forward the controller's gRPC port, and leave the command running.
    ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   kubectl port-forward -n kagent svc/kagent-controller 8083:8083
    ```

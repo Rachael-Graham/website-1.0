@@ -1,6 +1,6 @@
 ---
 title: Agent Substrate
-description: Watch an agent's Actor suspend between turns, pin its state with a checkpoint, and fork that checkpoint into a second agent.
+description: Watch an agent's Actor suspend between turns, pin its state with a checkpoint, and fork that checkpoint into a second agent that continues the conversation.
 weight: 10
 author: kagent.dev
 ---
@@ -83,8 +83,8 @@ Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent 
 1. Create a checkpoint. The checkpoint records the snapshot that it pinned and how far the {{< gloss "Transcript" >}}transcript{{< /gloss >}} had advanced. The `requestId` field is a required idempotency key of 1 to 128 characters, so reusing it returns the same checkpoint rather than creating a second one.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'","requestId":"'"$(uuidgen)"'"}' \
-     localhost:8084 kagent.api.v1alpha1.CheckpointService/CreateCheckpoint
+     -d '{"agentInstanceId":"'"$INSTANCE_ID"'","requestId":"'"$(uuidgen)"'"}' \
+     localhost:8083 kagent.api.v1alpha1.CheckpointService/CreateCheckpoint
    ```
 
    Example output:
@@ -92,7 +92,6 @@ Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent 
    {
      "checkpoint": {
        "id": "0198c3e2-8a41-7d05-b6c2-1f4e9a7b3c58",
-       "namespace": "kagent",
        "agentInstanceId": "0198c3d7-4f2a-7b61-9c3e-5d8f7a2b4e10",
        "headTaskId": "0198c3d9-b7e3-7a24-8f10-6c2d5e8a1b47",
        "historySequence": "4",
@@ -113,24 +112,24 @@ Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent 
 3. List the checkpoints on the AgentInstance at any time. Omit `limit` for the default page of 50, up to a maximum of 100.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","agentInstanceId":"'"$INSTANCE_ID"'","page":{"limit":50}}' \
-     localhost:8084 kagent.api.v1alpha1.CheckpointService/ListCheckpoints
+     -d '{"agentInstanceId":"'"$INSTANCE_ID"'","page":{"limit":50}}' \
+     localhost:8083 kagent.api.v1alpha1.CheckpointService/ListCheckpoints
    ```
 
 Underneath, the checkpoint attaches an ActorSnapshotTag named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag by running `kubectl ate get actor-snapshot-tag`.
 
-## Fork a checkpoint into a second agent
+## Fork the conversation into a second agent
 
-Forking creates a second AgentInstance from the pinned snapshot, running the revision that the checkpoint was taken on. The original is untouched, so you end up with two independent AgentInstances that started from the same state.
+Forking creates a second AgentInstance from the pinned snapshot, running the revision that the checkpoint was taken on. The fork continues the conversation from the checkpoint: it inherits the {{< gloss "Transcript" >}}transcript{{< /gloss >}} up to that point, along with the Actor's durable state.
 
-> [!IMPORTANT]
-> A fork does not carry the conversation. It inherits the Actor's durable state as of the checkpoint, and it runs the checkpoint's pinned revision, but it starts its own {{< gloss "Transcript" >}}transcript{{< /gloss >}} rather than continuing the original's. A transcript belongs to the AgentInstance that produced it, so asking a fork about earlier turns returns nothing. Expect this to change: carrying the conversation across a fork is the behavior the API is shaped for, and it is not what the current build does.
+> [!NOTE]
+> The two branches share everything up to the checkpoint and nothing after it. New turns append only to the AgentInstance that received them, so the original's history and the checkpoint itself stay unchanged no matter what the fork goes on to do. Each branch runs its own Actor.
 
 1. Fork the checkpoint.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","checkpointId":"'"$CHECKPOINT_ID"'","requestId":"'"$(uuidgen)"'"}' \
-     localhost:8084 kagent.api.v1alpha1.CheckpointService/ForkAgentInstance
+     -d '{"checkpointId":"'"$CHECKPOINT_ID"'","requestId":"'"$(uuidgen)"'"}' \
+     localhost:8083 kagent.api.v1alpha1.CheckpointService/ForkAgentInstance
    ```
 
    The response carries a new AgentInstance with its own ID. Example output:
@@ -138,7 +137,6 @@ Forking creates a second AgentInstance from the pinned snapshot, running the rev
    {
      "agentInstance": {
        "id": "0198c3e5-1d62-7f38-a904-8b3c7e2f5d16",
-       "namespace": "kagent",
        "harness": {
          "namespace": "kagent",
          "name": "my-first-harness"
@@ -147,18 +145,21 @@ Forking creates a second AgentInstance from the pinned snapshot, running the rev
          "namespace": "kagent",
          "name": "my-first-agent"
        },
-       "state": "AGENT_INSTANCE_STATE_READY"
+       "state": "AGENT_INSTANCE_STATE_READY",
+       "contextId": "ce5a10b8-7789-4ba7-8395-e60a339de763"
      }
    }
    ```
 
-2. Save the fork's ID, then send it down a different path than the original.
+   The `contextId` is the fork's link to the conversation it inherited. It matches the source AgentInstance's `contextId`, while the two `id` values differ, so the branches address one shared conversation from separate instances.
+
+2. Save the fork's ID, then ask it about a turn that happened before the checkpoint.
    ```bash
    export FORK_ID=<your-fork-agent-instance-id>
-   kagent invoke --agent-instance $FORK_ID --task "List the pods in the kagent namespace."
+   kagent invoke --agent-instance $FORK_ID --task "What did I ask you first?"
    ```
 
-   The fork answers as a new conversation. Send the original a different question and the two diverge from here, each holding its own transcript.
+   The fork answers from the conversation it inherited. That is the difference between a fork and a new AgentInstance that happens to use the same AgentTemplate. Send the original a different question and the two diverge from here.
 
 3. List your AgentInstances to verify that both appear as separate AgentInstances.
    ```bash
@@ -185,8 +186,8 @@ A fork runs the compiled {{< gloss "Revision" >}}revision{{< /gloss >}} that its
 1. Delete the checkpoint. Deleting removes the ActorSnapshotTag and releases the pin, and Agent Substrate can collect the snapshot whenever no tag names it.
    ```bash
    grpcurl -plaintext \
-     -d '{"namespace":"kagent","checkpointId":"'"$CHECKPOINT_ID"'"}' \
-     localhost:8084 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
+     -d '{"checkpointId":"'"$CHECKPOINT_ID"'"}' \
+     localhost:8083 kagent.api.v1alpha1.CheckpointService/DeleteCheckpoint
    ```
 
 2. Delete the fork. A fork is an AgentInstance in its own right, so deleting the checkpoint that it started from does not remove it.

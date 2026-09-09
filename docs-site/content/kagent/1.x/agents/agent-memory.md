@@ -214,7 +214,7 @@ No CLI command wraps the service yet, so these examples call it with [grpcurl](h
 
 1. Port-forward the controller's gRPC port, and confirm that your kagent installation sets `controller.grpc.reflection=true`.
    ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   kubectl port-forward -n kagent svc/kagent-controller 8083:8083
    ```
 
 2. List the memories that an agent stores for one user.
@@ -222,7 +222,7 @@ No CLI command wraps the service yet, so these examples call it with [grpcurl](h
    grpcurl -plaintext -d '{
      "agent_name": "kagent__NS__my_first_agent_my_first_harness",
      "user_id": "admin@kagent.dev"
-   }' localhost:8084 kagent.api.v1alpha1.MemoryService/List
+   }' localhost:8083 kagent.api.v1alpha1.MemoryService/List
    ```
 
    Each entry returns the `id`, `content`, `access_count`, `created_at`, and `expires_at` fields. Results are ranked by how often retrieval has returned them, so the most-used memories appear first.
@@ -232,7 +232,7 @@ No CLI command wraps the service yet, so these examples call it with [grpcurl](h
    grpcurl -plaintext -d '{
      "agent_name": "kagent__NS__my_first_agent_my_first_harness",
      "user_id": "admin@kagent.dev"
-   }' localhost:8084 kagent.api.v1alpha1.MemoryService/Delete
+   }' localhost:8083 kagent.api.v1alpha1.MemoryService/Delete
    ```
 
 The memory service also exposes `Search`, `AddSession`, and `AddSessionBatch`. Each method takes a 768-dimensional vector rather than text, because kagent does not embed on the caller's behalf. Call them from a program that already has an embedding model, rather than by hand.

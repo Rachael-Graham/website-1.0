@@ -250,13 +250,13 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
 3. Get the address to reach the kagent gRPC API, which serves the AgentInstance lifecycle and conversation calls. The guide to [create your first agent]({{< link path="get-started/your-first-agent" >}}) assumes port-forwarding.
    {{< tabs >}}
    {{% tab name="Port-forward for local testing" %}}
-   Forward the gRPC port and leave the command running. The API is then available at `localhost:8084`.
+   Forward the controller port and leave the command running. The API is then available at `localhost:8083`.
    ```bash
-   kubectl port-forward -n kagent svc/kagent-controller 8084:8084
+   kubectl port-forward -n kagent svc/kagent-controller 8083:8083
    ```
    {{% /tab %}}
    {{% tab name="Cloud Provider LoadBalancer" %}}
-   Read the external address of the controller service. The gRPC API listens on port `8084`.
+   Read the external address of the controller service. The gRPC API listens on port `8083`.
    ```bash
    kubectl get svc -n kagent kagent-controller \
      -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}"
