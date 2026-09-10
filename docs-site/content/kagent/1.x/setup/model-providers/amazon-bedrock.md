@@ -7,7 +7,7 @@ author: kagent.dev
 
 Amazon Bedrock serves models from several families behind one AWS API. kagent reaches it two ways: the native `Bedrock` provider, which is the fuller integration, and Bedrock's OpenAI-compatible endpoint through the `OpenAI` provider.
 
-Prefer the native provider. Use the OpenAI-compatible path when you need the OpenAI request format, or an inference profile that only that endpoint exposes.
+Prefer the native provider. If you need the OpenAI request format, or an inference profile that only that endpoint exposes, use the OpenAI-compatible path.
 
 > [!NOTE]
 > Bedrock is the only provider that every runtime supports. A `codex` Harness accepts only OpenAI `gpt-*` model IDs, and both `codex` and `claude` accept no `bedrock` settings beyond `region`. For more information, see [Agent harness]({{< link path="agents/agent-harness#model-provider-support" >}}).

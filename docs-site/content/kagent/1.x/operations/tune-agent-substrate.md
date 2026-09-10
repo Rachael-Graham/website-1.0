@@ -190,7 +190,7 @@ substrateWorkerPool:
 ```
 
 > [!NOTE]
-> The `ateomImage` field in the [Inspect the runtime](#inspect-the-runtime) response reports this same setting, which the WorkerPool resource calls `workerImage`. Compare the two names when you check which build a pool is running.
+> The `ateomImage` field in the [Inspect the runtime](#inspect-the-runtime) response reports this same setting, which the WorkerPool resource calls `workerImage`. To check which build a pool is running, compare the two names.
 
 A cluster-scoped SandboxConfig named `gvisor-default` must also exist, because kagent names it directly rather than resolving a default. A missing one fails template preparation with `SandboxConfig "gvisor-default" not found`.
 

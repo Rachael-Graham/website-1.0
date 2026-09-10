@@ -152,7 +152,7 @@ The `invoke` command takes a few more options that are useful beyond a first con
 ## Clean up
 
 > [!IMPORTANT]
-> Other guides build on the Harness, AgentTemplate, and AgentInstance that you created here, including [Your first MCP tool]({{< link path="get-started/your-first-mcp-tool" >}}) and [Agent Substrate]({{< link path="examples/agent-substrate" >}}). Leave the resources in place unless you are finished with the kagent guides.
+> Other guides build on the Harness, AgentTemplate, and AgentInstance that you created here, including [Your first MCP tool]({{< link path="get-started/your-first-mcp-tool" >}}) and [Agent Substrate]({{< link path="examples/agent-substrate" >}}). Unless you are finished with the kagent guides, leave the resources in place.
 
 To remove the resources, follow these steps.
 

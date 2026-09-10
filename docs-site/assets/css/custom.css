@@ -481,3 +481,17 @@ html .glossary-term:hover,
 html .glossary-term:focus {
   text-decoration-color: var(--theme-primary, #0060cf);
 }
+
+/* Glossary tooltip: keep the definition at normal weight.
+
+   extras' glossary.css sets font-weight on the tooltip's term (`> span strong`)
+   but never on the definition (`> span span`), so the definition inherits from
+   whatever surrounds the trigger. A term glossed inside a bold run — a bold
+   step lead-in, or a `**first mention**` — therefore renders its whole
+   definition bold and loses the term/definition contrast the markup intends.
+
+   Same `html` prefix requirement as above: glossary.css loads after this file,
+   so a bare selector would lose the cascade at equal specificity. */
+html .glossary-term > span span {
+  font-weight: 400;
+}

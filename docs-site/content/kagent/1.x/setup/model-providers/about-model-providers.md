@@ -7,7 +7,7 @@ author: kagent.dev
 
 A `ModelConfig` is a Kubernetes custom resource that names one model at one provider, along with the credentials to reach it. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} references a {{< gloss "ModelConfig" >}}ModelConfig{{< /gloss >}} by name in its `spec.modelConfig.name` field, and every agent compiled from that template calls the model that the ModelConfig names.
 
-The kagent installation creates a `default-model-config` ModelConfig from the provider API key that you supply at install time, so a first agent needs no extra setup. Create additional ModelConfigs when you want to use a different provider, a different model, or a different set of credentials.
+The kagent installation creates a `default-model-config` ModelConfig from the provider API key that you supply at install time, so a first agent needs no extra setup. To use a different provider, a different model, or a different set of credentials, create additional ModelConfigs.
 
 ## How a ModelConfig reaches an agent
 

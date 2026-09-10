@@ -79,7 +79,7 @@ The same entry carries two revision fields that answer a different question. `de
 
 ## An AgentTemplate reports no conditions
 
-An AgentTemplate that no Harness admits gets no `status.harnesses[]` entry at all, so the command in this page prints nothing.
+An AgentTemplate that no Harness admits gets no `status.harnesses[]` entry at all, so any command that ranges over that array prints nothing.
 
 The status object holds an `observedGeneration` and nothing else.
 
@@ -119,7 +119,7 @@ metadata:
 ```
 
 > [!NOTE]
-> An empty `status.harnesses[]` and a genuinely broken template look nothing alike once you know the difference. No entry means admission never happened, so check the label first. An entry with a failing condition means admission succeeded and something later went wrong.
+> No entry in `status.harnesses[]` means admission never happened, so check the label first. An entry with a failing condition means admission succeeded and a later stage failed.
 
 ## An agent turn times out
 
@@ -133,14 +133,16 @@ ERROR:
 
 Work through the causes in this order.
 
-1. **Check that the {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} has ready Workers.** A pool with too few Workers produces exactly this error and logs no capacity message anywhere. [Tune Agent Substrate]({{< link path="operations/tune-agent-substrate" >}}) covers how to recognize and size it.
+1. **Check that the {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} has ready Workers.** A pool with too few Workers produces exactly this error and logs no capacity message anywhere. To learn how to recognize this problem and size the pool, see [Tune Agent Substrate]({{< link path="operations/tune-agent-substrate" >}}).
    ```bash
    kubectl get workerpools -n kagent
    ```
 
 2. **Check the model provider.** A turn that reaches the model and waits on a slow or unreachable provider also times out. The agent's own logs name the provider error.
 
-3. **Check the {{< gloss "Actor" >}}Actor{{< /gloss >}} state.** An Actor stuck in `RESUMING`, or sitting in `CRASHED`, never answers. [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}) lists the states, and `GetSubstrateStatus` reports the current one for every Actor.
+3. **Check the {{< gloss "Actor" >}}Actor{{< /gloss >}} state.** An Actor stuck in `RESUMING`, or sitting in `CRASHED`, never answers.
+   * To review the list of states, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume/#actor-lifecycle-operations" >}}).
+   * To get the current state for every actor, [call `GetSubstrateStatus`]({{< link path="operations/tune-agent-substrate#inspect-the-runtime" >}}).
 
 ## An edit to an AgentTemplate has no effect
 
@@ -157,7 +159,11 @@ The second cause is deliberate. An {{< gloss "AgentInstance" >}}AgentInstance{{<
 
 ## Collect logs
 
-Once the resource status is exhausted, the controller log is the next place to look, and it records every API call with its gRPC status code.
+Once the resource status is exhausted, kagent offers two ways to gather evidence. Read the controller log to locate a single failing call, or collect a bug report to hand somebody else everything at once.
+
+### Read the controller log
+
+The controller records every API call with its gRPC status code.
 
 ```bash
 kubectl logs -n kagent deployment/kagent-controller
@@ -169,14 +175,16 @@ A failing call appears as an `rpc completed` line whose `grpc_code` is not `OK`,
 {"time":"2026-09-09T19:23:47.112233381Z","level":"INFO","msg":"rpc completed","component":"grpc","grpc_method":"/lf.a2a.v1.A2AService/SendMessage","rpc_type":"unary","peer":"127.0.0.1:49588","grpc_code":"Internal","duration_ms":5033}
 ```
 
-Raise the controller's log level when the default does not say enough.
+If the default log level does not have enough information, raise the controller's log level.
 
 ```yaml
 controller:
   loglevel: debug
 ```
 
-To gather everything at once, run `kagent bug-report`. The command writes the kagent resources in a namespace, the names of its secrets, and the logs of every pod into a timestamped directory.
+### Collect a bug report
+
+`kagent bug-report` gathers the whole picture in one command. It writes the kagent resources in a namespace, the names of its secrets, and the logs of every pod into a timestamped directory.
 
 ```bash
 kagent bug-report -n kagent
