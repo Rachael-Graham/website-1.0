@@ -37,11 +37,11 @@ A {{< gloss "WorkerPool" >}}WorkerPool{{< /gloss >}} selects its class through t
 
 ## Sandbox configuration
 
-A **SandboxConfig** is a cluster-scoped resource that holds the material needed to start one sandbox runtime family. It carries the runtime assets that the node agent fetches, keyed by processor architecture, along with the pause image that holds the sandbox's namespaces as its root container. One SandboxConfig can be marked as the cluster default for its class, and a WorkerPool that names no configuration explicitly resolves to that default.
+A **SandboxConfig** is a cluster-scoped resource that holds the material needed to start one sandbox runtime family. It carries the runtime assets that the node agent fetches, keyed by processor architecture, along with the pause image that holds the sandbox's namespaces as its root container. Each ActorTemplate names the configuration that it uses, and the name is required. Agent Substrate resolves no cluster default, so the configuration that a template names must exist before that template can be prepared.
 
 Defining these assets in a cluster resource lets one configuration pin a runtime version for many ActorTemplates at once, rather than each template carrying its own copy.
 
-A default installation creates a single `gvisor-default` configuration, which looks like the following:
+A default installation creates a single `gvisor-default` configuration, and kagent names exactly that configuration on every ActorTemplate that it generates. The configuration looks like the following:
 
 ```yaml
 apiVersion: ate.dev/v1alpha1
@@ -50,7 +50,6 @@ metadata:
   name: gvisor-default
 spec:
   sandboxClass: gvisor
-  default: true
   pauseImage: registry.k8s.io/pause:3.10.2@sha256:<digest>
   assets:
     amd64:
@@ -65,8 +64,7 @@ spec:
 
 | Field | Description |
 | ----- | ----------- |
-| `sandboxClass` | The sandbox runtime family that this configuration applies to, `gvisor` or `microvm`. A WorkerPool only draws on configurations whose class matches its own. |
-| `default` | Whether this configuration is the cluster default for its class. Expect at most one default per class. |
+| `sandboxClass` | The sandbox runtime family that this configuration applies to, `gvisor` or `microvm`. An ActorTemplate only uses configurations whose class matches its own, and preparation fails if the two disagree. |
 | `pauseImage` | The image for the root sandbox container, which holds the sandbox's namespaces and runs no workload code. It must be pinned to a digest, because the snapshot manifest records it, and changing the image invalidates the snapshots that were taken with it. |
 | `assets` | The files that the node agent fetches, keyed first by processor architecture and then by asset name. A `gvisor` class expects one `gvisor` asset, the release archive that the node agent extracts. A `microvm` class expects several, such as `cloud-hypervisor`, `kata-kernel`, and `kata-image`. |
 | `assets.<arch>.<name>.sha256` | The lowercase hex digest of the file. The node agent verifies each download against it, and caches the result under a path that includes the digest, so changing the digest fetches the new asset instead of reusing the cached one. To read the configuration that your own cluster installed, including the pinned digests, run `kubectl get sandboxconfig gvisor-default -o yaml`.|
