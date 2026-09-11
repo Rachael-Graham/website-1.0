@@ -37,8 +37,13 @@ install: ## Install web + docs dependencies (npm) and Hugo modules
 
 # ── Docs (Hugo) ────────────────────────────────────────────────────────────
 .PHONY: build-docs
+# HUGO_CONFIG and HUGO_FLAGS let a preview build layer hugo.preview.yaml and pass
+# -D without changing the production defaults. See docs-site/hugo.preview.yaml.
+HUGO_CONFIG ?= hugo.yaml
+HUGO_FLAGS ?=
+
 build-docs: ## Build the Hugo docs site -> docs-site/public
-	cd $(DOCS_DIR) && $(HUGO) --config hugo.yaml $(if $(DOCS_BASEURL),--baseURL "$(DOCS_BASEURL)") --gc --minify
+	cd $(DOCS_DIR) && $(HUGO) --config $(HUGO_CONFIG) $(HUGO_FLAGS) $(if $(DOCS_BASEURL),--baseURL "$(DOCS_BASEURL)") --gc --minify
 
 .PHONY: inject-docs
 inject-docs: ## Copy built docs into public/docs (preserves tracked assets, e.g. versions/)

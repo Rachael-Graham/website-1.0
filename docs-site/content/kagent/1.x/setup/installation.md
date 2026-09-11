@@ -167,7 +167,7 @@ Deploy the Agent Substrate control plane and data plane into the `ate-system` na
 
 ## Install kagent
 
-The kagent chart connects the controller to Agent Substrate and creates a WorkerPool for agents to run on. A WorkerPool is platform capacity that you provision once, and every Harness references it. No Harness can run until a WorkerPool exists.
+The kagent chart connects the controller to Agent Substrate and creates a WorkerPool for agents to run on. A WorkerPool is platform capacity that you provision once, and every Harness references it. No Harness can run until a WorkerPool exists. The values in the following steps are evaluation defaults, including a bundled PostgreSQL instance, one controller replica, and one Worker. For a production installation, add the production values from [Operational considerations]({{< link path="operations/operational-considerations" >}}) to the same command.
 
 > [!IMPORTANT]
 > Install kagent 1.0 with Helm. The `kagent install` command does not yet provision Agent Substrate and cannot produce a working 1.0 installation.
@@ -269,4 +269,5 @@ The kagent chart connects the controller to Agent Substrate and creates a Worker
 {{< cards >}}
   {{< card link=`{{< link path="get-started/your-first-agent" >}}` title="Your first agent" subtitle="Apply a Harness and AgentTemplate, and talk to the AgentInstance they produce." >}}
   {{< card link=`{{< link path="setup/model-providers" >}}` title="Configure model providers" subtitle="Point kagent at OpenAI, Anthropic, Gemini, or a provider of your own." >}}
+  {{< card link=`{{< link path="operations/operational-considerations" >}}` title="Operational considerations" subtitle="Replace the evaluation defaults for the database, controller replicas, and Worker node pools." >}}
 {{< /cards >}}

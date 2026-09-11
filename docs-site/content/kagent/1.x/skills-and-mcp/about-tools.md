@@ -25,6 +25,7 @@ tools:
       tools:
         - search_docs
         - fetch_page
+      requireApproval: true
 ```
 
 | Field | Description |
@@ -32,6 +33,7 @@ tools:
 | `mcp.server.kind` | The kind of server resource. `RemoteMCPServer` is the only accepted value. |
 | `mcp.server.name` | The server's name, in the AgentTemplate's namespace. |
 | `mcp.tools` | Optional. The names of the tools to bind, up to 50. Duplicates are collapsed. An omitted or empty list exposes every tool on the server. |
+| `mcp.requireApproval` | Optional. Pauses the agent for a person's approval before each call to a tool that this binding exposes. Omit to run the bound tools without approval. For more information, see [Human in the loop]({{< link path="agents/human-in-the-loop" >}}). |
 
 ## Agents as tools
 

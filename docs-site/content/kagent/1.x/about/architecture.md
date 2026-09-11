@@ -11,10 +11,12 @@ The previous page defined the [core concepts]({{< link path="about/core-concepts
 
 kagent 1.0 splits authorization across two planes:
 
-- The **Kubernetes plane** governs the {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} custom resources. Kubernetes Role-Based Access Control (RBAC) decides who can create, read, or edit the resources, exactly as it would for any other Custom Resource Definition (CRD).
+- The **Kubernetes plane** governs the {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} custom resources. Kubernetes Role-Based Access Control (RBAC) decides who can create, read, or edit the resources with `kubectl`, exactly as it would for any other Custom Resource Definition (CRD).
 - The **kagent plane** governs any interactions involving {{< gloss "AgentInstance" >}}AgentInstances{{< /gloss >}}, such as creating, suspending, resuming, sharing, deleting, and holding a conversation with an AgentInstance. kagent's own gRPC authentication and authorization decide who can complete these interactions, independent of Kubernetes RBAC.
 
-Someone with Kubernetes RBAC access to apply a Harness and AgentTemplate does not automatically have access to create or talk to AgentInstances that use them, and the reverse is also true. The following diagram shows where the boundary between the two planes falls.
+Someone with Kubernetes RBAC access to apply a Harness and AgentTemplate does not automatically have access to create or talk to AgentInstances that use them. The planes are not mirror images, though. kagent's gRPC API also writes Harness and AgentTemplate resources, so a caller on the kagent plane reaches both. For more information on that second path, see [Identity]({{< link path="substrate-runtime/identity" >}}).
+
+The following diagram shows where the boundary between the two planes falls.
 </br></br>
 
 ```mermaid
@@ -61,7 +63,7 @@ flowchart TB
     class harness,template crd
 ```
 
-Follow the **Kubernetes plane** first. An operator applies a Harness and an AgentTemplate, governed by Kubernetes RBAC. The kagent controller watches for a valid pair with a matching `allowedAgentTemplates` selector, and compiles it into an {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}} on Substrate. The ActorTemplate sits outside both planes in the diagram because that is where it sits in reality: it is a Substrate resource that the controller creates over gRPC, not a Kubernetes object, so no Kubernetes role grants access to it.
+Follow the **Kubernetes plane** first. An operator applies a Harness and an AgentTemplate with `kubectl`, governed by Kubernetes RBAC. The diagram shows this path because RBAC governs it, and `kagent apply` reaches the same two resources over gRPC instead. The kagent controller watches for a valid pair with a matching `allowedAgentTemplates` selector, and compiles it into an {{< gloss "ActorTemplate" >}}ActorTemplate{{< /gloss >}} on Substrate. The ActorTemplate sits outside both planes in the diagram because that is where it sits in reality: it is a Substrate resource that the controller creates over gRPC, not a Kubernetes object, so no Kubernetes role grants access to it.
 
 The **kagent plane** starts once that ActorTemplate exists. A caller, who may or may not be the same person as the operator, calls `CreateAgentInstance` through kagent's gRPC API. This call is governed by kagent's own authentication and authorization, not by Kubernetes RBAC. kagent creates the AgentInstance from the newest ActorTemplate that compiled successfully, and that AgentInstance runs on an {{< gloss "Actor" >}}Actor{{< /gloss >}}.
 

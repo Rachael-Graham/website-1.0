@@ -8,7 +8,7 @@ author: kagent.dev
 An agent that only answers questions can run unattended. An agent that takes action often should not. The human in the loop (HITL) mechanism lets an agent stop mid-turn, return a question or a pending tool call to a person, and continue once that person answers.
 
 > [!IMPORTANT]
-> HITL is negotiated by the **client**, per call, rather than configured on an {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}}. There is no field to switch it on. A client that does not ask for the extension still gets the pause: the agent stops, and the task waits. What it loses is the ability to answer, because the request reaches it as bare text with no correlation `id`. This differs from kagent 0.x, where a `requireApproval` list on the `Agent` resource decided which tools paused.
+> HITL has two halves, and a working setup needs both. An {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} decides which tool calls pause through `requireApproval` on a tool binding. The **client** decides whether it can answer a pause by negotiating the HITL extension on each call. A client that does not request the extension still gets the pause, as the agent stops and the task waits. That client cannot answer, because the request reaches it as bare text with no correlation `id`.
 
 ## How a pause works
 
@@ -41,12 +41,58 @@ An agent pauses either to get permission before it acts or to ask a question. Ea
 
 | Request | Raised when | The client answers with |
 | ------- | ----------- | ----------------------- |
-| `tool_approval_request` | The agent wants to call a tool that asked for confirmation before it runs. | `tool_approval_response` |
+| `tool_approval_request` | The agent wants to call a tool from a binding that sets `requireApproval`. | `tool_approval_response` |
 | `ask_user_request` | The agent calls the built-in `ask_user` tool because it needs information only a person has. | `ask_user_response` |
 
 Both use the same pause and resume mechanism, so a client that handles one can handle the other with a different payload.
 
-The runtime's tool-confirmation mechanism decides which tool calls raise an approval, rather than kagent configuration. kagent does not keep a list of tools that need approval.
+The `kagent` and `codex` runtimes both raise `ask_user_request`. The `claude` runtime does not, because the upstream Claude Code tool that backed it was removed, so a `claude` agent pauses for tool approval only.
+
+## Require approval for a tool
+
+An agent pauses for a tool only when its binding asks for that. Set `requireApproval` on an `mcp` tool binding in the AgentTemplate, and the agent stops before each call to a tool that the binding exposes.
+
+```yaml
+apiVersion: kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: cluster-operator
+  namespace: kagent
+  labels:
+    kagent.dev/harness: kagent
+spec:
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kagent-tool-server
+        tools:
+          - k8s_delete_resource
+          - k8s_patch_resource
+        requireApproval: true
+```
+
+| Field | Description |
+| ----- | ----------- |
+| `mcp.tools` | The names of the tools to bind. Omit the list, or leave it empty, to bind every tool that the server offers. |
+| `mcp.requireApproval` | Pauses before each invocation of a tool that this binding exposes. The pause covers the tools in `mcp.tools`, or every tool on the server when `mcp.tools` is omitted or empty. Omit to run the bound tools without approval. |
+
+For the rest of the binding's fields, see [About tools]({{< link path="skills-and-mcp/about-tools" >}}).
+
+Approval belongs to the binding rather than to the tool name, so one server can supply both kinds of tool. Bind the tools that need a person in a binding that sets `requireApproval`, and bind the rest in a second binding that omits it.
+
+> [!NOTE]
+> kagent 0.x named the tools that needed approval in a `requireApproval` list on the `Agent` resource, which matched tool names across every server. In 1.x, approval is a property of one binding, so the same tool name can pause for one server and run freely for another.
+
+Two limits apply to what a binding can express, and both depend on the runtime:
+
+| Runtime | Approval | Splitting one server across two bindings |
+| ------- | -------- | ---------------------------------------- |
+| `kagent` | Supported. | Supported. |
+| `codex` | Supported. | Rejected, with `RemoteMCPServer "<name>" is bound more than once`. |
+| `claude` | Supported. | Rejected, with `RemoteMCPServer "<name>" is bound more than once`. A binding whose tool selection kagent cannot verify against the server's discovered tools exposes the whole server and reports a warning. |
+
+Anything the binding does not cover runs without a pause. A built-in tool, such as file access, shell, or web search, and any MCP tool on a binding that omits `requireApproval`, is approved automatically. The sandbox is the boundary that contains those calls. For more information, see [Sandboxing]({{< link path="substrate-runtime/sandboxing" >}}).
 
 ## Negotiate the extension
 
@@ -121,6 +167,8 @@ An `ask_user_request` carries an `id` and a list of `questions`. The response ec
 
 A paused task waits. To resume, the client sends a message on the same task and context, carrying the response payload. kagent rejects a resume attempt on a task that is not waiting, with `task is not waiting for input`.
 
+While the task waits, kagent pauses the {{< gloss "Actor" >}}Actor{{< /gloss >}} rather than suspending it. A pause keeps the running process in a full {{< gloss "Snapshot" >}}snapshot{{< /gloss >}} on node-local storage, so a runtime that holds a live process across the wait, such as `codex` or `claude`, continues the same turn on resume. The {{< gloss "Worker" >}}Worker{{< /gloss >}} is released in the meantime, so a conversation that sits at `INPUT_REQUIRED` costs no pool capacity. For more information on the suspend that a finished turn uses instead, see [Suspend and resume]({{< link path="substrate-runtime/suspend-and-resume" >}}).
+
 Because the {{< gloss "Transcript" >}}transcript{{< /gloss >}} only grows, the question and the answer both stay in the task history, so a later reader can see what was asked and what a person decided.
 
 ## Task states
@@ -138,7 +186,7 @@ An agent that a parent binds as a tool can raise a pause of its own. The request
 
 ## Client support
 
-Because the client negotiates HITL rather than the agent offering it, what a person can do with a pause depends on which client raised the turn.
+The AgentTemplate decides that a turn pauses, but the client decides whether a person can answer it. What someone can do with a pause therefore depends on which client raised the turn.
 
 | Client | HITL |
 | ------ | ---- |

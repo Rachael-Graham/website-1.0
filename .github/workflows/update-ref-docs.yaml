@@ -22,8 +22,11 @@ concurrency:
 # generates against, is what 0.x actually ships. The 1.x rewrite tracks
 # v1alpha3 and gets its API/Helm reference hand-written for now (see the
 # kagent 1.0 docs scope: Phase 4, blocked on the v1alpha3 schema settling);
-# point a similar job at docs-site/content/kagent/1.x/resources/ once that's
-# ready to automate.
+# point a similar job at docs-site/content/kagent/1.x/reference/ once that's
+# ready to automate. Note the section is named reference/ in 1.x, not
+# resources/ as in 0.x: 1.x pages link to reference/api-ref, and the provider
+# pages use crd-ref-docs anchors (#modelconfigspec, #openaiconfig, ...), so
+# keep that renderer's anchor naming when retargeting.
 jobs:
   generate-api-docs:
     runs-on: ubuntu-latest

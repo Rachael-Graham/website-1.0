@@ -1,0 +1,29 @@
+# Preview/authoring overlay. Layered on top of hugo.yaml with
+# `--config hugo.yaml,hugo.preview.yaml`, and never used by the production build.
+#
+# Restores the "1.x" versions entry that hugo.yaml deliberately omits while 1.x is
+# withheld. That list does two jobs, and hiding 1.x from the published site breaks
+# the second one:
+#   1. It drives the version switcher, which is why the entry is absent in production.
+#   2. The {{< version >}} shortcode iterates it and emits only on a linkVersion
+#      match, so with no 1.x entry every {{< version include-if="1.x" >}} renders
+#      EMPTY -- blanking the conref'd version numbers on setup/installation.md,
+#      agents/agent-memory.md, observability/tracing.md,
+#      operations/tune-agent-substrate.md, and reference/versions.md. No error,
+#      clean build, broken copy-paste commands.
+#
+# Delete this file at the 1.0 release, when the entry returns to hugo.yaml
+# alongside dropping the draft keys in content/kagent/1.x/_index.md.
+params:
+  sections:
+    kagent:
+      versions:
+        - version: "0.x"
+          dropdown: "0.x (current)"
+          linkVersion: "0.x"
+          url: "/kagent/0.x"
+        - version: "1.x"
+          dropdown: "1.x (preview)"
+          linkVersion: "1.x"
+          url: "/kagent/1.x"
+          banner: "This is preview documentation for the upcoming kagent 1.0 release. It is incomplete and may change without notice."
