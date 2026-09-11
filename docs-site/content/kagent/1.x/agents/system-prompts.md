@@ -37,7 +37,7 @@ Write the value as a YAML block scalar, such as the `|-` in the example, so that
 
 ## Store the prompt in a ConfigMap
 
-Use `systemPromptFrom` to keep the prompt outside the AgentTemplate, which lets several AgentTemplates share one prompt, or lets a prompt change without editing the agent.
+Use `systemPromptFrom` to keep the prompt outside the AgentTemplate. Several AgentTemplates can then share one prompt, and a prompt can change without editing the agent.
 
 1. Create a ConfigMap holding the prompt.
    ```yaml
@@ -61,12 +61,12 @@ Use `systemPromptFrom` to keep the prompt outside the AgentTemplate, which lets 
        key: kubernetes-assistant
    ```
 
-| Field | Description |
-| ----- | ----------- |
-| `systemPromptFrom.name` | The ConfigMap holding the prompt, in the AgentTemplate's namespace. |
-| `systemPromptFrom.key` | The key within that ConfigMap. |
+   `systemPrompt` and `systemPromptFrom` are mutually exclusive, and an AgentTemplate that sets both is rejected. If you omit both fields, the revision compiles with no system prompt at all, and the agent runs on its harness's default behavior.
 
-`systemPrompt` and `systemPromptFrom` are mutually exclusive, and an AgentTemplate that sets both is rejected. If you omit both fields, the revision compiles with no system prompt at all, and the agent runs on its harness's default behavior.
+   | Field | Description |
+   | ----- | ----------- |
+   | `systemPromptFrom.name` | The ConfigMap holding the prompt, in the AgentTemplate's namespace. |
+   | `systemPromptFrom.key` | The key within that ConfigMap. |
 
 > [!NOTE]
 > A prompt can come only from a ConfigMap. Earlier versions of kagent also accepted a Secret, through a `systemMessageFrom.type` field that v1alpha3 does not have. A system prompt is not a credential, so keep secrets out of it and pass them to the runtime as [Harness environment variables]({{< link path="agents/agent-harness" >}}) instead.

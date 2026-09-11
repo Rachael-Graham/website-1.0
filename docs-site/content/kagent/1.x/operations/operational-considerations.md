@@ -27,17 +27,23 @@ The controller resolves its connection in the order `urlFile`, then `url`, then 
 
 The last row fails at template time with `No database connection configured`, rather than installing a controller that cannot start.
 
+The bundled instance claims its PersistentVolumeClaim from the cluster's default StorageClass. Set `database.postgres.bundled.storageClassName` to choose a different one.
+
 ### Use an external PostgreSQL instance
 
-For production, run PostgreSQL outside the cluster's lifecycle so that a kagent uninstall cannot take the data with it.
+For production, run PostgreSQL outside the cluster's lifecycle so that a kagent uninstall cannot delete the data.
 
-1. Set the connection in your Helm values file. Mount the connection string from a Kubernetes Secret and reference the mount path with `urlFile` to keep credentials out of Helm values.
+1. Set the connection in your Helm values file. To keep credentials out of Helm values, mount the connection string from a Kubernetes Secret and reference the mount path by using `urlFile`.
 
    ```yaml
    database:
      postgres:
        urlFile: /var/secrets/db-url
        vectorEnabled: true
+       skipMigrations: false
+       pool:
+         maxConns: 20
+         minConns: 2
        bundled:
          enabled: false
    controller:
@@ -52,34 +58,33 @@ For production, run PostgreSQL outside the cluster's lifecycle so that a kagent 
          readOnly: true
    ```
 
+   | Setting | Description |
+   | ------- | ----------- |
+   | `database.postgres.url` or `database.postgres.urlFile` | The connection string, or the path to a file holding it. `urlFile` keeps the credentials out of Helm values. |
+   | `database.postgres.vectorEnabled` | Set to `true` only when the instance has the `pgvector` extension installed. The setting enables the vector migration, and features that depend on it, such as [long-term memory]({{< link path="agents/agent-memory" >}}), fail without the extension. The bundled image does not include `pgvector`. |
+   | `database.postgres.pool` | Connection pool sizing, through `maxConns`, `minConns`, `maxConnIdleTime`, and `maxConnLifetime`. Omit the fields to keep the pgx library defaults. |
+   | `database.postgres.skipMigrations` | Set to `true` to stop the controller from running migrations at startup. The controller then verifies that the database is already migrated and fails if it is not. Apply the migrations from a pipeline before you install or upgrade. |
+
 2. Apply the values to the kagent Helm release.
 
    ```bash
-   helm upgrade kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
+   helm upgrade --install kagent \
+     oci://ghcr.io/kagent-dev/kagent/helm/kagent \
+     --version {{< reuse "kagent-docs/versions/kagent.md" >}} \
      --namespace kagent \
      --values kagent.yaml
    ```
 
-Set `database.postgres.vectorEnabled: true` only when the instance has the `pgvector` extension installed. The setting enables the vector migration, and features that depend on it, such as [long-term memory]({{< link path="agents/agent-memory" >}}), fail without the extension. The bundled image does not include `pgvector`.
+## Run multiple controller replica
 
-Three further settings matter at production scale, and all three default to values suited to evaluation:
-
-| Setting | Description |
-| ------- | ----------- |
-| `database.postgres.pool` | Connection pool sizing, through `maxConns`, `minConns`, `maxConnIdleTime`, and `maxConnLifetime`. Leave the fields unset to keep the pgx library defaults. |
-| `database.postgres.skipMigrations` | Set to `true` to stop the controller from running migrations at startup. The controller then verifies that the database is already migrated and fails if it is not. Apply the migrations from a pipeline before you install or upgrade. |
-| `database.postgres.bundled.storageClassName` | The StorageClass for the bundled PVC. Leave it empty to use the cluster default. |
-
-## Run more than one controller replica
-
-Set `controller.replicas` above `1` so that a controller failure does not stop reconciliation.
+To ensure that a controller failure does not stop reconciliation, set `controller.replicas` to a number higher than `1`.
 
 ```yaml
 controller:
   replicas: 3
 ```
 
-Leader election keeps the replicas from conflicting. One replica holds a Kubernetes lease and performs reconciliation, garbage collection, and scheduled runs; the others stay ready and take over when the leader's lease expires.
+Leader election keeps the replicas from conflicting. One replica holds a Kubernetes lease and performs reconciliation, garbage collection, and scheduled runs; the other replicas stay ready and take over when the leader's lease expires.
 
 > [!NOTE]
 > Leader election is always on, including at a single replica, because a rolling update briefly runs two controllers at once. The chart grants the lease permissions unconditionally and exposes no setting to turn election off. `LEADER_ELECT=false` remains available for local testing.
@@ -88,14 +93,14 @@ PostgreSQL supports multiple controller replicas without further configuration. 
 
 ## Reserve node pools for Workers
 
-{{< gloss "Worker" >}}Workers{{< /gloss >}} hold running {{< gloss "Actor" >}}Actors{{< /gloss >}}, and an Actor that loses its node without suspending first loses its conversation. Plan the node pools that run Workers around that.
+{{< gloss "Worker" >}}Workers{{< /gloss >}} hold running {{< gloss "Actor" >}}Actors{{< /gloss >}}. An Actor that loses its node before it suspends loses its conversation, so the node pools that run Workers need stricter rules than the rest of the cluster.
 
 > [!WARNING]
-> Turn node auto-upgrade off on every node pool that runs Workers, and do not use spot or preemptible nodes for them. An Actor that is still awake when its node goes away moves to `ACTOR_STATE_CRASHED`. That state is terminal. Agent Substrate refuses both `resume` and `suspend` on a crashed Actor, offers no recovery verb, and cannot start it from the {{< gloss "Snapshot" >}}snapshot{{< /gloss >}} that the Actor still holds. Deleting the Actor and creating a new one is the only way out, and the conversation does not survive.
+> Turn node auto-upgrade off on every node pool that runs Workers, and do not use spot or preemptible nodes for them. An Actor that is still awake when its node goes away moves to `ACTOR_STATE_CRASHED`. That state is terminal. Agent Substrate refuses both `resume` and `suspend` on a crashed Actor, offers no recovery verb, and cannot start it from the {{< gloss "Snapshot" >}}snapshot{{< /gloss >}} that the Actor still holds. Deleting the Actor and creating a new one is the only available option, and the conversation does not survive.
 
-A graceful pod deletion is safe. Kubernetes forwards `SIGTERM` into the Actor's containers, the Worker drains for up to 30 minutes inside a pod termination grace period of 3600 seconds, and an Actor that suspends inside that window keeps its state and stays resumable. Rolling a `workerImage` change through a pool therefore finishes in-flight turns rather than cutting them off.
+A graceful pod deletion is safe. Kubernetes forwards `SIGTERM` into the Actor's containers, the Worker drains for up to 30 minutes inside a pod termination grace period of 3600 seconds, and an Actor that suspends inside that window keeps its state and stays resumable. Rolling a `workerImage` change through a pool therefore finishes any in-flight turns rather than cutting them off.
 
-A reclaimed node is not a graceful deletion. Auto-upgrade is the case to plan for, because Google Kubernetes Engine (GKE) enables it by default and it fires on Google's maintenance schedule rather than yours. Disable it on every pool that runs Workers.
+A reclaimed node is not a graceful deletion, and node auto-upgrade is the most likely way to hit one. Google Kubernetes Engine (GKE) enables auto-upgrade by default and runs it on Google's maintenance schedule, not yours. Disable it on every pool that runs Workers.
 
 ```bash
 gcloud container node-pools update "${NODE_POOL}" \
@@ -103,9 +108,9 @@ gcloud container node-pools update "${NODE_POOL}" \
   --no-enable-autoupgrade
 ```
 
-Scaling a serving WorkerPool down removes pods without suspending the Actors on them, so treat a scale-down as the same class of event. For pool sizing and the rest of the Substrate runtime settings, see [Tune Agent Substrate]({{< link path="operations/tune-agent-substrate" >}}).
+Scaling a serving WorkerPool down removes pods without suspending the Actors on them, so it strands conversations exactly as a reclaimed node does. For pool sizing and the rest of the Substrate runtime settings, see [Tune Agent Substrate]({{< link path="operations/tune-agent-substrate" >}}).
 
-## Understand when a configuration change reaches an agent
+## How configuration changes reach agents
 
 kagent watches the Secrets and ConfigMaps that a {{< gloss "Harness" >}}Harness{{< /gloss >}} and {{< gloss "AgentTemplate" >}}AgentTemplate{{< /gloss >}} reference, such as the API keys and TLS certificates in a {{< gloss "ModelConfig" >}}ModelConfig{{< /gloss >}}. An edit to one of them recompiles the pair into a new revision.
 
