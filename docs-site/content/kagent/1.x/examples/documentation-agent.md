@@ -303,9 +303,10 @@ Ask the agent something that the crawled documentation covers, and then somethin
    kubectl delete secret doc2vec-openai -n kagent
    ```
 
-3. Uninstall Qdrant, and stop the port-forward with `Ctrl+C`.
+3. Uninstall Qdrant, and stop the port-forward with `Ctrl+C`. The chart's StatefulSet volume claim outlives the release, so delete the volume as well.
    ```bash
    helm uninstall qdrant -n kagent
+   kubectl delete pvc qdrant-storage-qdrant-0 -n kagent
    ```
 
 ## Next steps

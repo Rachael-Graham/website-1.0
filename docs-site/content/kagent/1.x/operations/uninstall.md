@@ -22,9 +22,9 @@ Helm removes what its releases own, and the split matters because the material i
 
 | Removed by Helm | Left behind |
 | --------------- | ----------- |
-| Every `kagent.dev` and `ate.dev` custom resource definition, and with them every Harness, AgentTemplate, WorkerPool, and SandboxConfig in the cluster | The certificate authority and JSON Web Token pools that the install created with `kubectl ate` |
+| Every `kagent.dev` and `ate.dev` custom resource definition, and with them every Harness, AgentTemplate, WorkerPool, and SandboxConfig in the cluster | The actor identity pools that the install created in `ate-system` with `kubectl ate`, and the `ate-api-authentication` ConfigMap beside them |
 | kagent's bundled PostgreSQL volume, holding all conversation state | Agent Substrate's PostgreSQL volume, `data-postgres-0`, because a StatefulSet volume claim outlives its release |
-| The object storage volume holding every Actor snapshot | The `kagent`, `ate-system`, and `podcertificate-controller-system` namespaces |
+| The object storage volume holding every Actor snapshot, and the `podcertificate-controller-system` namespace with the service DNS and pod identity CA pools inside it | The `kagent` and `ate-system` namespaces |
 
 ## Uninstall kagent
 
@@ -61,11 +61,13 @@ Agent Substrate is a separate installation in the `ate-system` namespace, and no
 
 The identity material is the part most often left behind, and leaving it behind breaks the next installation rather than the current one.
 
-The install created certificate authority and JSON Web Token pools with the `kubectl ate` plugin instead of Helm, so no release owns them and no uninstall removes them. A later install that tries to create a pool that already exists fails with a message naming the secret.
+The install created the actor identity pools with the `kubectl ate` plugin instead of Helm, so no release owns them and no uninstall removes them. A later install that tries to create a pool that already exists fails with a message naming the secret.
 
 ```console
-Error: while uploading pool state to secret: secrets "service-dns-ca-pool" already exists
+Error: while uploading pool state to secret: secrets "actor-id-jwt-pool" already exists
 ```
+
+The service DNS and pod identity CA pools need no such step. Because the install created them inside `podcertificate-controller-system`, a namespace that the Agent Substrate chart owns, `helm uninstall substrate` deletes that namespace and the pools along with it.
 
 1. Delete the actor identity pools and the material derived from them.
    ```bash
@@ -73,13 +75,7 @@ Error: while uploading pool state to secret: secrets "service-dns-ca-pool" alrea
    kubectl delete configmap ate-api-authentication -n ate-system
    ```
 
-2. Delete the certificate authority pools.
-   ```bash
-   kubectl delete secret service-dns-ca-pool pod-identity-ca-pool \
-     -n podcertificate-controller-system
-   ```
-
-3. Delete the Agent Substrate database volume, which a StatefulSet volume claim keeps alive after its release is gone.
+2. Delete the Agent Substrate database volume, which a StatefulSet volume claim keeps alive after its release is gone.
    ```bash
    kubectl delete pvc data-postgres-0 -n ate-system
    ```
@@ -92,7 +88,7 @@ Error: while uploading pool state to secret: secrets "service-dns-ca-pool" alrea
 Deleting the namespaces removes anything that the preceding steps missed, including volumes left by optional components.
 
 ```bash
-kubectl delete namespace kagent ate-system podcertificate-controller-system
+kubectl delete namespace kagent ate-system
 ```
 
 Confirm that nothing remains.
@@ -102,4 +98,4 @@ kubectl get crd | grep -E 'kagent\.dev|ate\.dev'
 kubectl get ns kagent ate-system podcertificate-controller-system
 ```
 
-Both commands should report that they found nothing.
+The first command prints nothing. The second reports that it found none of the three namespaces.
