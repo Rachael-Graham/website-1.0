@@ -5,26 +5,31 @@ weight: 50
 author: kagent.dev
 ---
 
-A kagent installation has two layers, and removing it reverses the [install]({{< link path="setup/installation" >}}) in order: kagent first, then Agent Substrate underneath it. Helm removes most of each layer, but the identity material and some storage were never Helm's to begin with, so a complete uninstall ends with a manual pass. This page covers both.
+Helm removes what its releases own, but does not uninstall the identity material and some storage that it does not own.
 
-> [!CAUTION]
-> Uninstalling deletes every kagent resource in every namespace, along with all agent conversation state and all stored snapshots. None of it can be recovered afterward. Back up anything you want to keep before you start.
+Helm removes:
+
+- Every `kagent.dev` and `ate.dev` custom resource definition, and with them every Harness, AgentTemplate, WorkerPool, and SandboxConfig in the cluster
+- kagent's bundled PostgreSQL volume, holding all conversation state
+- The object storage volume holding every Actor snapshot
+- The `podcertificate-controller-system` namespace, with the service DNS and pod identity CA pools inside it
+
+Helm leaves behind:
+
+- The actor identity pools that the install created in `ate-system` with `kubectl ate`, and the `ate-api-authentication` ConfigMap beside them
+- Agent Substrate's PostgreSQL volume, `data-postgres-0`, because a StatefulSet volume claim outlives its release
+- The `kagent` and `ate-system` namespaces
+
+This guide includes both Helm steps to uninstall its owned components, and manual steps to remove separate material that can block a later reinstallation.
 
 ## Before you begin
 
-- Confirm that you have administrative access to the cluster.
-- Back up any Harness, AgentTemplate, and ModelConfig definitions that you want to keep.
-- Confirm that nothing outside kagent depends on the agents that you are about to remove.
+1. Confirm that you have administrative access to the cluster.
+2. Back up any Harness, AgentTemplate, and ModelConfig definitions that you want to keep.
+3. Confirm that nothing outside kagent depends on the agents that you are removing.
 
-## What an uninstall removes
-
-Helm removes what its releases own, and the split matters because the material it leaves behind is exactly what blocks a later reinstall.
-
-| Removed by Helm | Left behind |
-| --------------- | ----------- |
-| Every `kagent.dev` and `ate.dev` custom resource definition, and with them every Harness, AgentTemplate, WorkerPool, and SandboxConfig in the cluster | The actor identity pools that the install created in `ate-system` with `kubectl ate`, and the `ate-api-authentication` ConfigMap beside them |
-| kagent's bundled PostgreSQL volume, holding all conversation state | Agent Substrate's PostgreSQL volume, `data-postgres-0`, because a StatefulSet volume claim outlives its release |
-| The object storage volume holding every Actor snapshot, and the `podcertificate-controller-system` namespace with the service DNS and pod identity CA pools inside it | The `kagent` and `ate-system` namespaces |
+> [!CAUTION]
+> Uninstalling deletes every kagent resource in every namespace, along with all agent conversation state and all stored snapshots. None of it can be recovered afterward. Back up anything you want to keep before you start.
 
 ## Uninstall kagent
 
@@ -59,15 +64,13 @@ Agent Substrate is a separate installation in the `ate-system` namespace, and no
 
 ## Remove the identity material
 
-The identity material is the part most often left behind, and leaving it behind breaks the next installation rather than the current one.
-
 The install created the actor identity pools with the `kubectl ate` plugin instead of Helm, so no release owns them and no uninstall removes them. A later install that tries to create a pool that already exists fails with a message naming the secret.
 
 ```console
 Error: while uploading pool state to secret: secrets "actor-id-jwt-pool" already exists
 ```
 
-The service DNS and pod identity CA pools need no such step. Because the install created them inside `podcertificate-controller-system`, a namespace that the Agent Substrate chart owns, `helm uninstall substrate` deletes that namespace and the pools along with it.
+The service DNS and pod identity CA pools do not need to be manually removed. Because the install created them inside `podcertificate-controller-system`, a namespace that the Agent Substrate chart owns, `helm uninstall substrate` deletes that namespace and the pools along with it.
 
 1. Delete the actor identity pools and the material derived from them.
    ```bash
