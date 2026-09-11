@@ -81,7 +81,7 @@ Resume speed makes suspending at every turn boundary practical rather than costl
 
 A snapshot that Agent Substrate writes on suspend is transient. Agent Substrate is free to collect it once a newer snapshot supersedes it. A **checkpoint** makes one of those snapshots durable by pinning it.
 
-Creating a checkpoint attaches an ActorSnapshotTag to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently and acts as a retention pin, such that Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
+Creating a checkpoint attaches an Agent Substrate {{< gloss "Tag" >}}Tag{{< /gloss >}} to the snapshot that the AgentInstance most recently suspended to. The tag names that one snapshot permanently and acts as a retention pin, such that Agent Substrate does not collect a snapshot while a tag still names it. Deleting the checkpoint removes the tag and releases the pin.
 
 An AgentInstance must be a turn boundary to be checkpointed, because the turn boundary is captured. An AgentInstance with a turn still in progress has no quiescent boundary to capture, and the request fails until the turn finishes.
 

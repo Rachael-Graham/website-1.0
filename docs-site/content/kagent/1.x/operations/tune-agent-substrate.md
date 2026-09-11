@@ -162,7 +162,7 @@ Agent Substrate builds a path per Actor under that prefix, so one bucket serves 
 s3://ate-snapshots/kagent/atespaces/<atespace>/actors/<actor-uid>/snapshots/<snapshot-uid>
 ```
 
-A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} takes a second shape. kagent creates an Agent Substrate Tag for each checkpoint, and tagging copies the Actor's snapshot into the Tag's own prefix. A Tag holds exactly one snapshot, so its objects sit directly under `tags/` with no `snapshots/` segment. The `<tag-uid>` segment is the Tag's `metadata.uid`, so nothing in the path records the `checkpoint-<id>` name that kagent gave the Tag.
+A {{< gloss "Checkpoint" >}}checkpoint{{< /gloss >}} takes a second shape. kagent creates an Agent Substrate {{< gloss "Tag" >}}Tag{{< /gloss >}} for each checkpoint, and tagging copies the Actor's snapshot into the Tag's own prefix. A Tag holds exactly one snapshot, so its objects sit directly under `tags/` with no `snapshots/` segment. The `<tag-uid>` segment is the Tag's `metadata.uid`, so nothing in the path records the `checkpoint-<id>` name that kagent gave the Tag.
 
 ```console
 s3://ate-snapshots/kagent/atespaces/<atespace>/tags/<tag-uid>

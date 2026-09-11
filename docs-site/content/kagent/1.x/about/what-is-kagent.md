@@ -53,7 +53,7 @@ Everything works with a single `helm install`. No add-ons, no extra databases, n
 {{< feature-card title="Skills and plugins" desc="Load skills and capability packages from an Open Container Initiative (OCI) registry, Git, or S3 at startup." >}}
 {{< feature-card title="Prompt templates" desc="Reusable prompt fragments stored as ConfigMaps. Keep system prompts consistent across agents." >}}
 {{< feature-card title="Full observability" desc="OpenTelemetry tracing, Prometheus metrics, and structured logs, with control plane traces carrying the Actor that they belong to." >}}
-{{< feature-card title="Postgres storage" desc="AgentInstances are tracked in production-grade, Postgres-backed storage with reviewable migrations." >}}
+{{< feature-card title="Postgres storage" desc="AgentInstances, conversations, and compiled revisions persist in PostgreSQL with reviewable migrations. Start on the bundled instance, then point kagent at your own database." >}}
 {{< /feature-cards >}}
 
 ## Enterprise distributions

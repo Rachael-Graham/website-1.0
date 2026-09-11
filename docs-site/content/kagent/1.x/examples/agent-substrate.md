@@ -116,7 +116,7 @@ Each suspend writes a {{< gloss "Snapshot" >}}snapshot{{< /gloss >}}, and Agent 
      localhost:8083 kagent.api.v1alpha1.CheckpointService/ListCheckpoints
    ```
 
-Underneath, the checkpoint attaches an ActorSnapshotTag named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag by running `kubectl ate get actor-snapshot-tag`.
+Underneath, the checkpoint attaches a {{< gloss "Tag" >}}Tag{{< /gloss >}} named `checkpoint-<checkpoint-id>` to the snapshot, and Agent Substrate does not collect a snapshot while a tag names it. You can see the tag by running `kubectl ate get tags --atespace kagent`.
 
 ## Fork the conversation into a second agent
 
@@ -183,7 +183,7 @@ A fork runs the compiled {{< gloss "Revision" >}}revision{{< /gloss >}} that its
 
 ## Clean up
 
-1. Delete the checkpoint. Deleting removes the ActorSnapshotTag and releases the pin, and Agent Substrate can collect the snapshot whenever no tag names it.
+1. Delete the checkpoint. Deleting removes the Tag and releases the pin, and Agent Substrate can collect the snapshot whenever no tag names it.
    ```bash
    grpcurl -plaintext \
      -d '{"checkpointId":"'"$CHECKPOINT_ID"'"}' \

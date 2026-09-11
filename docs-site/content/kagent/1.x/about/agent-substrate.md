@@ -47,7 +47,7 @@ A **WorkerPool** keeps **Workers** running and ready, and one Worker hosts the *
 The diagram forks at that snapshot, because a snapshot serves two purposes.
 
 - **Resume** restores the same Actor onto **any free Worker in the pool**, which is not necessarily the Worker that it ran on before. Because the snapshot captures the Actor's full state, the conversation continues from where it left off. Every idle agent takes this path.
-- An **ActorSnapshotTag** pins that snapshot, and a **New Actor** can be seeded from the tag at the moment that it is created. Resuming an existing Actor never goes through a tag.
+- A **{{< gloss "Tag" >}}Tag{{< /gloss >}}** pins that snapshot, and a **New Actor** can be seeded from the tag at the moment that it is created. Resuming an existing Actor never goes through a tag.
 
 A tag gives a snapshot a stable, human-meaningful name, so callers do not need to track Substrate's internal snapshot identity. A tag names one snapshot permanently, and only its visibility scope can change afterward. A tag also acts as a retention pin, so Substrate does not delete a snapshot while a tag still names it.
 
