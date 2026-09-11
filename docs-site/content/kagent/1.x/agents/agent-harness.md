@@ -42,7 +42,7 @@ spec:
 EOF
 ```
 
-{{< reuse "kagent-docs/snippets/review-table.md" >}} For more information, see the [API reference]({{< link path="reference/api-ref#agentharness" >}}).
+{{< reuse "kagent-docs/snippets/review-table.md" >}} For more information, see the [API reference]({{< link path="reference/api-ref#harness" >}}).
 
 | Field | Required | Description |
 | ----- | -------- | ----------- |

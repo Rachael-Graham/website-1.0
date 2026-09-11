@@ -23,7 +23,7 @@ The first three fields are required. `isolation` is optional, and defaults to th
 | `tools[].agent.name` | The name that the parent's model sees for this binding. It replaces the bound template's own name. |
 | `tools[].agent.description` | What the binding is for. The parent's model reads this to decide when to hand work over, so it does the same job that a tool description does. |
 | `tools[].agent.templateRef.name` | The AgentTemplate to bind, in the same namespace. |
-| `tools[].agent.isolation` | Whether the bound agent runs inside the parent's {{< gloss "Actor" >}}Actor{{< /gloss >}}, as `Shared` does, or in an Actor of its own. See [Shared and Dedicated isolation]({{< link path="skills-and-mcp/about-tools#shared-and-dedicated-isolation" >}}). |
+| `tools[].agent.isolation` | Whether the bound agent runs inside the parent's {{< gloss "Actor" >}}Actor{{< /gloss >}}, as `Shared` does, or in an Actor of its own. For the two modes and the rules that a `Shared` tree must satisfy, see [Shared and Dedicated isolation]({{< link path="skills-and-mcp/about-tools#shared-and-dedicated-isolation" >}}). |
 
 > [!WARNING]
 > `Dedicated`, the mode that would give a bound agent its own Actor and sandbox, is accepted by the schema and rejected by the compiler, with `Dedicated AgentTemplate tools are not supported yet`. A template that uses it never becomes ready. Leave `isolation` unset, or set it to `Shared`.

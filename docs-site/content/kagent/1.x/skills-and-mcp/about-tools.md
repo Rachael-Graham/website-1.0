@@ -14,7 +14,7 @@ Both kinds resolve within the AgentTemplate's own namespace, so a binding cannot
 
 ## MCP tools
 
-An `mcp` binding names a server, and optionally the tools to take from it. Listing tools narrows the binding to those tools. Omitting the list, or leaving it empty, exposes every tool that the server offers.
+An `mcp` binding names a server, and optionally the tools to take from it. On the kagent and Codex harnesses, listing tools narrows the binding to those tools. Omitting the list, or leaving it empty, exposes every tool that the server offers.
 
 ```yaml
 tools:
@@ -32,8 +32,18 @@ tools:
 | ----- | ----------- |
 | `mcp.server.kind` | The kind of server resource. `RemoteMCPServer` is the only accepted value. |
 | `mcp.server.name` | The server's name, in the AgentTemplate's namespace. |
-| `mcp.tools` | Optional. The names of the tools to bind, up to 50. Duplicates are collapsed. An omitted or empty list exposes every tool on the server. |
-| `mcp.requireApproval` | Optional. Pauses the agent for a person's approval before each call to a tool that this binding exposes. Omit to run the bound tools without approval. For more information, see [Human in the loop]({{< link path="agents/human-in-the-loop" >}}). |
+| `mcp.tools` | Optional. The names of the tools to bind, up to 50. Duplicates are collapsed. An omitted or empty list exposes every tool on the server, and so does any list on the Claude harness. |
+| `mcp.requireApproval` | Optional. Pauses the agent for a person's approval before each call to a tool that this binding exposes. Omit to run the bound tools without approval. For more information, see [Human in the loop]({{< link path="agents/human-in-the-loop#require-approval-for-a-tool" >}}). |
+
+> [!WARNING]
+> **The Claude {{< gloss "Harness" >}}Harness{{< /gloss >}} ignores `mcp.tools` and exposes the whole server.** Claude's MCP configuration has no per-tool allowlist, so kagent cannot narrow a server there. The compiler records the tools that you selected in a warning on the AgentTemplate's `status.harnesses[].warnings` and then admits the {{< gloss "Revision" >}}revision{{< /gloss >}} anyway, so the agent becomes ready with every tool that the server serves. Read the warning after you bind a server:
+>
+> ```sh
+> kubectl get agenttemplate <name> -n <namespace> \
+>   -o jsonpath='{range .status.harnesses[*]}{.harness}{": "}{.warnings}{"\n"}{end}'
+> ```
+>
+> Where an agent on the Claude harness must not reach a tool, narrow the server rather than the binding. Set `requireApproval: true`, which does apply on this harness and pauses every call to the server, or give the agent its own RemoteMCPServer that serves only the tools you intend. For the bundled tool server, see the installation-level settings that drop providers and write tools in [Tools ecosystem]({{< link path="reference/tools-ecosystem#narrow-what-kagent-tool-server-serves" >}}).
 
 ## Agents as tools
 
