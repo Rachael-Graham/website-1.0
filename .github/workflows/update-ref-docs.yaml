@@ -13,20 +13,30 @@ concurrency:
 
 # The docs are a Hugo site under docs-site/ (served at /docs). This workflow
 # generates the reference pages directly as Hugo markdown into docs-site/content:
-#   - kagent CRD API ref -> docs-site/content/kagent/0.x/resources/api-ref.md
+#   - kagent CRD API ref -> docs-site/content/kagent/1.x/reference/api-ref.md
 #   - kmcp CRD API ref   -> docs-site/content/kmcp/reference/api-ref.md
-#   - kagent Helm ref     -> docs-site/content/kagent/0.x/resources/helm.md
+#   - kagent Helm ref    -> docs-site/content/kagent/1.x/reference/helm.md
 # Each page uses plain Hugo YAML frontmatter (no MDX `export const metadata`).
 #
-# Targets the 0.x (current stable) tree only — v1alpha2, the API this job
-# generates against, is what 0.x actually ships. The 1.x rewrite tracks
-# v1alpha3 and gets its API/Helm reference hand-written for now (see the
-# kagent 1.0 docs scope: Phase 4, blocked on the v1alpha3 schema settling);
-# point a similar job at docs-site/content/kagent/1.x/reference/ once that's
-# ready to automate. Note the section is named reference/ in 1.x, not
-# resources/ as in 0.x: 1.x pages link to reference/api-ref, and the provider
-# pages use crd-ref-docs anchors (#modelconfigspec, #openaiconfig, ...), so
-# keep that renderer's anchor naming when retargeting.
+# Retargeted from 0.x to 1.x on 2026-09-11. This job generates from kagent
+# main, so it can only ever be correct for the tree that main actually ships.
+# main dropped go/api/v1alpha2 in kagent 7bf6a6cd (#2696) on 2026-09-04 and
+# now ships v1alpha3, which is what 1.x documents. Between that removal and
+# this retarget the job failed every night on the missing v1alpha2 directory.
+#
+# 0.x is FROZEN and is no longer generated here. Its committed pages
+# (0.x/resources/api-ref.md and 0.x/resources/helm.md) describe v1alpha2 and
+# the 0.5.x chart, neither of which main still contains, so regenerating them
+# from main would overwrite correct frozen content with 1.0 values. Both are
+# still linked from 0.x pages, so leave them in place rather than deleting.
+#
+# The section is named reference/ in 1.x, not resources/ as in 0.x, and the
+# provider pages link to crd-ref-docs anchors (#modelconfigspec, #openaiconfig,
+# ...), so keep that renderer and its anchor naming.
+#
+# Frontmatter lives in the heredocs below, not in the generated pages: every
+# run overwrites it. Descriptions follow the 1.x convention of an imperative
+# verb and a full sentence.
 jobs:
   generate-api-docs:
     runs-on: ubuntu-latest
@@ -37,9 +47,9 @@ jobs:
 
     # Target Hugo content paths (relative to the website checkout).
     env:
-      KAGENT_API_PAGE: docs-site/content/kagent/0.x/resources/api-ref.md
+      KAGENT_API_PAGE: docs-site/content/kagent/1.x/reference/api-ref.md
       KMCP_API_PAGE: docs-site/content/kmcp/reference/api-ref.md
-      HELM_PAGE: docs-site/content/kagent/0.x/resources/helm.md
+      HELM_PAGE: docs-site/content/kagent/1.x/reference/helm.md
 
     steps:
       - name: Checkout kagent repository
@@ -74,8 +84,8 @@ jobs:
 
       - name: Verify API directory exists
         run: |
-          if [ ! -d "$GITHUB_WORKSPACE/kagent/go/api/v1alpha2" ]; then
-            echo "Error: API directory not found at $GITHUB_WORKSPACE/kagent/go/api/v1alpha2"
+          if [ ! -d "$GITHUB_WORKSPACE/kagent/go/api/v1alpha3" ]; then
+            echo "Error: API directory not found at $GITHUB_WORKSPACE/kagent/go/api/v1alpha3"
             ls -la "$GITHUB_WORKSPACE/kagent/go/api/"
             exit 1
           fi
@@ -108,7 +118,7 @@ jobs:
 
           # Generate API docs
           go run github.com/elastic/crd-ref-docs@v0.1.0 \
-            --source-path="$GITHUB_WORKSPACE/kagent/go/api/v1alpha2/" \
+            --source-path="$GITHUB_WORKSPACE/kagent/go/api/v1alpha3/" \
             --renderer=markdown \
             --output-path ./ \
             --config=crd-ref-docs-config.yaml
@@ -153,10 +163,9 @@ jobs:
           mkdir -p "$(dirname "$KAGENT_API_PAGE")"
           cat > "$KAGENT_API_PAGE" <<'EOF'
           ---
-          title: API Reference
-          linkTitle: API docs
-          description: kagent API reference documentation
-          weight: 1
+          title: API reference
+          description: Look up every field in the kagent v1alpha3 custom resources, including AgentTemplate, Harness, ModelConfig, and RemoteMCPServer.
+          weight: 10
           author: kagent.dev
           ---
 
@@ -366,10 +375,9 @@ jobs:
             mkdir -p "$(dirname "$HELM_PAGE")"
             cat > "$HELM_PAGE" <<'EOF'
             ---
-            title: kagent
-            linkTitle: Helm Chart Configuration
-            description: kagent Helm chart configuration reference
-            weight: 2
+            title: Helm reference
+            description: Look up the configurable values in the kagent Helm chart, including their defaults and types.
+            weight: 20
             author: kagent.dev
             ---
 
@@ -389,11 +397,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: website
-          commit-message: "docs: Update kagent and kmcp API reference docs"
+          commit-message: "docs: Update kagent 1.x and kmcp reference docs"
           signoff: true
-          title: "Update kagent and kmcp API reference docs"
+          title: "Update kagent 1.x and kmcp reference docs"
           body: |
-            Automated API and kagent Helm chart documentation update based on the latest commits:
+            Automated update of the kagent 1.x API and Helm references and the kmcp API reference, based on the latest commits:
             - **kagent**: [`${{ env.KAGENT_COMMIT }}`](https://github.com/${{ github.repository_owner }}/kagent/commit/${{ env.KAGENT_COMMIT }})
             - **kmcp**: [`${{ env.KMCP_COMMIT }}`](https://github.com/${{ github.repository_owner }}/kmcp/commit/${{ env.KMCP_COMMIT }})
 
