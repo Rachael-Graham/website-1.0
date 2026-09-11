@@ -126,11 +126,17 @@ params:
           dropdown: "0.x (current)"
           linkVersion: "0.x"
           url: "/kagent/0.x"
-        - version: "1.x"
-          dropdown: "1.x (preview)"
-          linkVersion: "1.x"
-          url: "/kagent/1.x"
-          banner: "This is preview documentation for the upcoming kagent 1.0 release. It is incomplete and may change without notice."
+        # The "1.x" entry is deliberately absent until the 1.0 release is
+        # announced. This list drives the version switcher independently of
+        # whether the pages exist, so leaving the entry here while the content
+        # is drafted publishes a "1.x (preview)" menu item pointing at a 404.
+        # Restore it alongside the draft keys in content/kagent/1.x/_index.md:
+        #
+        #   - version: "1.x"
+        #     dropdown: "1.x (preview)"
+        #     linkVersion: "1.x"
+        #     url: "/kagent/1.x"
+        #     banner: "This is preview documentation for the upcoming kagent 1.0 release. It is incomplete and may change without notice."
 
 # Top nav — mirrors kagent.dev. Docs is local; the marketing/blog sections stay
 # on the Next.js site, so those link out to absolute kagent.dev URLs.
